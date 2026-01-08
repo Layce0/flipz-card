@@ -10,7 +10,7 @@ import { Shield, Plus, Image, Trash2, Upload, Loader2, Gift } from 'lucide-react
 import { Rarity, RARITY_CONFIG } from '@/types/card';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import { useAllCards, useCreateCard, useDeleteCard, useUploadCardImage, useGiveCard } from '@/hooks/useCards';
+import { useAllCards, useCreateCard, useDeleteCard, useUploadCardImage, useGiveCard, useAllProfiles } from '@/hooks/useCards';
 import { cn } from '@/lib/utils';
 
 const Admin = () => {
@@ -19,6 +19,7 @@ const Admin = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { data: cards = [], isLoading: cardsLoading } = useAllCards();
+  const { data: profiles = [], isLoading: profilesLoading } = useAllProfiles();
   const createCard = useCreateCard();
   const deleteCard = useDeleteCard();
   const uploadImage = useUploadCardImage();
@@ -271,15 +272,30 @@ const Admin = () => {
           </h2>
           <form onSubmit={handleGiveCard} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="userId">ID de l'utilisateur</Label>
-              <Input
-                id="userId"
-                value={giveFormData.userId}
-                onChange={(e) => setGiveFormData({ ...giveFormData, userId: e.target.value })}
-                placeholder="Ex: 45e8f25e-98bf-44a0-b6de-6a998fd276e4"
-                required
-                className="bg-card border-border font-mono text-sm"
-              />
+              <Label>Utilisateur</Label>
+              <Select 
+                value={giveFormData.userId} 
+                onValueChange={(value) => setGiveFormData({ ...giveFormData, userId: value })}
+              >
+                <SelectTrigger className="bg-card border-border">
+                  <SelectValue placeholder="Sélectionner un utilisateur" />
+                </SelectTrigger>
+                <SelectContent>
+                  {profilesLoading ? (
+                    <div className="flex justify-center py-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    </div>
+                  ) : profiles.length === 0 ? (
+                    <div className="text-sm text-muted-foreground p-2">Aucun utilisateur</div>
+                  ) : (
+                    profiles.map((profile) => (
+                      <SelectItem key={profile.id} value={profile.id}>
+                        {profile.email}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">

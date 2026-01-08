@@ -2,21 +2,18 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { GameCard, Rarity } from '@/types/card';
 
-// Fetch all users (admin only)
-export const useAllUsers = () => {
+// Fetch all profiles (admin - to give cards)
+export const useAllProfiles = () => {
   return useQuery({
-    queryKey: ['users'],
+    queryKey: ['profiles'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('user_cards')
-        .select('user_id')
-        .order('obtained_at', { ascending: false });
+        .from('profiles')
+        .select('id, email, created_at')
+        .order('created_at', { ascending: false });
       
       if (error) throw error;
-      
-      // Get unique user IDs
-      const uniqueUserIds = [...new Set(data.map(uc => uc.user_id))];
-      return uniqueUserIds;
+      return data as { id: string; email: string; created_at: string }[];
     },
   });
 };
