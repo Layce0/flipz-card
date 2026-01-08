@@ -2,6 +2,43 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { GameCard, Rarity } from '@/types/card';
 
+// Fetch all users (admin only)
+export const useAllUsers = () => {
+  return useQuery({
+    queryKey: ['users'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('user_cards')
+        .select('user_id')
+        .order('obtained_at', { ascending: false });
+      
+      if (error) throw error;
+      
+      // Get unique user IDs
+      const uniqueUserIds = [...new Set(data.map(uc => uc.user_id))];
+      return uniqueUserIds;
+    },
+  });
+};
+
+// Give a card to a user (admin)
+export const useGiveCard = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ userId, cardId }: { userId: string; cardId: string }) => {
+      const { error } = await supabase
+        .from('user_cards')
+        .insert({ user_id: userId, card_id: cardId });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-cards'] });
+    },
+  });
+};
+
 // Fetch all cards
 export const useAllCards = () => {
   return useQuery({
