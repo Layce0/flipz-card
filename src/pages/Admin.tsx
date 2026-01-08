@@ -6,11 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Shield, Plus, Image, Trash2, Upload, Loader2 } from 'lucide-react';
+import { Shield, Plus, Image, Trash2, Upload, Loader2, Gift } from 'lucide-react';
 import { Rarity, RARITY_CONFIG } from '@/types/card';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import { useAllCards, useCreateCard, useDeleteCard, useUploadCardImage } from '@/hooks/useCards';
+import { useAllCards, useCreateCard, useDeleteCard, useUploadCardImage, useGiveCard } from '@/hooks/useCards';
 import { cn } from '@/lib/utils';
 
 const Admin = () => {
@@ -22,6 +22,12 @@ const Admin = () => {
   const createCard = useCreateCard();
   const deleteCard = useDeleteCard();
   const uploadImage = useUploadCardImage();
+  const giveCard = useGiveCard();
+
+  const [giveFormData, setGiveFormData] = useState({
+    userId: '',
+    cardId: '',
+  });
 
   const [formData, setFormData] = useState({
     title: '',
@@ -81,6 +87,23 @@ const Admin = () => {
       toast.success('Carte supprimée');
     } catch (error) {
       toast.error("Erreur lors de la suppression");
+    }
+  };
+
+  const handleGiveCard = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!giveFormData.userId || !giveFormData.cardId) {
+      toast.error("Veuillez remplir tous les champs");
+      return;
+    }
+
+    try {
+      await giveCard.mutateAsync({ userId: giveFormData.userId, cardId: giveFormData.cardId });
+      toast.success('Carte donnée avec succès !');
+      setGiveFormData({ userId: '', cardId: '' });
+    } catch (error) {
+      toast.error("Erreur lors de l'attribution de la carte");
     }
   };
 
@@ -234,6 +257,70 @@ const Admin = () => {
                 <>
                   <Plus className="w-4 h-4" />
                   Créer la carte
+                </>
+              )}
+            </Button>
+          </form>
+        </section>
+
+        {/* Give card to user */}
+        <section>
+          <h2 className="font-display text-lg mb-4 text-foreground flex items-center gap-2">
+            <Gift className="w-5 h-5 text-primary" />
+            Donner une carte
+          </h2>
+          <form onSubmit={handleGiveCard} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="userId">ID de l'utilisateur</Label>
+              <Input
+                id="userId"
+                value={giveFormData.userId}
+                onChange={(e) => setGiveFormData({ ...giveFormData, userId: e.target.value })}
+                placeholder="Ex: 45e8f25e-98bf-44a0-b6de-6a998fd276e4"
+                required
+                className="bg-card border-border font-mono text-sm"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Carte à donner</Label>
+              <Select 
+                value={giveFormData.cardId} 
+                onValueChange={(value) => setGiveFormData({ ...giveFormData, cardId: value })}
+              >
+                <SelectTrigger className="bg-card border-border">
+                  <SelectValue placeholder="Sélectionner une carte" />
+                </SelectTrigger>
+                <SelectContent>
+                  {cards.map((card) => (
+                    <SelectItem key={card.id} value={card.id}>
+                      <div className="flex items-center gap-2">
+                        <span>{card.title}</span>
+                        <span 
+                          className="text-xs"
+                          style={{ color: RARITY_CONFIG[card.rarity as Rarity]?.color }}
+                        >
+                          ({RARITY_CONFIG[card.rarity as Rarity]?.label})
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button 
+              type="submit" 
+              variant="mystical" 
+              className="w-full"
+              disabled={giveCard.isPending}
+            >
+              {giveCard.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <>
+                  <Gift className="w-4 h-4" />
+                  Donner la carte
                 </>
               )}
             </Button>
