@@ -52,7 +52,7 @@ export const useAllCards = () => {
   });
 };
 
-// Fetch user's collected cards
+// Fetch user's collected cards with stacking (count duplicates)
 export const useUserCards = (userId: string | undefined) => {
   return useQuery({
     queryKey: ['user-cards', userId],
@@ -71,32 +71,103 @@ export const useUserCards = (userId: string | undefined) => {
       
       if (error) throw error;
       
-      return data.map(uc => ({
-        ...uc.cards,
-        obtained_at: uc.obtained_at,
-      })) as (GameCard & { obtained_at: string })[];
+      // Group cards by card_id and count duplicates
+      const cardCountMap = new Map<string, { card: GameCard; count: number; obtained_at: string }>();
+      
+      data.forEach(uc => {
+        const cardId = uc.card_id;
+        const existing = cardCountMap.get(cardId);
+        if (existing) {
+          existing.count += 1;
+          // Keep the earliest obtained_at
+          if (new Date(uc.obtained_at) < new Date(existing.obtained_at)) {
+            existing.obtained_at = uc.obtained_at;
+          }
+        } else {
+          cardCountMap.set(cardId, {
+            card: uc.cards as unknown as GameCard,
+            count: 1,
+            obtained_at: uc.obtained_at,
+          });
+        }
+      });
+      
+      return Array.from(cardCountMap.values()).map(({ card, count, obtained_at }) => ({
+        ...card,
+        count,
+        obtained_at,
+      }));
     },
     enabled: !!userId,
   });
 };
 
-// Get today's card
-export const useTodayCard = () => {
+export type UserCardWithCount = GameCard & { obtained_at: string; count: number };
+
+// Get today's card - random per user based on date + userId
+export const useTodayCard = (userId: string | undefined) => {
   return useQuery({
-    queryKey: ['today-card'],
+    queryKey: ['today-card', userId],
     queryFn: async () => {
       const today = new Date().toISOString().split('T')[0];
       
-      const { data, error } = await supabase
+      // Get all available cards
+      const { data: cards, error } = await supabase
         .from('cards')
         .select('*')
-        .lte('release_date', today)
-        .order('release_date', { ascending: false })
-        .limit(1)
-        .single();
+        .lte('release_date', today);
       
-      if (error && error.code !== 'PGRST116') throw error;
-      return data as GameCard | null;
+      if (error) throw error;
+      if (!cards || cards.length === 0) return null;
+      
+      // Use a seeded random based on date + userId to get consistent card per user per day
+      const seed = `${today}-${userId || 'anonymous'}`;
+      const hash = seed.split('').reduce((acc, char) => {
+        return ((acc << 5) - acc) + char.charCodeAt(0);
+      }, 0);
+      const index = Math.abs(hash) % cards.length;
+      
+      return cards[index] as GameCard;
+    },
+  });
+};
+
+// Get random cards for pack opening
+export const useRandomCards = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ count }: { count: number }) => {
+      const { data: cards, error } = await supabase
+        .from('cards')
+        .select('*');
+      
+      if (error) throw error;
+      if (!cards || cards.length === 0) return [];
+      
+      // Pick random cards with rarity weighting
+      const rarityWeights: Record<string, number> = {
+        common: 60,
+        rare: 25,
+        epic: 12,
+        legendary: 3,
+      };
+      
+      const weightedCards: GameCard[] = [];
+      cards.forEach(card => {
+        const weight = rarityWeights[card.rarity] || 1;
+        for (let i = 0; i < weight; i++) {
+          weightedCards.push(card as GameCard);
+        }
+      });
+      
+      const result: GameCard[] = [];
+      for (let i = 0; i < count; i++) {
+        const randomIndex = Math.floor(Math.random() * weightedCards.length);
+        result.push(weightedCards[randomIndex]);
+      }
+      
+      return result;
     },
   });
 };

@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, BookOpen, Shield, LogIn, LogOut } from 'lucide-react';
+import { Home, BookOpen, Package, Shield, LogIn, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -10,6 +10,7 @@ export const Navigation = () => {
   const navItems = [
     { path: '/', icon: Home, label: 'Accueil', show: true },
     { path: '/collection', icon: BookOpen, label: 'Collection', show: true },
+    { path: '/packs', icon: Package, label: 'Packs', show: true },
     { path: '/admin', icon: Shield, label: 'Admin', show: isAdmin },
     { path: '/auth', icon: LogIn, label: 'Connexion', show: !user },
   ];

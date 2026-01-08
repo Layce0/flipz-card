@@ -7,10 +7,11 @@ import { Button } from '@/components/ui/button';
 interface CollectionBookProps {
   allCards: GameCard[];
   collectedCardIds: Set<string>;
+  cardCountMap: Map<string, number>;
   activeRarity: Rarity | 'all';
 }
 
-export const CollectionBook = ({ allCards, collectedCardIds, activeRarity }: CollectionBookProps) => {
+export const CollectionBook = ({ allCards, collectedCardIds, cardCountMap, activeRarity }: CollectionBookProps) => {
   const [currentPage, setCurrentPage] = useState(0);
   const cardsPerPage = 4;
 
@@ -56,11 +57,13 @@ export const CollectionBook = ({ allCards, collectedCardIds, activeRarity }: Col
         <div className="grid grid-cols-2 gap-4 relative z-10">
           {currentCards.map((card) => {
             const isCollected = collectedCardIds.has(card.id);
+            const count = cardCountMap.get(card.id) || 0;
             return (
               <CardSlot 
                 key={card.id} 
                 card={card} 
-                isCollected={isCollected} 
+                isCollected={isCollected}
+                count={count}
               />
             );
           })}
@@ -125,7 +128,7 @@ export const CollectionBook = ({ allCards, collectedCardIds, activeRarity }: Col
 };
 
 // Card slot component
-const CardSlot = ({ card, isCollected }: { card: GameCard; isCollected: boolean }) => {
+const CardSlot = ({ card, isCollected, count }: { card: GameCard; isCollected: boolean; count: number }) => {
   const rarityConfig = RARITY_CONFIG[card.rarity];
 
   if (!isCollected) {
@@ -179,6 +182,13 @@ const CardSlot = ({ card, isCollected }: { card: GameCard; isCollected: boolean 
           </span>
           <h4 className="font-display text-sm text-foreground truncate">{card.title}</h4>
         </div>
+        
+        {/* Card count badge */}
+        {count > 1 && (
+          <div className="absolute top-2 right-2 bg-primary text-primary-foreground px-2 py-1 rounded-full text-xs font-bold shadow-lg">
+            ×{count}
+          </div>
+        )}
 
         {card.rarity === 'legendary' && (
           <div className="shimmer absolute inset-0 pointer-events-none" />

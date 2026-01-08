@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Collection from "./pages/Collection";
+import Packs from "./pages/Packs";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -22,6 +23,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/collection" element={<Collection />} />
+            <Route path="/packs" element={<Packs />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="*" element={<NotFound />} />
