@@ -14,7 +14,7 @@ const Index = () => {
   const { user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   
-  const { data: todayCard, isLoading: cardLoading } = useTodayCard();
+  const { data: todayCard, isLoading: cardLoading } = useTodayCard(user?.id);
   const { data: hasCollected, isLoading: collectedLoading } = useHasCollectedToday(user?.id, todayCard?.id);
   const collectCard = useCollectCard();
 

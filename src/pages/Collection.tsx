@@ -6,7 +6,7 @@ import { RarityTabs } from '@/components/RarityTabs';
 import { Rarity } from '@/types/card';
 import { BookOpen, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useAllCards, useUserCards } from '@/hooks/useCards';
+import { useAllCards, useUserCards, UserCardWithCount } from '@/hooks/useCards';
 
 const Collection = () => {
   const [activeRarity, setActiveRarity] = useState<Rarity | 'all'>('all');
@@ -23,6 +23,12 @@ const Collection = () => {
   }, [user, authLoading, navigate]);
 
   const collectedCardIds = new Set(userCards.map(card => card.id));
+  
+  // Create a map of card counts for display
+  const cardCountMap = new Map(userCards.map(card => [card.id, card.count]));
+  
+  // Count total unique cards vs total including duplicates
+  const totalCardsCollected = userCards.reduce((sum, card) => sum + card.count, 0);
 
   const counts = {
     all: allCards.length,
@@ -65,7 +71,7 @@ const Collection = () => {
           <div>
             <h1 className="font-display text-xl text-foreground">Ma Collection</h1>
             <p className="text-sm text-muted-foreground">
-              {userCards.length} / {allCards.length} cartes collectées
+              {userCards.length} / {allCards.length} cartes uniques ({totalCardsCollected} total)
             </p>
           </div>
         </div>
@@ -93,6 +99,7 @@ const Collection = () => {
           <CollectionBook 
             allCards={allCards}
             collectedCardIds={collectedCardIds}
+            cardCountMap={cardCountMap}
             activeRarity={activeRarity}
           />
         )}
