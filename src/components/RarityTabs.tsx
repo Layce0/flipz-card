@@ -5,16 +5,19 @@ interface RarityTabsProps {
   activeRarity: Rarity | 'all';
   onRarityChange: (rarity: Rarity | 'all') => void;
   counts: Record<Rarity | 'all', number>;
+  collectedCounts?: Record<Rarity | 'all', number>;
 }
 
 const rarities: (Rarity | 'all')[] = ['all', 'common', 'rare', 'epic', 'legendary'];
 
-export const RarityTabs = ({ activeRarity, onRarityChange, counts }: RarityTabsProps) => {
+export const RarityTabs = ({ activeRarity, onRarityChange, counts, collectedCounts }: RarityTabsProps) => {
   return (
     <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
       {rarities.map((rarity) => {
         const isActive = activeRarity === rarity;
         const config = rarity === 'all' ? null : RARITY_CONFIG[rarity];
+        const count = counts[rarity];
+        const collected = collectedCounts?.[rarity];
         
         return (
           <button
@@ -37,7 +40,9 @@ export const RarityTabs = ({ activeRarity, onRarityChange, counts }: RarityTabsP
             }
           >
             {rarity === 'all' ? 'Toutes' : config?.label}
-            <span className="ml-2 text-xs opacity-70">({counts[rarity]})</span>
+            <span className="ml-2 text-xs opacity-70">
+              {collectedCounts ? `(${collected}/${count})` : `(${count})`}
+            </span>
           </button>
         );
       })}
