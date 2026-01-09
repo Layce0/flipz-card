@@ -132,30 +132,38 @@ export const useTodayCard = (userId: string | undefined) => {
   });
 };
 
-// Get random cards for pack opening
+// Get random cards for pack opening - now uses database drop rates
 export const useRandomCards = () => {
-  const queryClient = useQueryClient();
-  
   return useMutation({
     mutationFn: async ({ count }: { count: number }) => {
-      const { data: cards, error } = await supabase
-        .from('cards')
-        .select('*');
+      // Fetch cards and drop rates in parallel
+      const [cardsResult, ratesResult] = await Promise.all([
+        supabase.from('cards').select('*'),
+        supabase.from('drop_rates').select('*')
+      ]);
       
-      if (error) throw error;
-      if (!cards || cards.length === 0) return [];
+      if (cardsResult.error) throw cardsResult.error;
+      if (ratesResult.error) throw ratesResult.error;
       
-      // Pick random cards with rarity weighting
-      const rarityWeights: Record<string, number> = {
-        common: 60,
-        rare: 25,
-        epic: 12,
-        legendary: 3,
+      const cards = cardsResult.data || [];
+      const dropRates = ratesResult.data || [];
+      
+      if (cards.length === 0) return [];
+      
+      // Build rarity weights from database
+      const rarityWeights: Record<string, number> = {};
+      dropRates.forEach(dr => {
+        rarityWeights[dr.rarity] = dr.rate;
+      });
+      
+      // Fallback weights if not in database
+      const defaultWeights: Record<string, number> = {
+        common: 60, rare: 25, epic: 12, legendary: 3
       };
       
       const weightedCards: GameCard[] = [];
       cards.forEach(card => {
-        const weight = rarityWeights[card.rarity] || 1;
+        const weight = rarityWeights[card.rarity] ?? defaultWeights[card.rarity] ?? 1;
         for (let i = 0; i < weight; i++) {
           weightedCards.push(card as GameCard);
         }
@@ -168,6 +176,40 @@ export const useRandomCards = () => {
       }
       
       return result;
+    },
+  });
+};
+
+// Delete user cards (for trading)
+export const useDeleteUserCards = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ userId, cardId, count }: { userId: string; cardId: string; count: number }) => {
+      // Fetch the user's cards with this card_id
+      const { data: userCards, error: fetchError } = await supabase
+        .from('user_cards')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('card_id', cardId)
+        .limit(count);
+      
+      if (fetchError) throw fetchError;
+      if (!userCards || userCards.length < count) {
+        throw new Error('Not enough cards to trade');
+      }
+      
+      // Delete the specified number of cards
+      const idsToDelete = userCards.slice(0, count).map(uc => uc.id);
+      const { error: deleteError } = await supabase
+        .from('user_cards')
+        .delete()
+        .in('id', idsToDelete);
+      
+      if (deleteError) throw deleteError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-cards'] });
     },
   });
 };
