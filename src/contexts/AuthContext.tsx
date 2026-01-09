@@ -14,7 +14,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const ADMIN_EMAIL = 'layce.industry.v2@gmail.com';
+const ADMIN_EMAILS = ['layce.industry.v2@gmail.com', 'albanvigneau64@gmail.com'];
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         // Check if user is admin
         if (session?.user) {
-          const isAdminUser = session.user.email === ADMIN_EMAIL;
+          const isAdminUser = ADMIN_EMAILS.includes(session.user.email || '');
           setIsAdmin(isAdminUser);
           
           // Defer role check to avoid deadlock
@@ -54,7 +54,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        const isAdminUser = session.user.email === ADMIN_EMAIL;
+        const isAdminUser = ADMIN_EMAILS.includes(session.user.email || '');
         setIsAdmin(isAdminUser);
         
         if (isAdminUser) {

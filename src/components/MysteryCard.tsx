@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { GameCard, RARITY_CONFIG } from '@/types/card';
 import { cn } from '@/lib/utils';
-import { Sparkles } from 'lucide-react';
+import { HelpCircle } from 'lucide-react';
 
 interface MysteryCardProps {
   card: GameCard;
@@ -42,8 +42,8 @@ export const MysteryCard = ({ card, isRevealed = false, onReveal, size = 'md' }:
         {/* Card Back */}
         <div className="flip-card-front absolute inset-0 rounded-2xl bg-gradient-to-br from-secondary via-card to-accent border-2 border-primary/40 card-shadow overflow-hidden">
           <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
-            <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mb-4 pulse-glow">
-              <Sparkles className="w-10 h-10 text-primary" />
+            <div className="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center mb-4 pulse-glow">
+              <HelpCircle className="w-14 h-14 text-primary" />
             </div>
             <p className="font-display text-lg text-center text-primary">Carte Mystère</p>
             <p className="text-sm text-muted-foreground mt-2">Touchez pour révéler</p>
