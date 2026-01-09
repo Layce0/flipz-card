@@ -18,25 +18,29 @@ export interface UserCard {
   card: GameCard;
 }
 
-export const RARITY_CONFIG: Record<Rarity, { label: string; color: string; bgClass: string }> = {
+export const RARITY_CONFIG: Record<Rarity, { label: string; color: string; bgClass: string; dropRate: number }> = {
   common: {
     label: 'Commun',
     color: 'hsl(220, 10%, 50%)',
     bgClass: 'rarity-common',
+    dropRate: 60,
   },
   rare: {
     label: 'Rare',
     color: 'hsl(210, 80%, 55%)',
     bgClass: 'rarity-rare',
+    dropRate: 25,
   },
   epic: {
     label: 'Épique',
     color: 'hsl(280, 70%, 55%)',
     bgClass: 'rarity-epic',
+    dropRate: 12,
   },
   legendary: {
     label: 'Légendaire',
     color: 'hsl(45, 95%, 55%)',
     bgClass: 'rarity-legendary',
+    dropRate: 3,
   },
 };

@@ -17,6 +17,7 @@ const Packs = () => {
   const [revealedCards, setRevealedCards] = useState<GameCard[]>([]);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [isRevealing, setIsRevealing] = useState(false);
+  const [cardRevealed, setCardRevealed] = useState(false);
   
   const getRandomCards = useRandomCards();
   const collectCard = useCollectCard();
@@ -49,6 +50,13 @@ const Packs = () => {
   const handleRevealCard = async () => {
     if (!user || currentCardIndex >= revealedCards.length) return;
     
+    // If card not yet revealed, just reveal it
+    if (!cardRevealed) {
+      setCardRevealed(true);
+      return;
+    }
+    
+    // Card is revealed, now collect and move to next
     const card = revealedCards[currentCardIndex];
     
     try {
@@ -62,6 +70,7 @@ const Packs = () => {
     
     if (currentCardIndex < revealedCards.length - 1) {
       setCurrentCardIndex(prev => prev + 1);
+      setCardRevealed(false); // Reset for next card
     } else {
       // All cards revealed
       toast.success(`${revealedCards.length} cartes ajoutées à votre collection !`);
@@ -72,6 +81,7 @@ const Packs = () => {
     setRevealedCards([]);
     setCurrentCardIndex(0);
     setIsRevealing(false);
+    setCardRevealed(false);
   };
 
   if (authLoading) {
@@ -162,8 +172,9 @@ const Packs = () => {
               
               {revealedCards[currentCardIndex] && (
                 <MysteryCard
+                  key={currentCardIndex}
                   card={revealedCards[currentCardIndex]}
-                  isRevealed={false}
+                  isRevealed={cardRevealed}
                   onReveal={handleRevealCard}
                   size="lg"
                 />
@@ -189,9 +200,12 @@ const Packs = () => {
 
             <p className="text-muted-foreground text-sm">
               Carte {currentCardIndex + 1} / {revealedCards.length}
+              {cardRevealed && currentCardIndex < revealedCards.length - 1 && (
+                <span className="block text-xs mt-1">Touchez pour la suivante</span>
+              )}
             </p>
 
-            {currentCardIndex >= revealedCards.length - 1 && (
+            {cardRevealed && currentCardIndex >= revealedCards.length - 1 && (
               <Button variant="outline" onClick={handleClose} className="mt-4">
                 Fermer
               </Button>

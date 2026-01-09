@@ -343,6 +343,34 @@ const Admin = () => {
           </form>
         </section>
 
+        {/* Drop rates info */}
+        <section>
+          <h2 className="font-display text-lg mb-4 text-foreground">
+            Taux d'obtention
+          </h2>
+          <div className="grid grid-cols-2 gap-3">
+            {Object.entries(RARITY_CONFIG).map(([key, config]) => (
+              <div 
+                key={key}
+                className="p-4 rounded-xl bg-card border border-border"
+              >
+                <div className="flex items-center justify-between">
+                  <span 
+                    className={cn(
+                      "px-2 py-0.5 rounded-full text-xs font-semibold uppercase",
+                      config.bgClass
+                    )}
+                    style={{ color: key === 'legendary' ? 'hsl(240, 20%, 6%)' : 'white' }}
+                  >
+                    {config.label}
+                  </span>
+                  <span className="text-xl font-bold text-foreground">{config.dropRate}%</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* Card list */}
         <section>
           <h2 className="font-display text-lg mb-4 text-foreground">
