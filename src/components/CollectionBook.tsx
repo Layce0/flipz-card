@@ -183,12 +183,10 @@ const CardSlot = ({ card, isCollected, count }: { card: GameCard; isCollected: b
           <h4 className="font-display text-sm text-foreground truncate">{card.title}</h4>
         </div>
         
-        {/* Card count badge */}
-        {count > 1 && (
-          <div className="absolute top-2 right-2 bg-primary text-primary-foreground px-2 py-1 rounded-full text-xs font-bold shadow-lg">
-            ×{count}
-          </div>
-        )}
+        {/* Card count badge - always show */}
+        <div className="absolute top-2 right-2 bg-primary text-primary-foreground px-2 py-1 rounded-full text-xs font-bold shadow-lg">
+          ×{count}
+        </div>
 
         {card.rarity === 'legendary' && (
           <div className="shimmer absolute inset-0 pointer-events-none" />
