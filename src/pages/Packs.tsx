@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { MysteryCard } from '@/components/MysteryCard';
-import { Package, Play, Sparkles, Loader2, X } from 'lucide-react';
+import { Package, Play, Loader2, X, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRandomCards, useCollectCard } from '@/hooks/useCards';
 import { toast } from 'sonner';
@@ -50,30 +50,32 @@ const Packs = () => {
   const handleRevealCard = async () => {
     if (!user || currentCardIndex >= revealedCards.length) return;
     
-    // If card not yet revealed, just reveal it
+    // If card not yet revealed, reveal it and collect it
     if (!cardRevealed) {
       setCardRevealed(true);
+      
+      // Collect the card immediately when revealed
+      const card = revealedCards[currentCardIndex];
+      try {
+        await collectCard.mutateAsync({ userId: user.id, cardId: card.id });
+      } catch (error: any) {
+        // Ignore duplicate errors
+        if (error?.code !== '23505') {
+          console.error('Error collecting card:', error);
+        }
+      }
       return;
     }
-    
-    // Card is revealed, now collect and move to next
-    const card = revealedCards[currentCardIndex];
-    
-    try {
-      await collectCard.mutateAsync({ userId: user.id, cardId: card.id });
-    } catch (error: any) {
-      // Ignore duplicate errors
-      if (error?.code !== '23505') {
-        console.error('Error collecting card:', error);
-      }
-    }
-    
+  };
+
+  const handleNextCard = () => {
     if (currentCardIndex < revealedCards.length - 1) {
       setCurrentCardIndex(prev => prev + 1);
-      setCardRevealed(false); // Reset for next card
+      setCardRevealed(false);
     } else {
       // All cards revealed
       toast.success(`${revealedCards.length} cartes ajoutées à votre collection !`);
+      handleClose();
     }
   };
 
@@ -200,14 +202,24 @@ const Packs = () => {
 
             <p className="text-muted-foreground text-sm">
               Carte {currentCardIndex + 1} / {revealedCards.length}
-              {cardRevealed && currentCardIndex < revealedCards.length - 1 && (
-                <span className="block text-xs mt-1">Touchez pour la suivante</span>
-              )}
             </p>
 
-            {cardRevealed && currentCardIndex >= revealedCards.length - 1 && (
-              <Button variant="outline" onClick={handleClose} className="mt-4">
-                Fermer
+            {/* Next button - appears after card is revealed */}
+            {cardRevealed && (
+              <Button 
+                variant="gold" 
+                size="lg"
+                onClick={handleNextCard}
+                className="mt-4 gap-2"
+              >
+                {currentCardIndex < revealedCards.length - 1 ? (
+                  <>
+                    Carte suivante
+                    <ChevronRight className="w-5 h-5" />
+                  </>
+                ) : (
+                  'Terminer'
+                )}
               </Button>
             )}
           </>
