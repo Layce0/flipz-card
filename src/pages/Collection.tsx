@@ -4,7 +4,8 @@ import { Navigation } from '@/components/Navigation';
 import { CollectionBook } from '@/components/CollectionBook';
 import { RarityTabs } from '@/components/RarityTabs';
 import { CardTradeDialog } from '@/components/CardTradeDialog';
-import { Rarity } from '@/types/card';
+import { CardDetailDialog } from '@/components/CardDetailDialog';
+import { GameCard, Rarity } from '@/types/card';
 import { BookOpen, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAllCards, useUserCards, UserCardWithCount, useDeleteUserCards, useRandomCards, useCollectCard } from '@/hooks/useCards';
@@ -22,6 +23,11 @@ const Collection = () => {
   const getRandomCards = useRandomCards();
   const collectCard = useCollectCard();
   const [isTrading, setIsTrading] = useState(false);
+  
+  // Card detail dialog state
+  const [selectedCard, setSelectedCard] = useState<GameCard | null>(null);
+  const [selectedCardCount, setSelectedCardCount] = useState(0);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -65,6 +71,18 @@ const Collection = () => {
     } finally {
       setIsTrading(false);
     }
+  };
+
+  const handleCardClick = (card: GameCard, count: number) => {
+    setSelectedCard(card);
+    setSelectedCardCount(count);
+    setDetailOpen(true);
+  };
+
+  const handleTradeFromDetail = async (cardId: string) => {
+    await handleTrade(cardId);
+    // Update the selected card count after trade
+    setSelectedCardCount(prev => prev - 3);
   };
 
   const counts = {
@@ -146,9 +164,20 @@ const Collection = () => {
             collectedCardIds={collectedCardIds}
             cardCountMap={cardCountMap}
             activeRarity={activeRarity}
+            onCardClick={handleCardClick}
           />
         )}
       </main>
+
+      {/* Card detail dialog */}
+      <CardDetailDialog
+        card={selectedCard}
+        count={selectedCardCount}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        onTrade={handleTradeFromDetail}
+        isTrading={isTrading}
+      />
 
       <Navigation />
     </div>

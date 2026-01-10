@@ -9,9 +9,10 @@ interface CollectionBookProps {
   collectedCardIds: Set<string>;
   cardCountMap: Map<string, number>;
   activeRarity: Rarity | 'all';
+  onCardClick?: (card: GameCard, count: number) => void;
 }
 
-export const CollectionBook = ({ allCards, collectedCardIds, cardCountMap, activeRarity }: CollectionBookProps) => {
+export const CollectionBook = ({ allCards, collectedCardIds, cardCountMap, activeRarity, onCardClick }: CollectionBookProps) => {
   const [currentPage, setCurrentPage] = useState(0);
   const cardsPerPage = 4;
 
@@ -64,6 +65,7 @@ export const CollectionBook = ({ allCards, collectedCardIds, cardCountMap, activ
                 card={card} 
                 isCollected={isCollected}
                 count={count}
+                onClick={() => isCollected && onCardClick?.(card, count)}
               />
             );
           })}
@@ -128,7 +130,7 @@ export const CollectionBook = ({ allCards, collectedCardIds, cardCountMap, activ
 };
 
 // Card slot component
-const CardSlot = ({ card, isCollected, count }: { card: GameCard; isCollected: boolean; count: number }) => {
+const CardSlot = ({ card, isCollected, count, onClick }: { card: GameCard; isCollected: boolean; count: number; onClick?: () => void }) => {
   const rarityConfig = RARITY_CONFIG[card.rarity];
 
   if (!isCollected) {
@@ -146,7 +148,7 @@ const CardSlot = ({ card, isCollected, count }: { card: GameCard; isCollected: b
   }
 
   return (
-    <div className="relative group">
+    <div className="relative group cursor-pointer" onClick={onClick}>
       <div 
         className={cn(
           "absolute -inset-1 rounded-xl opacity-50 group-hover:opacity-100 transition-opacity blur-sm",
