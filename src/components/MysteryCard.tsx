@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { GameCard, RARITY_CONFIG } from '@/types/card';
 import { cn } from '@/lib/utils';
 import { HelpCircle } from 'lucide-react';
@@ -12,6 +12,13 @@ interface MysteryCardProps {
 
 export const MysteryCard = ({ card, isRevealed = false, onReveal, size = 'md' }: MysteryCardProps) => {
   const [flipped, setFlipped] = useState(isRevealed);
+
+  // Sync flipped state with isRevealed prop
+  useEffect(() => {
+    if (isRevealed) {
+      setFlipped(true);
+    }
+  }, [isRevealed]);
   const rarityConfig = RARITY_CONFIG[card.rarity];
 
   const sizeClasses = {
