@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, BookOpen, Package, Shield, LogIn, LogOut } from 'lucide-react';
+import { Home, BookOpen, Package, Shield, LogIn, LogOut, Store } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -11,6 +11,7 @@ export const Navigation = () => {
     { path: '/', icon: Home, label: 'Accueil', show: true },
     { path: '/collection', icon: BookOpen, label: 'Collection', show: true },
     { path: '/packs', icon: Package, label: 'Packs', show: true },
+    { path: '/shop', icon: Store, label: 'Boutique', show: !!user },
     { path: '/admin', icon: Shield, label: 'Admin', show: isAdmin },
     { path: '/auth', icon: LogIn, label: 'Connexion', show: !user },
   ];

@@ -6,11 +6,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Shield, Plus, Trash2, Upload, Loader2, Gift, Save } from 'lucide-react';
-import { Rarity, RARITY_CONFIG } from '@/types/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Shield, Plus, Trash2, Upload, Loader2, Gift, Save, Pencil } from 'lucide-react';
+import { Rarity, RARITY_CONFIG, GameCard } from '@/types/card';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAllCards, useCreateCard, useDeleteCard, useUploadCardImage, useGiveCard, useAllProfiles } from '@/hooks/useCards';
+import { useUpdateCard } from '@/hooks/useUpdateCard';
 import { useDropRates, useUpdateDropRate } from '@/hooks/useDropRates';
 import { cn } from '@/lib/utils';
 
@@ -24,11 +26,21 @@ const Admin = () => {
   const { data: dropRates = [], isLoading: dropRatesLoading } = useDropRates();
   const createCard = useCreateCard();
   const deleteCard = useDeleteCard();
+  const updateCard = useUpdateCard();
   const uploadImage = useUploadCardImage();
   const giveCard = useGiveCard();
   const updateDropRate = useUpdateDropRate();
 
   const [editedRates, setEditedRates] = useState<Record<string, number>>({});
+  const [editingCard, setEditingCard] = useState<GameCard | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    title: '',
+    description: '',
+    image_url: '',
+    rarity: 'common' as Rarity,
+    release_date: '',
+  });
+  const editFileInputRef = useRef<HTMLInputElement>(null);
 
   const [giveFormData, setGiveFormData] = useState({
     userId: '',
@@ -110,6 +122,45 @@ const Admin = () => {
       setGiveFormData({ userId: '', cardId: '' });
     } catch (error) {
       toast.error("Erreur lors de l'attribution de la carte");
+    }
+  };
+
+  const handleEditCard = (card: GameCard) => {
+    setEditingCard(card);
+    setEditFormData({
+      title: card.title,
+      description: card.description,
+      image_url: card.image_url,
+      rarity: card.rarity,
+      release_date: card.release_date,
+    });
+  };
+
+  const handleEditImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const url = await uploadImage.mutateAsync(file);
+      setEditFormData(prev => ({ ...prev, image_url: url }));
+      toast.success('Image uploadée !');
+    } catch (error) {
+      toast.error("Erreur lors de l'upload de l'image");
+    }
+  };
+
+  const handleUpdateCard = async () => {
+    if (!editingCard) return;
+
+    try {
+      await updateCard.mutateAsync({
+        id: editingCard.id,
+        ...editFormData,
+      });
+      toast.success('Carte modifiée avec succès !');
+      setEditingCard(null);
+    } catch (error) {
+      toast.error("Erreur lors de la modification");
     }
   };
 
@@ -465,6 +516,14 @@ const Admin = () => {
                     <Button
                       variant="ghost"
                       size="icon"
+                      onClick={() => handleEditCard(card)}
+                      className="text-primary hover:text-primary hover:bg-primary/10"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       onClick={() => handleDelete(card.id, card.title)}
                       disabled={deleteCard.isPending}
                       className="text-destructive hover:text-destructive hover:bg-destructive/10"
@@ -478,6 +537,135 @@ const Admin = () => {
           )}
         </section>
       </main>
+
+      {/* Edit Card Dialog */}
+      <Dialog open={!!editingCard} onOpenChange={() => setEditingCard(null)}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Modifier la carte</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Title */}
+            <div className="space-y-2">
+              <Label htmlFor="edit-title">Titre</Label>
+              <Input
+                id="edit-title"
+                value={editFormData.title}
+                onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
+                className="bg-card border-border"
+              />
+            </div>
+
+            {/* Description */}
+            <div className="space-y-2">
+              <Label htmlFor="edit-description">Description</Label>
+              <Textarea
+                id="edit-description"
+                value={editFormData.description}
+                onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                className="bg-card border-border min-h-20"
+              />
+            </div>
+
+            {/* Image upload */}
+            <div className="space-y-2">
+              <Label>Image</Label>
+              <input
+                ref={editFileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleEditImageUpload}
+                className="hidden"
+              />
+              <div className="flex gap-2">
+                <Input
+                  value={editFormData.image_url}
+                  onChange={(e) => setEditFormData({ ...editFormData, image_url: e.target.value })}
+                  placeholder="URL de l'image"
+                  className="bg-card border-border"
+                />
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="icon"
+                  onClick={() => editFileInputRef.current?.click()}
+                  disabled={uploadImage.isPending}
+                >
+                  {uploadImage.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Upload className="w-4 h-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            {/* Preview */}
+            {editFormData.image_url && (
+              <div className="aspect-video rounded-xl overflow-hidden bg-card border border-border max-w-xs mx-auto">
+                <img 
+                  src={editFormData.image_url} 
+                  alt="Preview" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+
+            {/* Rarity */}
+            <div className="space-y-2">
+              <Label>Rareté</Label>
+              <Select 
+                value={editFormData.rarity} 
+                onValueChange={(value: Rarity) => setEditFormData({ ...editFormData, rarity: value })}
+              >
+                <SelectTrigger className="bg-card border-border">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(RARITY_CONFIG).map(([key, config]) => (
+                    <SelectItem key={key} value={key}>
+                      <span style={{ color: config.color }}>{config.label}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Release Date */}
+            <div className="space-y-2">
+              <Label htmlFor="edit-date">Date de sortie</Label>
+              <Input
+                id="edit-date"
+                type="date"
+                value={editFormData.release_date}
+                onChange={(e) => setEditFormData({ ...editFormData, release_date: e.target.value })}
+                className="bg-card border-border"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setEditingCard(null)}>
+              Annuler
+            </Button>
+            <Button
+              variant="gold"
+              onClick={handleUpdateCard}
+              disabled={updateCard.isPending}
+            >
+              {updateCard.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  Enregistrer
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Navigation />
     </div>
