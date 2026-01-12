@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Collection from "./pages/Collection";
 import Packs from "./pages/Packs";
 import Shop from "./pages/Shop";
+import Exchange from "./pages/Exchange";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/collection" element={<Collection />} />
             <Route path="/packs" element={<Packs />} />
             <Route path="/shop" element={<Shop />} />
+            <Route path="/exchange" element={<Exchange />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="*" element={<NotFound />} />
