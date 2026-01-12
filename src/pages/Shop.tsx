@@ -1,195 +1,283 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowRightLeft, Play, Sparkles, Gift, Zap, Crown } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Store, ArrowRightLeft, Loader2, Package } from 'lucide-react';
+import { Rarity, RARITY_CONFIG } from '@/types/card';
+import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUserCards, useDeleteUserCards, useRandomCards, useCollectCard, UserCardWithCount } from '@/hooks/useCards';
+import { cn } from '@/lib/utils';
+import { MysteryCard } from '@/components/MysteryCard';
+
+// Trade configuration: 5 cards of same rarity -> X random cards
+const TRADE_CONFIG: Record<Rarity, { required: number; reward: number }> = {
+  common: { required: 5, reward: 3 },
+  rare: { required: 5, reward: 7 },
+  epic: { required: 5, reward: 10 },
+  legendary: { required: 5, reward: 15 },
+};
 
 const Shop = () => {
-  // Ad pack types with different rewards
-  const adPacks = [
-    {
-      id: 'daily',
-      title: 'Pack Quotidien',
-      description: 'Regardez une pub et recevez 1 carte aléatoire',
-      reward: '1 carte',
-      icon: Gift,
-      gradient: 'from-[#2597A6] to-[#636AA2]',
-      shadowColor: 'shadow-[0_0_30px_rgba(37,151,166,0.4)]',
-      available: true,
-    },
-    {
-      id: 'bonus',
-      title: 'Pack Bonus',
-      description: 'Regardez 3 pubs et obtenez un pack de 3 cartes',
-      reward: '3 cartes',
-      icon: Zap,
-      gradient: 'from-[#744E90] to-[#662D5E]',
-      shadowColor: 'shadow-[0_0_30px_rgba(116,78,144,0.4)]',
-      available: true,
-    },
-    {
-      id: 'premium',
-      title: 'Pack Premium',
-      description: 'Regardez 5 pubs pour une carte rare garantie',
-      reward: '1 rare+',
-      icon: Crown,
-      gradient: 'from-[#EC9884] to-[#662D5E]',
-      shadowColor: 'shadow-[0_0_30px_rgba(236,152,132,0.4)]',
-      available: false,
-    },
-  ];
+  const { user } = useAuth();
+  const { data: userCards = [], isLoading: cardsLoading } = useUserCards(user?.id);
+  const deleteCards = useDeleteUserCards();
+  const getRandomCards = useRandomCards();
+  const collectCard = useCollectCard();
 
-  const handleWatchAd = (packId: string) => {
-    // TODO: Implement ad watching logic
-    console.log('Watch ad for pack:', packId);
+  const [selectedCard, setSelectedCard] = useState<UserCardWithCount | null>(null);
+  const [isTrading, setIsTrading] = useState(false);
+  const [rewardCards, setRewardCards] = useState<any[]>([]);
+  const [showReward, setShowReward] = useState(false);
+  const [revealedCards, setRevealedCards] = useState<Set<number>>(new Set());
+
+  // Group eligible cards by rarity
+  const getEligibleCardsByRarity = (rarity: Rarity) => {
+    const config = TRADE_CONFIG[rarity];
+    return userCards.filter(
+      (card) => card.rarity === rarity && card.count >= config.required
+    );
   };
 
-  return (
-    <div className="min-h-screen pb-24 bg-gradient-to-b from-[#2F1A4C] via-[#662D5E]/30 to-[#2F1A4C]">
-      {/* Header with animated background */}
-      <header className="relative pt-12 pb-8 px-4 overflow-hidden">
-        {/* Decorative elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-[#2597A6]/20 blur-3xl" />
-          <div className="absolute top-10 -left-20 w-40 h-40 rounded-full bg-[#EC9884]/20 blur-3xl" />
-          <div className="absolute bottom-0 right-10 w-32 h-32 rounded-full bg-[#744E90]/30 blur-2xl" />
-        </div>
+  const handleTrade = async (card: UserCardWithCount) => {
+    if (!user) {
+      toast.error('Vous devez être connecté');
+      return;
+    }
 
-        <div className="relative z-10 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#2597A6] to-[#636AA2] mb-4 shadow-[0_0_40px_rgba(37,151,166,0.5)]">
-            <Sparkles className="w-8 h-8 text-white" />
+    const config = TRADE_CONFIG[card.rarity as Rarity];
+    if (card.count < config.required) {
+      toast.error(`Vous avez besoin de ${config.required} cartes identiques`);
+      return;
+    }
+
+    setIsTrading(true);
+    setSelectedCard(null);
+
+    try {
+      // Delete required cards
+      await deleteCards.mutateAsync({
+        userId: user.id,
+        cardId: card.id,
+        count: config.required,
+      });
+
+      // Get random reward cards
+      const newCards = await getRandomCards.mutateAsync({ count: config.reward });
+
+      // Collect all new cards
+      for (const newCard of newCards) {
+        await collectCard.mutateAsync({ userId: user.id, cardId: newCard.id });
+      }
+
+      setRewardCards(newCards);
+      setRevealedCards(new Set());
+      setShowReward(true);
+      toast.success(`Échange réussi ! Vous avez reçu ${config.reward} cartes !`);
+    } catch (error) {
+      toast.error("Erreur lors de l'échange");
+    } finally {
+      setIsTrading(false);
+    }
+  };
+
+  const handleRevealCard = (index: number) => {
+    setRevealedCards(prev => new Set([...prev, index]));
+  };
+
+  const rarities: Rarity[] = ['legendary', 'epic', 'rare', 'common'];
+
+  return (
+    <div className="min-h-screen pb-24">
+      {/* Header */}
+      <header className="pt-12 pb-6 px-4">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+            <Store className="w-6 h-6 text-primary" />
           </div>
-          <h1 className="font-display text-3xl text-white mb-2">Boutique</h1>
-          <p className="text-[#636AA2] text-sm">Obtenez des cartes gratuitement</p>
+          <div>
+            <h1 className="font-display text-2xl text-foreground">Boutique</h1>
+            <p className="text-sm text-muted-foreground">Échangez vos doublons</p>
+          </div>
         </div>
       </header>
 
-      <main className="px-4 space-y-8">
-        {/* Section: Packs via ads */}
-        <section>
-          <div className="flex items-center gap-2 mb-4">
-            <Play className="w-5 h-5 text-[#EC9884]" />
-            <h2 className="font-display text-lg text-white">Packs Publicitaires</h2>
+      <main className="px-4 space-y-6">
+        {cardsLoading ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
+        ) : (
+          <>
+            {/* Trade offers */}
+            {rarities.map((rarity) => {
+              const config = TRADE_CONFIG[rarity];
+              const rarityConfig = RARITY_CONFIG[rarity];
+              const eligibleCards = getEligibleCardsByRarity(rarity);
 
-          <div className="grid gap-4">
-            {adPacks.map((pack) => {
-              const IconComponent = pack.icon;
               return (
-                <div
-                  key={pack.id}
-                  className={`relative rounded-2xl p-[1px] bg-gradient-to-r ${pack.gradient} ${pack.shadowColor} transition-all duration-300 hover:scale-[1.02]`}
-                >
-                  <div className="relative rounded-2xl bg-[#2F1A4C]/90 backdrop-blur-sm p-5 overflow-hidden">
-                    {/* Shimmer effect */}
-                    <div className="absolute inset-0 overflow-hidden">
-                      <div className="absolute -inset-full animate-[shimmer_3s_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent" />
-                    </div>
-
-                    <div className="relative flex items-center gap-4">
-                      {/* Icon */}
-                      <div className={`flex-shrink-0 w-14 h-14 rounded-xl bg-gradient-to-br ${pack.gradient} flex items-center justify-center`}>
-                        <IconComponent className="w-7 h-7 text-white" />
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-display text-white text-base mb-1">{pack.title}</h3>
-                        <p className="text-[#636AA2] text-xs leading-relaxed">{pack.description}</p>
-                      </div>
-
-                      {/* Reward badge & button */}
-                      <div className="flex flex-col items-end gap-2">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r ${pack.gradient} text-white`}>
-                          {pack.reward}
-                        </span>
-                        <Button
-                          size="sm"
-                          onClick={() => handleWatchAd(pack.id)}
-                          disabled={!pack.available}
-                          className={`bg-gradient-to-r ${pack.gradient} text-white border-0 hover:opacity-90 transition-opacity disabled:opacity-40`}
+                <Card key={rarity} className="overflow-hidden">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={cn(
+                            "px-2 py-0.5 rounded-full text-xs font-semibold uppercase",
+                            rarityConfig.bgClass
+                          )}
+                          style={{ color: rarity === 'legendary' ? 'hsl(240, 20%, 6%)' : 'white' }}
                         >
-                          <Play className="w-3 h-3 mr-1" />
-                          {pack.available ? 'Regarder' : 'Bientôt'}
-                        </Button>
+                          {rarityConfig.label}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Package className="w-4 h-4" />
+                        <span>{config.required} → {config.reward} cartes</span>
                       </div>
                     </div>
-
-                    {/* Unavailable overlay */}
-                    {!pack.available && (
-                      <div className="absolute inset-0 bg-[#2F1A4C]/60 backdrop-blur-[1px] rounded-2xl flex items-center justify-center">
-                        <span className="text-[#636AA2] text-sm font-medium">Disponible bientôt</span>
-                      </div>
+                    <CardDescription className="mt-2">
+                      Échangez {config.required} cartes {rarityConfig.label.toLowerCase()}s identiques contre {config.reward} cartes aléatoires
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {eligibleCards.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        Aucune carte éligible (minimum {config.required} exemplaires identiques)
+                      </p>
+                    ) : (
+                      <ScrollArea className="w-full">
+                        <div className="flex gap-3 pb-2">
+                          {eligibleCards.map((card) => (
+                            <button
+                              key={card.id}
+                              onClick={() => setSelectedCard(card)}
+                              className="flex-shrink-0 group"
+                              disabled={isTrading}
+                            >
+                              <div className="relative w-20 aspect-[2/3] rounded-lg overflow-hidden border-2 border-border group-hover:border-primary transition-colors">
+                                <img
+                                  src={card.image_url}
+                                  alt={card.title}
+                                  className="w-full h-full object-cover"
+                                />
+                                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-1">
+                                  <span className="text-[10px] text-white font-medium truncate block">
+                                    {card.title}
+                                  </span>
+                                  <span className="text-[10px] text-primary font-bold">
+                                    ×{card.count}
+                                  </span>
+                                </div>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </ScrollArea>
                     )}
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               );
             })}
-          </div>
-        </section>
+          </>
+        )}
+      </main>
 
-        {/* Divider */}
-        <div className="relative py-4">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full h-px bg-gradient-to-r from-transparent via-[#744E90]/50 to-transparent" />
-          </div>
-          <div className="relative flex justify-center">
-            <span className="px-4 bg-[#2F1A4C] text-[#636AA2] text-xs uppercase tracking-wider">ou</span>
-          </div>
-        </div>
+      {/* Confirmation Dialog */}
+      <Dialog open={!!selectedCard} onOpenChange={() => setSelectedCard(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Confirmer l'échange</DialogTitle>
+            <DialogDescription>
+              {selectedCard && (
+                <>
+                  Échanger {TRADE_CONFIG[selectedCard.rarity as Rarity].required} exemplaires de "{selectedCard.title}" contre{' '}
+                  {TRADE_CONFIG[selectedCard.rarity as Rarity].reward} cartes aléatoires ?
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
 
-        {/* Section: Exchange Button */}
-        <section className="pb-4">
-          <Link to="/exchange">
-            <div className="relative rounded-2xl p-[2px] bg-gradient-to-r from-[#EC9884] via-[#744E90] to-[#2597A6] shadow-[0_0_40px_rgba(236,152,132,0.3)] transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_60px_rgba(236,152,132,0.4)]">
-              <div className="relative rounded-2xl bg-gradient-to-br from-[#2F1A4C] to-[#662D5E]/50 p-6 overflow-hidden">
-                {/* Decorative background */}
-                <div className="absolute inset-0 overflow-hidden">
-                  <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-[#EC9884]/10 blur-2xl" />
-                  <div className="absolute -bottom-10 -left-10 w-32 h-32 rounded-full bg-[#2597A6]/10 blur-2xl" />
+          {selectedCard && (
+            <div className="flex justify-center py-4">
+              <div className="relative w-24 aspect-[2/3] rounded-xl overflow-hidden border-2 border-border">
+                <img
+                  src={selectedCard.image_url}
+                  alt={selectedCard.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute top-1 right-1 bg-destructive text-destructive-foreground text-xs px-1.5 py-0.5 rounded-full font-bold">
+                  -{TRADE_CONFIG[selectedCard.rarity as Rarity].required}
                 </div>
-
-                <div className="relative flex items-center gap-5">
-                  {/* Icon */}
-                  <div className="flex-shrink-0 w-16 h-16 rounded-2xl bg-gradient-to-br from-[#EC9884] to-[#662D5E] flex items-center justify-center shadow-[0_0_20px_rgba(236,152,132,0.4)]">
-                    <ArrowRightLeft className="w-8 h-8 text-white" />
-                  </div>
-
-                  {/* Content */}
-                  <div className="flex-1">
-                    <h3 className="font-display text-xl text-white mb-1">Centre d'Échange</h3>
-                    <p className="text-[#EC9884]/80 text-sm">
-                      Échangez vos doublons contre de nouvelles cartes
-                    </p>
-                  </div>
-
-                  {/* Arrow */}
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </div>
-
-                {/* Trade info badges */}
-                <div className="relative mt-4 flex flex-wrap gap-2">
-                  <span className="px-3 py-1 rounded-full text-xs bg-[#636AA2]/20 text-[#636AA2] border border-[#636AA2]/30">
-                    5 communes → 3 cartes
-                  </span>
-                  <span className="px-3 py-1 rounded-full text-xs bg-[#2597A6]/20 text-[#2597A6] border border-[#2597A6]/30">
-                    5 rares → 7 cartes
-                  </span>
-                  <span className="px-3 py-1 rounded-full text-xs bg-[#744E90]/20 text-[#744E90] border border-[#744E90]/30">
-                    5 épiques → 10 cartes
-                  </span>
-                  <span className="px-3 py-1 rounded-full text-xs bg-[#EC9884]/20 text-[#EC9884] border border-[#EC9884]/30">
-                    5 légendaires → 15 cartes
+              </div>
+              <div className="flex items-center px-4">
+                <ArrowRightLeft className="w-6 h-6 text-primary" />
+              </div>
+              <div className="flex items-center justify-center w-24 aspect-[2/3] rounded-xl border-2 border-dashed border-primary/50 bg-primary/5">
+                <div className="text-center">
+                  <Package className="w-6 h-6 text-primary mx-auto mb-1" />
+                  <span className="text-xs text-primary font-bold">
+                    +{TRADE_CONFIG[selectedCard.rarity as Rarity].reward}
                   </span>
                 </div>
               </div>
             </div>
-          </Link>
-        </section>
-      </main>
+          )}
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setSelectedCard(null)}>
+              Annuler
+            </Button>
+            <Button
+              variant="gold"
+              onClick={() => selectedCard && handleTrade(selectedCard)}
+              disabled={isTrading}
+            >
+              {isTrading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                'Échanger'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reward Dialog */}
+      <Dialog open={showReward} onOpenChange={setShowReward}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-center">🎉 Nouvelles cartes !</DialogTitle>
+            <DialogDescription className="text-center">
+              Cliquez sur les cartes pour les révéler
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-3 gap-3 py-4 max-h-[60vh] overflow-y-auto">
+            {rewardCards.map((card, index) => (
+              <div key={index} className="flex justify-center">
+                <MysteryCard
+                  card={card}
+                  isRevealed={revealedCards.has(index)}
+                  onReveal={() => handleRevealCard(index)}
+                  size="sm"
+                />
+              </div>
+            ))}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="gold"
+              onClick={() => setShowReward(false)}
+              className="w-full"
+            >
+              Fermer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Navigation />
     </div>
