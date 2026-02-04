@@ -14,8 +14,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ['Cinzel', 'serif'],
+        display: ['Fredoka', 'sans-serif'],
         body: ['Raleway', 'sans-serif'],
+        logo: ['Pacifico', 'cursive'],
       },
       colors: {
         border: "hsl(var(--border))",
