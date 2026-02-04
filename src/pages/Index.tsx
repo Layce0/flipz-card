@@ -72,7 +72,7 @@ const Index = () => {
       {/* Header */}
       <header className="pt-12 pb-6 px-4 text-center">
         <div className="mb-2">
-          <h1 className="font-logo text-5xl text-gradient-gold tracking-wide">FLIPZ</h1>
+          <h1 className="font-logo text-5xl text-white tracking-wide">FLIPZ</h1>
         </div>
         <p className="text-muted-foreground text-sm">Découvrez une nouvelle carte chaque jour</p>
       </header>
