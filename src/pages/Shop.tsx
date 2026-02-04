@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
 import { PackSection } from '@/components/shop/PackSection';
 import { TradeCardsSection } from '@/components/shop/TradeCardsSection';
+import { TradeOverviewDialog } from '@/components/shop/TradeOverviewDialog';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Store, Loader2, Sparkles } from 'lucide-react';
@@ -172,14 +173,19 @@ const Shop = () => {
     <div className="min-h-screen pb-24">
       {/* Header */}
       <header className="pt-12 pb-6 px-4">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-            <Store className="w-6 h-6 text-primary" />
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+              <Store className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="font-display text-2xl text-foreground">Boutique</h1>
+              <p className="text-sm text-muted-foreground">Achetez des packs et échangez vos cartes</p>
+            </div>
           </div>
-          <div>
-            <h1 className="font-display text-2xl text-foreground">Boutique</h1>
-            <p className="text-sm text-muted-foreground">Achetez des packs et échangez vos cartes</p>
-          </div>
+          {!cardsLoading && (
+            <TradeOverviewDialog userCards={userCards} />
+          )}
         </div>
       </header>
 
