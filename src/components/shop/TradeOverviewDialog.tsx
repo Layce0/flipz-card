@@ -77,21 +77,22 @@ export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => 
                   </div>
                 </div>
 
-                {/* Scrollable cards container - scrolls right to left (reversed) */}
+                {/* Scrollable cards container */}
                 {eligibleCards.length === 0 ? (
                   <p className="text-xs text-muted-foreground text-center py-4">
                     Aucune carte éligible
                   </p>
                 ) : (
-                  <div 
-                    className="overflow-x-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent"
-                    dir="rtl"
-                  >
-                    <div className="flex gap-2 pb-2 min-w-min" dir="ltr">
+                  <div className="overflow-x-auto">
+                    <div 
+                      className="flex gap-2 pb-2 min-w-min flex-row-reverse"
+                      style={{ direction: 'rtl' }}
+                    >
                       {eligibleCards.map((card) => (
                         <div
                           key={card.id}
                           className="flex-shrink-0 relative w-16 aspect-[2/3] rounded-lg overflow-hidden border border-border/50 group"
+                          style={{ direction: 'ltr' }}
                         >
                           <img
                             src={card.image_url}
