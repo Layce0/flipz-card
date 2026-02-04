@@ -58,10 +58,9 @@ const Index = () => {
       await collectCard.mutateAsync({ userId: user.id, cardId: todayCard.id });
       toast.success('Carte ajoutée à votre collection !');
     } catch (error: any) {
-      if (error?.code === '23505') {
-        // Already collected, that's fine
-      } else {
-        console.error('Error collecting card:', error);
+      // Ignore duplicate collection errors (already collected)
+      if (error?.code !== '23505') {
+        toast.error('Une erreur est survenue');
       }
     }
   };

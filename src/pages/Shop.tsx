@@ -64,7 +64,6 @@ const Shop = () => {
         refetchCards();
       }
     } catch (error: any) {
-      console.error('Error verifying purchase:', error);
       toast.error('Erreur lors de la vérification de l\'achat');
     } finally {
       setVerifyingPurchase(false);
@@ -90,7 +89,6 @@ const Shop = () => {
         window.location.href = data.url;
       }
     } catch (error: any) {
-      console.error('Error creating checkout:', error);
       toast.error('Erreur lors de la création du paiement');
     } finally {
       setLoadingPackId(null);
