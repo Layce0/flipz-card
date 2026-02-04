@@ -71,10 +71,10 @@ const Index = () => {
     <div className="min-h-screen pb-24">
       {/* Header */}
       <header className="pt-12 pb-6 px-4 text-center">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <Sparkles className="w-6 h-6 text-primary" />
-          <h1 className="font-display text-2xl text-gradient-gold">Cartes Mystères</h1>
-          <Sparkles className="w-6 h-6 text-primary" />
+        <div className="flex items-center justify-center gap-3 mb-2">
+          <Sparkles className="w-7 h-7 text-primary" />
+          <h1 className="font-logo text-4xl text-gradient-gold tracking-wide transform -rotate-2">FLIPZ</h1>
+          <Sparkles className="w-7 h-7 text-primary" />
         </div>
         <p className="text-muted-foreground text-sm">Découvrez une nouvelle carte chaque jour</p>
       </header>

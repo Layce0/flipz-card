@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Raleway:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Raleway:wght@300;400;500;600&family=Pacifico&display=swap');
 
 @layer base {
   :root {
@@ -81,11 +81,15 @@
 
 @layer utilities {
   .font-display {
-    font-family: 'Cinzel', serif;
+    font-family: 'Fredoka', sans-serif;
   }
 
   .font-body {
     font-family: 'Raleway', sans-serif;
+  }
+
+  .font-logo {
+    font-family: 'Pacifico', cursive;
   }
 
   .text-gradient-gold {
