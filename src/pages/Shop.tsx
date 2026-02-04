@@ -172,20 +172,18 @@ const Shop = () => {
     <div className="min-h-screen pb-24">
       {/* Header */}
       <header className="pt-12 pb-6 px-4">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-              <Store className="w-6 h-6 text-primary" />
-            </div>
-            <div>
-              <h1 className="font-display text-2xl text-foreground">Boutique</h1>
-              <p className="text-sm text-muted-foreground">Achetez des packs et échangez vos cartes</p>
-            </div>
+        <div className="flex items-center gap-4 mb-4">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+            <Store className="w-7 h-7 text-primary" />
           </div>
-          {!cardsLoading && (
-            <TradeOverviewDialog userCards={userCards} />
-          )}
+          <div>
+            <h1 className="font-display text-2xl text-foreground">Boutique</h1>
+            <p className="text-sm text-muted-foreground">Achetez des packs et échangez vos cartes</p>
+          </div>
         </div>
+        {!cardsLoading && (
+          <TradeOverviewDialog userCards={userCards} />
+        )}
       </header>
 
       <main className="px-4 space-y-8">
