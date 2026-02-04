@@ -1,0 +1,235 @@
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ArrowRightLeft, Loader2, Package, Sparkles } from 'lucide-react';
+import { Rarity, RARITY_CONFIG } from '@/types/card';
+import { TRADE_CONFIG } from '@/types/pack';
+import { MysteryCard } from '@/components/MysteryCard';
+import { UserCardWithCount } from '@/hooks/useCards';
+import { cn } from '@/lib/utils';
+
+interface TradeCardsSectionProps {
+  userCards: UserCardWithCount[];
+  onTrade: (card: UserCardWithCount) => Promise<any[]>;
+  isTrading: boolean;
+}
+
+export const TradeCardsSection = ({ userCards, onTrade, isTrading }: TradeCardsSectionProps) => {
+  const [selectedCard, setSelectedCard] = useState<UserCardWithCount | null>(null);
+  const [rewardCards, setRewardCards] = useState<any[]>([]);
+  const [showReward, setShowReward] = useState(false);
+  const [revealedCards, setRevealedCards] = useState<Set<number>>(new Set());
+  const [localTrading, setLocalTrading] = useState(false);
+
+  const getEligibleCardsByRarity = (rarity: Rarity) => {
+    const config = TRADE_CONFIG[rarity];
+    return userCards.filter(
+      (card) => card.rarity === rarity && card.count >= config.required
+    );
+  };
+
+  const handleConfirmTrade = async () => {
+    if (!selectedCard) return;
+    
+    setLocalTrading(true);
+    try {
+      const cards = await onTrade(selectedCard);
+      setRewardCards(cards);
+      setRevealedCards(new Set());
+      setShowReward(true);
+      setSelectedCard(null);
+    } finally {
+      setLocalTrading(false);
+    }
+  };
+
+  const handleRevealCard = (index: number) => {
+    setRevealedCards(prev => new Set([...prev, index]));
+  };
+
+  const rarities: Rarity[] = ['legendary', 'epic', 'rare', 'common'];
+
+  return (
+    <>
+      <section className="space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+            <ArrowRightLeft className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h2 className="font-display text-lg text-foreground">Échanges de cartes</h2>
+            <p className="text-sm text-muted-foreground">Transformez vos doublons</p>
+          </div>
+        </div>
+
+        {rarities.map((rarity) => {
+          const config = TRADE_CONFIG[rarity];
+          const rarityConfig = RARITY_CONFIG[rarity];
+          const eligibleCards = getEligibleCardsByRarity(rarity);
+
+          return (
+            <Card key={rarity} className="overflow-hidden">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <span
+                    className={cn(
+                      "px-2 py-0.5 rounded-full text-xs font-semibold uppercase",
+                      rarityConfig.bgClass
+                    )}
+                    style={{ color: rarity === 'legendary' ? 'hsl(240, 20%, 6%)' : 'white' }}
+                  >
+                    {rarityConfig.label}
+                  </span>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Package className="w-4 h-4" />
+                    <span>{config.required} → {config.reward} cartes</span>
+                  </div>
+                </div>
+                <CardDescription className="mt-2">
+                  Échangez {config.required} cartes {rarityConfig.label.toLowerCase()}s identiques contre {config.reward} cartes aléatoires
+                  {config.keep > 0 && ` (vous gardez ${config.keep} carte)`}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {eligibleCards.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    Aucune carte éligible (minimum {config.required} exemplaires identiques)
+                  </p>
+                ) : (
+                  <ScrollArea className="w-full">
+                    <div className="flex gap-3 pb-2">
+                      {eligibleCards.map((card) => (
+                        <button
+                          key={card.id}
+                          onClick={() => setSelectedCard(card)}
+                          className="flex-shrink-0 group"
+                          disabled={isTrading || localTrading}
+                        >
+                          <div className="relative w-20 aspect-[2/3] rounded-lg overflow-hidden border-2 border-border group-hover:border-primary transition-colors">
+                            <img
+                              src={card.image_url}
+                              alt={card.title}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-1">
+                              <span className="text-[10px] text-white font-medium truncate block">
+                                {card.title}
+                              </span>
+                              <span className="text-[10px] text-primary font-bold">
+                                ×{card.count}
+                              </span>
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
+      </section>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={!!selectedCard} onOpenChange={() => setSelectedCard(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Confirmer l'échange</DialogTitle>
+            <DialogDescription>
+              {selectedCard && (
+                <>
+                  Échanger {TRADE_CONFIG[selectedCard.rarity as Rarity].required} exemplaires de "{selectedCard.title}" contre{' '}
+                  {TRADE_CONFIG[selectedCard.rarity as Rarity].reward} cartes aléatoires ?
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedCard && (
+            <div className="flex justify-center py-4">
+              <div className="relative w-24 aspect-[2/3] rounded-xl overflow-hidden border-2 border-border">
+                <img
+                  src={selectedCard.image_url}
+                  alt={selectedCard.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute top-1 right-1 bg-destructive text-destructive-foreground text-xs px-1.5 py-0.5 rounded-full font-bold">
+                  -{TRADE_CONFIG[selectedCard.rarity as Rarity].required}
+                </div>
+              </div>
+              <div className="flex items-center px-4">
+                <ArrowRightLeft className="w-6 h-6 text-primary" />
+              </div>
+              <div className="flex items-center justify-center w-24 aspect-[2/3] rounded-xl border-2 border-dashed border-primary/50 bg-primary/5">
+                <div className="text-center">
+                  <Package className="w-6 h-6 text-primary mx-auto mb-1" />
+                  <span className="text-xs text-primary font-bold">
+                    +{TRADE_CONFIG[selectedCard.rarity as Rarity].reward}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setSelectedCard(null)}>
+              Annuler
+            </Button>
+            <Button
+              variant="gold"
+              onClick={handleConfirmTrade}
+              disabled={localTrading}
+            >
+              {localTrading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                'Échanger'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reward Dialog */}
+      <Dialog open={showReward} onOpenChange={setShowReward}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-center flex items-center justify-center gap-2">
+              <Sparkles className="w-5 h-5 text-primary" />
+              Nouvelles cartes !
+            </DialogTitle>
+            <DialogDescription className="text-center">
+              Cliquez sur les cartes pour les révéler
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-3 gap-3 py-4 max-h-[60vh] overflow-y-auto">
+            {rewardCards.map((card, index) => (
+              <div key={index} className="flex justify-center">
+                <MysteryCard
+                  card={card}
+                  isRevealed={revealedCards.has(index)}
+                  onReveal={() => handleRevealCard(index)}
+                  size="sm"
+                />
+              </div>
+            ))}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="gold"
+              onClick={() => setShowReward(false)}
+              className="w-full"
+            >
+              Fermer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};

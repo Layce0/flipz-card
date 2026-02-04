@@ -1,0 +1,41 @@
+import { PackCard } from './PackCard';
+import { PackConfig } from '@/types/pack';
+
+interface PackSectionProps {
+  title: string;
+  description: string;
+  packs: PackConfig[];
+  onPurchase: (packId: string) => void;
+  isLoading: boolean;
+  loadingPackId: string | null;
+}
+
+export const PackSection = ({ 
+  title, 
+  description, 
+  packs, 
+  onPurchase, 
+  isLoading,
+  loadingPackId 
+}: PackSectionProps) => {
+  return (
+    <section className="space-y-4">
+      <div>
+        <h2 className="font-display text-lg text-foreground">{title}</h2>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </div>
+      
+      <div className="grid grid-cols-2 gap-3">
+        {packs.map((pack) => (
+          <PackCard
+            key={pack.id}
+            pack={pack}
+            onPurchase={onPurchase}
+            isLoading={isLoading && loadingPackId === pack.id}
+            disabled={isLoading && loadingPackId !== pack.id}
+          />
+        ))}
+      </div>
+    </section>
+  );
+};
