@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MysteryCard } from '@/components/MysteryCard';
 import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
-import { Sparkles, Clock, Gift, Loader2 } from 'lucide-react';
+import { Clock, Gift, Loader2, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTodayCard, useHasCollectedToday, useCollectCard } from '@/hooks/useCards';
 import { toast } from 'sonner';
@@ -71,10 +71,8 @@ const Index = () => {
     <div className="min-h-screen pb-24">
       {/* Header */}
       <header className="pt-12 pb-6 px-4 text-center">
-        <div className="flex items-center justify-center gap-3 mb-2">
-          <Sparkles className="w-7 h-7 text-primary" />
-          <h1 className="font-logo text-4xl text-gradient-gold tracking-wide transform -rotate-2">FLIPZ</h1>
-          <Sparkles className="w-7 h-7 text-primary" />
+        <div className="mb-2">
+          <h1 className="font-logo text-5xl text-gradient-gold tracking-wide">FLIPZ</h1>
         </div>
         <p className="text-muted-foreground text-sm">Découvrez une nouvelle carte chaque jour</p>
       </header>
