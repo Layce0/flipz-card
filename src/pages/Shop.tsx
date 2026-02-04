@@ -1,67 +1,123 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { PackSection } from '@/components/shop/PackSection';
+import { TradeCardsSection } from '@/components/shop/TradeCardsSection';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Store, ArrowRightLeft, Loader2, Package } from 'lucide-react';
-import { Rarity, RARITY_CONFIG } from '@/types/card';
+import { Button } from '@/components/ui/button';
+import { Store, Loader2, Sparkles } from 'lucide-react';
+import { getPacksByType, TRADE_CONFIG } from '@/types/pack';
+import { Rarity } from '@/types/card';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserCards, useDeleteUserCards, useRandomCards, useCollectCard, UserCardWithCount } from '@/hooks/useCards';
-import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 import { MysteryCard } from '@/components/MysteryCard';
-
-// Trade configuration: 5 cards of same rarity -> X random cards
-const TRADE_CONFIG: Record<Rarity, { required: number; reward: number }> = {
-  common: { required: 5, reward: 3 },
-  rare: { required: 5, reward: 7 },
-  epic: { required: 5, reward: 10 },
-  legendary: { required: 5, reward: 15 },
-};
 
 const Shop = () => {
   const { user } = useAuth();
-  const { data: userCards = [], isLoading: cardsLoading } = useUserCards(user?.id);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { data: userCards = [], isLoading: cardsLoading, refetch: refetchCards } = useUserCards(user?.id);
   const deleteCards = useDeleteUserCards();
   const getRandomCards = useRandomCards();
   const collectCard = useCollectCard();
 
-  const [selectedCard, setSelectedCard] = useState<UserCardWithCount | null>(null);
+  const [loadingPackId, setLoadingPackId] = useState<string | null>(null);
   const [isTrading, setIsTrading] = useState(false);
-  const [rewardCards, setRewardCards] = useState<any[]>([]);
-  const [showReward, setShowReward] = useState(false);
+  const [purchasedCards, setPurchasedCards] = useState<any[]>([]);
+  const [showPurchaseReward, setShowPurchaseReward] = useState(false);
   const [revealedCards, setRevealedCards] = useState<Set<number>>(new Set());
+  const [verifyingPurchase, setVerifyingPurchase] = useState(false);
 
-  // Group eligible cards by rarity
-  const getEligibleCardsByRarity = (rarity: Rarity) => {
-    const config = TRADE_CONFIG[rarity];
-    return userCards.filter(
-      (card) => card.rarity === rarity && card.count >= config.required
-    );
+  // Handle successful purchase return
+  useEffect(() => {
+    const success = searchParams.get('success');
+    const sessionId = searchParams.get('session_id');
+    const packId = searchParams.get('pack');
+
+    if (success === 'true' && sessionId && !verifyingPurchase) {
+      setVerifyingPurchase(true);
+      verifyPurchase(sessionId);
+      // Clear URL params
+      setSearchParams({});
+    }
+
+    if (searchParams.get('canceled') === 'true') {
+      toast.error('Achat annulé');
+      setSearchParams({});
+    }
+  }, [searchParams]);
+
+  const verifyPurchase = async (sessionId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-pack-purchase', {
+        body: { sessionId }
+      });
+
+      if (error) throw error;
+
+      if (data.cards && data.cards.length > 0) {
+        setPurchasedCards(data.cards);
+        setRevealedCards(new Set());
+        setShowPurchaseReward(true);
+        toast.success(`Vous avez reçu ${data.cardCount} cartes !`);
+        refetchCards();
+      }
+    } catch (error: any) {
+      console.error('Error verifying purchase:', error);
+      toast.error('Erreur lors de la vérification de l\'achat');
+    } finally {
+      setVerifyingPurchase(false);
+    }
   };
 
-  const handleTrade = async (card: UserCardWithCount) => {
+  const handlePurchase = async (packId: string) => {
+    if (!user) {
+      toast.error('Vous devez être connecté pour acheter');
+      return;
+    }
+
+    setLoadingPackId(packId);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('create-pack-checkout', {
+        body: { packId }
+      });
+
+      if (error) throw error;
+
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (error: any) {
+      console.error('Error creating checkout:', error);
+      toast.error('Erreur lors de la création du paiement');
+    } finally {
+      setLoadingPackId(null);
+    }
+  };
+
+  const handleTrade = async (card: UserCardWithCount): Promise<any[]> => {
     if (!user) {
       toast.error('Vous devez être connecté');
-      return;
+      return [];
     }
 
     const config = TRADE_CONFIG[card.rarity as Rarity];
     if (card.count < config.required) {
       toast.error(`Vous avez besoin de ${config.required} cartes identiques`);
-      return;
+      return [];
     }
 
     setIsTrading(true);
-    setSelectedCard(null);
 
     try {
-      // Delete required cards
+      // Delete required cards (minus what they keep)
+      const cardsToDelete = config.required - config.keep;
       await deleteCards.mutateAsync({
         userId: user.id,
         cardId: card.id,
-        count: config.required,
+        count: cardsToDelete,
       });
 
       // Get random reward cards
@@ -72,12 +128,11 @@ const Shop = () => {
         await collectCard.mutateAsync({ userId: user.id, cardId: newCard.id });
       }
 
-      setRewardCards(newCards);
-      setRevealedCards(new Set());
-      setShowReward(true);
       toast.success(`Échange réussi ! Vous avez reçu ${config.reward} cartes !`);
+      return newCards;
     } catch (error) {
       toast.error("Erreur lors de l'échange");
+      return [];
     } finally {
       setIsTrading(false);
     }
@@ -87,7 +142,33 @@ const Shop = () => {
     setRevealedCards(prev => new Set([...prev, index]));
   };
 
-  const rarities: Rarity[] = ['legendary', 'epic', 'rare', 'common'];
+  const standardPacks = getPacksByType('standard');
+  const luckyPacks = getPacksByType('lucky');
+  const ultraPacks = getPacksByType('ultra');
+
+  if (!user) {
+    return (
+      <div className="min-h-screen pb-24">
+        <header className="pt-12 pb-6 px-4">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+              <Store className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="font-display text-2xl text-foreground">Boutique</h1>
+              <p className="text-sm text-muted-foreground">Connectez-vous pour accéder</p>
+            </div>
+          </div>
+        </header>
+        <main className="px-4">
+          <p className="text-center text-muted-foreground py-12">
+            Vous devez être connecté pour accéder à la boutique.
+          </p>
+        </main>
+        <Navigation />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-24">
@@ -99,163 +180,80 @@ const Shop = () => {
           </div>
           <div>
             <h1 className="font-display text-2xl text-foreground">Boutique</h1>
-            <p className="text-sm text-muted-foreground">Échangez vos doublons</p>
+            <p className="text-sm text-muted-foreground">Achetez des packs et échangez vos cartes</p>
           </div>
         </div>
       </header>
 
-      <main className="px-4 space-y-6">
-        {cardsLoading ? (
-          <div className="flex justify-center py-12">
+      <main className="px-4 space-y-8">
+        {verifyingPurchase ? (
+          <div className="flex flex-col items-center justify-center py-12 gap-4">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <p className="text-muted-foreground">Vérification de votre achat...</p>
           </div>
         ) : (
           <>
-            {/* Trade offers */}
-            {rarities.map((rarity) => {
-              const config = TRADE_CONFIG[rarity];
-              const rarityConfig = RARITY_CONFIG[rarity];
-              const eligibleCards = getEligibleCardsByRarity(rarity);
+            {/* Standard Packs */}
+            <PackSection
+              title="Packs Standard"
+              description="Probabilités de base pour toutes les raretés"
+              packs={standardPacks}
+              onPurchase={handlePurchase}
+              isLoading={!!loadingPackId}
+              loadingPackId={loadingPackId}
+            />
 
-              return (
-                <Card key={rarity} className="overflow-hidden">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={cn(
-                            "px-2 py-0.5 rounded-full text-xs font-semibold uppercase",
-                            rarityConfig.bgClass
-                          )}
-                          style={{ color: rarity === 'legendary' ? 'hsl(240, 20%, 6%)' : 'white' }}
-                        >
-                          {rarityConfig.label}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Package className="w-4 h-4" />
-                        <span>{config.required} → {config.reward} cartes</span>
-                      </div>
-                    </div>
-                    <CardDescription className="mt-2">
-                      Échangez {config.required} cartes {rarityConfig.label.toLowerCase()}s identiques contre {config.reward} cartes aléatoires
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {eligibleCards.length === 0 ? (
-                      <p className="text-sm text-muted-foreground text-center py-4">
-                        Aucune carte éligible (minimum {config.required} exemplaires identiques)
-                      </p>
-                    ) : (
-                      <ScrollArea className="w-full">
-                        <div className="flex gap-3 pb-2">
-                          {eligibleCards.map((card) => (
-                            <button
-                              key={card.id}
-                              onClick={() => setSelectedCard(card)}
-                              className="flex-shrink-0 group"
-                              disabled={isTrading}
-                            >
-                              <div className="relative w-20 aspect-[2/3] rounded-lg overflow-hidden border-2 border-border group-hover:border-primary transition-colors">
-                                <img
-                                  src={card.image_url}
-                                  alt={card.title}
-                                  className="w-full h-full object-cover"
-                                />
-                                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-1">
-                                  <span className="text-[10px] text-white font-medium truncate block">
-                                    {card.title}
-                                  </span>
-                                  <span className="text-[10px] text-primary font-bold">
-                                    ×{card.count}
-                                  </span>
-                                </div>
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      </ScrollArea>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
+            {/* Lucky Packs */}
+            <PackSection
+              title="Packs Chanceux"
+              description="x2 de chances pour les cartes épiques et légendaires"
+              packs={luckyPacks}
+              onPurchase={handlePurchase}
+              isLoading={!!loadingPackId}
+              loadingPackId={loadingPackId}
+            />
+
+            {/* Ultra Lucky Packs */}
+            <PackSection
+              title="Packs Ultra Chanceux"
+              description="x5 de chances pour les cartes épiques et légendaires"
+              packs={ultraPacks}
+              onPurchase={handlePurchase}
+              isLoading={!!loadingPackId}
+              loadingPackId={loadingPackId}
+            />
+
+            {/* Trade Section */}
+            {cardsLoading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              </div>
+            ) : (
+              <TradeCardsSection
+                userCards={userCards}
+                onTrade={handleTrade}
+                isTrading={isTrading}
+              />
+            )}
           </>
         )}
       </main>
 
-      {/* Confirmation Dialog */}
-      <Dialog open={!!selectedCard} onOpenChange={() => setSelectedCard(null)}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Confirmer l'échange</DialogTitle>
-            <DialogDescription>
-              {selectedCard && (
-                <>
-                  Échanger {TRADE_CONFIG[selectedCard.rarity as Rarity].required} exemplaires de "{selectedCard.title}" contre{' '}
-                  {TRADE_CONFIG[selectedCard.rarity as Rarity].reward} cartes aléatoires ?
-                </>
-              )}
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedCard && (
-            <div className="flex justify-center py-4">
-              <div className="relative w-24 aspect-[2/3] rounded-xl overflow-hidden border-2 border-border">
-                <img
-                  src={selectedCard.image_url}
-                  alt={selectedCard.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute top-1 right-1 bg-destructive text-destructive-foreground text-xs px-1.5 py-0.5 rounded-full font-bold">
-                  -{TRADE_CONFIG[selectedCard.rarity as Rarity].required}
-                </div>
-              </div>
-              <div className="flex items-center px-4">
-                <ArrowRightLeft className="w-6 h-6 text-primary" />
-              </div>
-              <div className="flex items-center justify-center w-24 aspect-[2/3] rounded-xl border-2 border-dashed border-primary/50 bg-primary/5">
-                <div className="text-center">
-                  <Package className="w-6 h-6 text-primary mx-auto mb-1" />
-                  <span className="text-xs text-primary font-bold">
-                    +{TRADE_CONFIG[selectedCard.rarity as Rarity].reward}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setSelectedCard(null)}>
-              Annuler
-            </Button>
-            <Button
-              variant="gold"
-              onClick={() => selectedCard && handleTrade(selectedCard)}
-              disabled={isTrading}
-            >
-              {isTrading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                'Échanger'
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Reward Dialog */}
-      <Dialog open={showReward} onOpenChange={setShowReward}>
+      {/* Purchase Reward Dialog */}
+      <Dialog open={showPurchaseReward} onOpenChange={setShowPurchaseReward}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-center">🎉 Nouvelles cartes !</DialogTitle>
+            <DialogTitle className="text-center flex items-center justify-center gap-2">
+              <Sparkles className="w-5 h-5 text-primary" />
+              Vos nouvelles cartes !
+            </DialogTitle>
             <DialogDescription className="text-center">
               Cliquez sur les cartes pour les révéler
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid grid-cols-3 gap-3 py-4 max-h-[60vh] overflow-y-auto">
-            {rewardCards.map((card, index) => (
+            {purchasedCards.map((card, index) => (
               <div key={index} className="flex justify-center">
                 <MysteryCard
                   card={card}
@@ -270,7 +268,7 @@ const Shop = () => {
           <DialogFooter>
             <Button
               variant="gold"
-              onClick={() => setShowReward(false)}
+              onClick={() => setShowPurchaseReward(false)}
               className="w-full"
             >
               Fermer
