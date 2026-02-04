@@ -1,4 +1,3 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PackConfig, formatPrice } from '@/types/pack';
@@ -17,27 +16,30 @@ export const PackCard = ({ pack, onPurchase, isLoading, disabled }: PackCardProp
     switch (pack.type) {
       case 'lucky':
         return {
-          border: 'border-blue-500/50 hover:border-blue-400',
-          glow: 'hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]',
-          badge: 'bg-blue-500 text-white',
+          container: 'bg-gradient-to-br from-[hsl(280,50%,18%)] via-[hsl(260,40%,12%)] to-[hsl(280,45%,15%)]',
+          border: 'border-2 border-primary/40 hover:border-primary/70',
+          glow: 'hover:shadow-[0_0_25px_rgba(234,179,8,0.25)]',
+          iconGlow: 'drop-shadow-[0_0_12px_rgba(234,179,8,0.6)]',
           icon: Sparkles,
-          iconColor: 'text-blue-400',
+          badgeStyle: 'bg-primary/90 text-primary-foreground',
         };
       case 'ultra':
         return {
-          border: 'border-purple-500/50 hover:border-purple-400',
-          glow: 'hover:shadow-[0_0_30px_rgba(168,85,247,0.4)]',
-          badge: 'bg-gradient-to-r from-purple-500 to-pink-500 text-white',
+          container: 'bg-gradient-to-br from-[hsl(45,80%,25%)] via-[hsl(280,50%,20%)] to-[hsl(45,70%,20%)]',
+          border: 'border-[3px] border-primary/70 hover:border-primary',
+          glow: 'hover:shadow-[0_0_40px_rgba(234,179,8,0.5)]',
+          iconGlow: 'drop-shadow-[0_0_20px_rgba(234,179,8,0.9)] animate-pulse',
           icon: Crown,
-          iconColor: 'text-purple-400',
+          badgeStyle: 'bg-gradient-to-r from-primary to-yellow-300 text-primary-foreground font-bold',
         };
       default:
         return {
-          border: 'border-border hover:border-primary/50',
-          glow: 'hover:shadow-lg',
-          badge: 'bg-muted text-muted-foreground',
+          container: 'bg-gradient-to-br from-[hsl(280,40%,12%)] via-[hsl(260,30%,8%)] to-[hsl(240,30%,10%)]',
+          border: 'border border-muted/30 hover:border-muted/50',
+          glow: 'hover:shadow-[0_0_15px_rgba(168,85,247,0.15)]',
+          iconGlow: 'drop-shadow-[0_0_8px_rgba(234,179,8,0.4)]',
           icon: Zap,
-          iconColor: 'text-primary',
+          badgeStyle: 'bg-muted text-muted-foreground',
         };
     }
   };
@@ -46,55 +48,69 @@ export const PackCard = ({ pack, onPurchase, isLoading, disabled }: PackCardProp
   const Icon = styles.icon;
 
   return (
-    <Card
+    <div
       className={cn(
-        "relative overflow-hidden transition-all duration-300 cursor-pointer group",
+        "relative overflow-hidden rounded-xl transition-all duration-300 cursor-pointer group aspect-[3/4]",
+        styles.container,
         styles.border,
         styles.glow,
         disabled && "opacity-50 cursor-not-allowed"
       )}
       onClick={() => !disabled && !isLoading && onPurchase(pack.id)}
     >
+      {/* Decorative pattern overlay */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,transparent_20%,rgba(0,0,0,0.3)_70%)]" />
+        <div className="absolute top-4 left-4 w-8 h-8 border border-primary/20 rounded-full" />
+        <div className="absolute top-4 right-4 w-8 h-8 border border-primary/20 rounded-full" />
+        <div className="absolute bottom-4 left-4 w-8 h-8 border border-primary/20 rounded-full" />
+        <div className="absolute bottom-4 right-4 w-8 h-8 border border-primary/20 rounded-full" />
+      </div>
+
+      {/* Central icon */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className={cn(
+          "w-16 h-16 rounded-full flex items-center justify-center",
+          pack.type === 'ultra' && "bg-gradient-to-br from-primary/30 to-transparent"
+        )}>
+          <Icon className={cn("w-10 h-10 text-primary", styles.iconGlow)} />
+        </div>
+      </div>
+
       {/* Multiplier Badge */}
       {pack.multiplier > 1 && (
-        <div className="absolute top-2 right-2 z-10">
-          <Badge className={cn("text-xs font-bold animate-pulse", styles.badge)}>
+        <div className="absolute top-3 right-3 z-10">
+          <Badge className={cn("text-xs font-bold", styles.badgeStyle)}>
             x{pack.multiplier}
           </Badge>
         </div>
       )}
 
-      <CardHeader className="pb-2">
-        <div className="flex items-center gap-2">
-          <Icon className={cn("w-5 h-5", styles.iconColor)} />
-          <CardTitle className="text-base">{pack.name}</CardTitle>
+      {/* Bottom content */}
+      <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+        <div className="text-center mb-2">
+          <h3 className="font-display text-sm text-foreground truncate">{pack.name}</h3>
+          <p className="text-xs text-muted-foreground">{pack.cardCount} cartes</p>
         </div>
-        <CardDescription className="text-xs">{pack.description}</CardDescription>
-      </CardHeader>
-
-      <CardContent className="space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-2xl font-bold text-primary">{pack.cardCount}</span>
-          <span className="text-sm text-muted-foreground">cartes</span>
-        </div>
-
+        
         <Button
-          variant={pack.type === 'ultra' ? 'gold' : pack.type === 'lucky' ? 'mystical' : 'default'}
-          className="w-full"
+          variant={pack.type === 'ultra' ? 'gold' : pack.type === 'lucky' ? 'mystical' : 'secondary'}
+          size="sm"
+          className="w-full text-xs"
           disabled={isLoading || disabled}
         >
           {isLoading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader2 className="w-3 h-3 animate-spin" />
           ) : (
             formatPrice(pack.price)
           )}
         </Button>
-      </CardContent>
+      </div>
 
-      {/* Decorative glow effect for ultra packs */}
+      {/* Shine effect for ultra packs */}
       {pack.type === 'ultra' && (
-        <div className="absolute inset-0 bg-gradient-to-t from-accent/10 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
       )}
-    </Card>
+    </div>
   );
 };
