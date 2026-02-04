@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
 import { 
   Calendar, 
   Clock, 
@@ -10,13 +9,13 @@ import {
   Sparkles, 
   Volume2, 
   Zap,
-  Play,
-  Pause,
   Eye,
   Loader2
 } from 'lucide-react';
 import { GameEvent } from '@/types/event';
-import { useDeleteEvent, useToggleEventActive } from '@/hooks/useEvents';
+import { useDeleteEvent } from '@/hooks/useEvents';
+import { EventLiveControls } from './EventLiveControls';
+import { EventDistributionDialog } from './EventDistributionDialog';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -42,8 +41,8 @@ interface EventsListProps {
 
 export const EventsList = ({ events, isLoading, onEdit, onPreview, onViewTimeline }: EventsListProps) => {
   const deleteEvent = useDeleteEvent();
-  const toggleActive = useToggleEventActive();
   const [eventToDelete, setEventToDelete] = useState<GameEvent | null>(null);
+  const [distributionEvent, setDistributionEvent] = useState<GameEvent | null>(null);
 
   const handleDelete = async () => {
     if (!eventToDelete) return;
@@ -54,15 +53,6 @@ export const EventsList = ({ events, isLoading, onEdit, onPreview, onViewTimelin
       setEventToDelete(null);
     } catch (error) {
       toast.error('Erreur lors de la suppression');
-    }
-  };
-
-  const handleToggleActive = async (event: GameEvent) => {
-    try {
-      await toggleActive.mutateAsync({ id: event.id, is_active: !event.is_active });
-      toast.success(event.is_active ? 'Événement désactivé' : 'Événement activé');
-    } catch (error) {
-      toast.error('Erreur lors de la modification');
     }
   };
 
@@ -113,6 +103,53 @@ export const EventsList = ({ events, isLoading, onEdit, onPreview, onViewTimelin
                   : "border-border"
               )}
             >
+              {/* Live controls row */}
+              <div className="flex items-center justify-between gap-3 mb-3 pb-3 border-b border-border">
+                <EventLiveControls 
+                  event={event} 
+                  onDistribute={() => setDistributionEvent(event)}
+                />
+                <div className="flex items-center gap-1">
+                  {event.type === 'short' && (
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      onClick={() => onViewTimeline(event)}
+                      title="Timeline"
+                    >
+                      <Clock className="w-4 h-4" />
+                    </Button>
+                  )}
+                  
+                  <Button 
+                    size="icon" 
+                    variant="ghost" 
+                    onClick={() => onPreview(event)}
+                    title="Prévisualiser"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </Button>
+                  
+                  <Button 
+                    size="icon" 
+                    variant="ghost" 
+                    onClick={() => onEdit(event)}
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                  
+                  <Button 
+                    size="icon" 
+                    variant="ghost" 
+                    onClick={() => setEventToDelete(event)}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Event info */}
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -160,57 +197,13 @@ export const EventsList = ({ events, isLoading, onEdit, onPreview, onViewTimelin
                     )}
                   </div>
                 </div>
-
-                <div className="flex items-center gap-2 shrink-0">
-                  <Switch
-                    checked={event.is_active}
-                    onCheckedChange={() => handleToggleActive(event)}
-                    disabled={toggleActive.isPending}
-                  />
-                  
-                  {event.type === 'short' && (
-                    <Button 
-                      size="icon" 
-                      variant="ghost" 
-                      onClick={() => onViewTimeline(event)}
-                      title="Timeline"
-                    >
-                      <Clock className="w-4 h-4" />
-                    </Button>
-                  )}
-                  
-                  <Button 
-                    size="icon" 
-                    variant="ghost" 
-                    onClick={() => onPreview(event)}
-                    title="Prévisualiser"
-                  >
-                    <Eye className="w-4 h-4" />
-                  </Button>
-                  
-                  <Button 
-                    size="icon" 
-                    variant="ghost" 
-                    onClick={() => onEdit(event)}
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </Button>
-                  
-                  <Button 
-                    size="icon" 
-                    variant="ghost" 
-                    onClick={() => setEventToDelete(event)}
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
               </div>
             </div>
           );
         })}
       </div>
 
+      {/* Delete confirmation dialog */}
       <AlertDialog open={!!eventToDelete} onOpenChange={() => setEventToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -234,6 +227,15 @@ export const EventsList = ({ events, isLoading, onEdit, onPreview, onViewTimelin
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Distribution dialog */}
+      {distributionEvent && (
+        <EventDistributionDialog
+          event={distributionEvent}
+          open={!!distributionEvent}
+          onOpenChange={(open) => !open && setDistributionEvent(null)}
+        />
+      )}
     </>
   );
 };
