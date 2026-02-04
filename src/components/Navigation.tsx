@@ -1,11 +1,11 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, BookOpen, Package, Shield, LogIn, LogOut, Store } from 'lucide-react';
+import { Home, BookOpen, Package, Shield, LogIn, Store, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const Navigation = () => {
   const location = useLocation();
-  const { user, isAdmin, signOut } = useAuth();
+  const { user, isAdmin } = useAuth();
 
   const navItems = [
     { path: '/', icon: Home, label: 'Accueil', show: true },
@@ -13,12 +13,9 @@ export const Navigation = () => {
     { path: '/packs', icon: Package, label: 'Packs', show: true },
     { path: '/shop', icon: Store, label: 'Boutique', show: !!user },
     { path: '/admin', icon: Shield, label: 'Admin', show: isAdmin },
+    { path: '/profile', icon: User, label: 'Profil', show: !!user },
     { path: '/auth', icon: LogIn, label: 'Connexion', show: !user },
   ];
-
-  const handleLogout = async () => {
-    await signOut();
-  };
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/90 backdrop-blur-lg border-t border-border safe-area-bottom">
@@ -41,16 +38,6 @@ export const Navigation = () => {
             </Link>
           );
         })}
-        
-        {user && (
-          <button
-            onClick={handleLogout}
-            className="flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-all duration-300 text-muted-foreground hover:text-foreground hover:bg-muted"
-          >
-            <LogOut className="w-5 h-5" />
-            <span className="text-xs font-medium">Déconnexion</span>
-          </button>
-        )}
       </div>
     </nav>
   );
