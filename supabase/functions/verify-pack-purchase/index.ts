@@ -38,6 +38,25 @@ serve(async (req) => {
     if (!user) throw new Error("User not authenticated");
     logStep("User authenticated", { userId: user.id });
 
+    // Check if session already processed (idempotency check)
+    const { data: existingTransaction } = await supabaseClient
+      .from('purchase_transactions')
+      .select('id, card_count')
+      .eq('session_id', sessionId)
+      .single();
+
+    if (existingTransaction) {
+      logStep("Session already processed", { sessionId });
+      return new Response(JSON.stringify({ 
+        success: true, 
+        alreadyProcessed: true,
+        message: "Payment already processed" 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     // Initialize Stripe
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
@@ -136,6 +155,20 @@ serve(async (req) => {
       .insert(cardsToInsert);
 
     if (insertError) throw insertError;
+
+    // Record the transaction for idempotency
+    const { error: txError } = await supabaseClient
+      .from('purchase_transactions')
+      .insert({
+        session_id: sessionId,
+        user_id: user.id,
+        card_count: selectedCards.length,
+        pack_type: packType
+      });
+
+    if (txError) {
+      logStep("Warning: Failed to record transaction", { error: txError.message });
+    }
 
     logStep("Cards added to user collection");
 
