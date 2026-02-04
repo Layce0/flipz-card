@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { EventProvider } from "@/contexts/EventContext";
 import { EventEffectsOverlay } from "@/components/EventEffectsOverlay";
+import { GiftNotificationPopup } from "@/components/GiftNotificationPopup";
 import Index from "./pages/Index";
 import Collection from "./pages/Collection";
 import Packs from "./pages/Packs";
@@ -25,6 +26,7 @@ const App = () => (
         <AuthProvider>
           <EventProvider>
             <EventEffectsOverlay />
+            <GiftNotificationPopup />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/collection" element={<Collection />} />
