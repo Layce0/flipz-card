@@ -86,6 +86,33 @@ export type Database = {
         }
         Relationships: []
       }
+      purchase_transactions: {
+        Row: {
+          card_count: number
+          id: string
+          pack_type: string | null
+          processed_at: string | null
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          card_count: number
+          id?: string
+          pack_type?: string | null
+          processed_at?: string | null
+          session_id: string
+          user_id: string
+        }
+        Update: {
+          card_count?: number
+          id?: string
+          pack_type?: string | null
+          processed_at?: string | null
+          session_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_cards: {
         Row: {
           card_id: string
