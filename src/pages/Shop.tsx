@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
 import { PackSection } from '@/components/shop/PackSection';
-import { TradeCardsSection } from '@/components/shop/TradeCardsSection';
 import { TradeOverviewDialog } from '@/components/shop/TradeOverviewDialog';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -226,19 +225,6 @@ const Shop = () => {
               isLoading={!!loadingPackId}
               loadingPackId={loadingPackId}
             />
-
-            {/* Trade Section */}
-            {cardsLoading ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-              </div>
-            ) : (
-              <TradeCardsSection
-                userCards={userCards}
-                onTrade={handleTrade}
-                isTrading={isTrading}
-              />
-            )}
           </>
         )}
       </main>
