@@ -16,7 +16,7 @@ export default {
       fontFamily: {
         display: ['Fredoka', 'sans-serif'],
         body: ['Raleway', 'sans-serif'],
-        logo: ['Pacifico', 'cursive'],
+        logo: ['Baloo 2', 'cursive'],
       },
       colors: {
         border: "hsl(var(--border))",
