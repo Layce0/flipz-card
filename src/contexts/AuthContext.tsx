@@ -14,13 +14,28 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const ADMIN_EMAILS = ['layce.industry.v2@gmail.com', 'albanvigneau64@gmail.com'];
-
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Check admin status from database
+  const checkAdminRole = async (userId: string) => {
+    try {
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .eq('role', 'admin')
+        .single();
+
+      setIsAdmin(!!roleData);
+    } catch {
+      // No admin role found
+      setIsAdmin(false);
+    }
+  };
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -29,17 +44,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Check if user is admin
+        // Check admin status from database
         if (session?.user) {
-          const isAdminUser = ADMIN_EMAILS.includes(session.user.email || '');
-          setIsAdmin(isAdminUser);
-          
-          // Defer role check to avoid deadlock
-          if (isAdminUser) {
-            setTimeout(() => {
-              ensureAdminRole(session.user.id);
-            }, 0);
-          }
+          // Defer to avoid potential deadlocks with Supabase client
+          setTimeout(() => {
+            checkAdminRole(session.user.id);
+          }, 0);
         } else {
           setIsAdmin(false);
         }
@@ -54,12 +64,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        const isAdminUser = ADMIN_EMAILS.includes(session.user.email || '');
-        setIsAdmin(isAdminUser);
-        
-        if (isAdminUser) {
-          ensureAdminRole(session.user.id);
-        }
+        checkAdminRole(session.user.id);
       }
       
       setIsLoading(false);
@@ -67,24 +72,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     return () => subscription.unsubscribe();
   }, []);
-
-  const ensureAdminRole = async (userId: string) => {
-    try {
-      // Check if admin role exists
-      const { data: existingRole } = await supabase
-        .from('user_roles')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('role', 'admin')
-        .single();
-
-      // If not, we can't insert (needs to be done by a service role)
-      // But we'll mark them as admin based on email
-      // Role is assigned by database trigger (handle_new_user_role)
-    } catch (error) {
-      // Fallback to email-based admin check (already set in onAuthStateChange)
-    }
-  };
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
