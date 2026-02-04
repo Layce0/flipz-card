@@ -4,9 +4,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { EventProvider } from "@/contexts/EventContext";
-import { EventEffectsOverlay } from "@/components/EventEffectsOverlay";
-import { GiftNotificationPopup } from "@/components/GiftNotificationPopup";
 import Index from "./pages/Index";
 import Collection from "./pages/Collection";
 import Packs from "./pages/Packs";
@@ -24,19 +21,15 @@ const App = () => (
       <Sonner position="top-center" theme="dark" />
       <BrowserRouter>
         <AuthProvider>
-          <EventProvider>
-            <EventEffectsOverlay />
-            <GiftNotificationPopup />
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/collection" element={<Collection />} />
-              <Route path="/packs" element={<Packs />} />
-              <Route path="/shop" element={<Shop />} />
-              <Route path="/admin" element={<Admin />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </EventProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/collection" element={<Collection />} />
+            <Route path="/packs" element={<Packs />} />
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/admin" element={<Admin />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

@@ -15,7 +15,6 @@ import { useAllCards, useCreateCard, useDeleteCard, useUploadCardImage, useGiveC
 import { useUpdateCard } from '@/hooks/useUpdateCard';
 import { useDropRates, useUpdateDropRate } from '@/hooks/useDropRates';
 import { cn } from '@/lib/utils';
-import { EventsPanel } from '@/components/admin/EventsPanel';
 
 const Admin = () => {
   const { user, isAdmin, isLoading: authLoading } = useAuth();
@@ -476,8 +475,67 @@ const Admin = () => {
           )}
         </section>
 
-        {/* Events Panel */}
-        <EventsPanel />
+        {/* Card list */}
+        <section>
+          <h2 className="font-display text-lg mb-4 text-foreground">
+            Cartes existantes ({cards.length})
+          </h2>
+          
+          {cardsLoading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            </div>
+          ) : cards.length === 0 ? (
+            <p className="text-muted-foreground text-center py-8">Aucune carte créée</p>
+          ) : (
+            <div className="space-y-3">
+              {cards.map((card) => {
+                const rarityConfig = RARITY_CONFIG[card.rarity as Rarity];
+                return (
+                  <div 
+                    key={card.id}
+                    className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border"
+                  >
+                    <img 
+                      src={card.image_url} 
+                      alt={card.title}
+                      className="w-12 h-16 object-cover rounded-lg"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-display text-sm truncate">{card.title}</h4>
+                      <span 
+                        className={cn(
+                          "inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase",
+                          rarityConfig.bgClass
+                        )}
+                        style={{ color: card.rarity === 'legendary' ? 'hsl(240, 20%, 6%)' : 'white' }}
+                      >
+                        {rarityConfig.label}
+                      </span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleEditCard(card)}
+                      className="text-primary hover:text-primary hover:bg-primary/10"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDelete(card.id, card.title)}
+                      disabled={deleteCard.isPending}
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
       </main>
 
       {/* Edit Card Dialog */}

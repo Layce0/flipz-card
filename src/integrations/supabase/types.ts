@@ -68,166 +68,6 @@ export type Database = {
         }
         Relationships: []
       }
-      event_logs: {
-        Row: {
-          action: string
-          admin_id: string
-          created_at: string | null
-          details: Json | null
-          event_id: string | null
-          id: string
-        }
-        Insert: {
-          action: string
-          admin_id: string
-          created_at?: string | null
-          details?: Json | null
-          event_id?: string | null
-          id?: string
-        }
-        Update: {
-          action?: string
-          admin_id?: string
-          created_at?: string | null
-          details?: Json | null
-          event_id?: string | null
-          id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "event_logs_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      event_timeline_segments: {
-        Row: {
-          config: Json | null
-          created_at: string | null
-          duration_seconds: number
-          event_id: string
-          id: string
-          segment_type: string
-          start_offset_seconds: number
-        }
-        Insert: {
-          config?: Json | null
-          created_at?: string | null
-          duration_seconds: number
-          event_id: string
-          id?: string
-          segment_type: string
-          start_offset_seconds?: number
-        }
-        Update: {
-          config?: Json | null
-          created_at?: string | null
-          duration_seconds?: number
-          event_id?: string
-          id?: string
-          segment_type?: string
-          start_offset_seconds?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "event_timeline_segments_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      events: {
-        Row: {
-          affects_free_pack: boolean | null
-          affects_lucky_pack: boolean | null
-          affects_standard_pack: boolean | null
-          affects_ultra_pack: boolean | null
-          bonus_cards: number | null
-          confetti_enabled: boolean | null
-          created_at: string | null
-          created_by: string | null
-          description: string | null
-          duration_minutes: number | null
-          end_at: string
-          flash_enabled: boolean | null
-          global_multiplier: number | null
-          glow_enabled: boolean | null
-          id: string
-          is_active: boolean
-          is_draft: boolean
-          max_stack: number | null
-          music_url: string | null
-          name: string
-          rarity_boosts: Json | null
-          sound_effect_url: string | null
-          special_animation: string | null
-          start_at: string
-          type: Database["public"]["Enums"]["event_type"]
-          updated_at: string | null
-        }
-        Insert: {
-          affects_free_pack?: boolean | null
-          affects_lucky_pack?: boolean | null
-          affects_standard_pack?: boolean | null
-          affects_ultra_pack?: boolean | null
-          bonus_cards?: number | null
-          confetti_enabled?: boolean | null
-          created_at?: string | null
-          created_by?: string | null
-          description?: string | null
-          duration_minutes?: number | null
-          end_at: string
-          flash_enabled?: boolean | null
-          global_multiplier?: number | null
-          glow_enabled?: boolean | null
-          id?: string
-          is_active?: boolean
-          is_draft?: boolean
-          max_stack?: number | null
-          music_url?: string | null
-          name: string
-          rarity_boosts?: Json | null
-          sound_effect_url?: string | null
-          special_animation?: string | null
-          start_at: string
-          type?: Database["public"]["Enums"]["event_type"]
-          updated_at?: string | null
-        }
-        Update: {
-          affects_free_pack?: boolean | null
-          affects_lucky_pack?: boolean | null
-          affects_standard_pack?: boolean | null
-          affects_ultra_pack?: boolean | null
-          bonus_cards?: number | null
-          confetti_enabled?: boolean | null
-          created_at?: string | null
-          created_by?: string | null
-          description?: string | null
-          duration_minutes?: number | null
-          end_at?: string
-          flash_enabled?: boolean | null
-          global_multiplier?: number | null
-          glow_enabled?: boolean | null
-          id?: string
-          is_active?: boolean
-          is_draft?: boolean
-          max_stack?: number | null
-          music_url?: string | null
-          name?: string
-          rarity_boosts?: Json | null
-          sound_effect_url?: string | null
-          special_animation?: string | null
-          start_at?: string
-          type?: Database["public"]["Enums"]["event_type"]
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           created_at: string
@@ -336,7 +176,6 @@ export type Database = {
     Enums: {
       app_role: "admin" | "moderator" | "user"
       card_rarity: "common" | "rare" | "epic" | "legendary"
-      event_type: "short" | "long"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -466,7 +305,6 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "moderator", "user"],
       card_rarity: ["common", "rare", "epic", "legendary"],
-      event_type: ["short", "long"],
     },
   },
 } as const
