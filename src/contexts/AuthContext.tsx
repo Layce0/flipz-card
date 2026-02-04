@@ -80,11 +80,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       // If not, we can't insert (needs to be done by a service role)
       // But we'll mark them as admin based on email
-      if (!existingRole) {
-        console.log('Admin role needs to be assigned by database admin');
-      }
+      // Role is assigned by database trigger (handle_new_user_role)
     } catch (error) {
-      console.log('Role check failed, using email-based admin check');
+      // Fallback to email-based admin check (already set in onAuthStateChange)
     }
   };
 

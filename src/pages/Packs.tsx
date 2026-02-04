@@ -42,7 +42,6 @@ const Packs = () => {
       setCurrentCardIndex(0);
       setIsRevealing(true);
     } catch (error) {
-      console.error('Error getting cards:', error);
       toast.error('Erreur lors de l\'ouverture du pack');
     }
   };
@@ -59,10 +58,7 @@ const Packs = () => {
       try {
         await collectCard.mutateAsync({ userId: user.id, cardId: card.id });
       } catch (error: any) {
-        // Ignore duplicate errors
-        if (error?.code !== '23505') {
-          console.error('Error collecting card:', error);
-        }
+        // Silently ignore duplicate collection errors
       }
       return;
     }
