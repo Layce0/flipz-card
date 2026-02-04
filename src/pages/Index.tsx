@@ -7,6 +7,7 @@ import { Clock, Gift, Loader2, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTodayCard, useHasCollectedToday, useCollectCard } from '@/hooks/useCards';
 import { toast } from 'sonner';
+import flipzLogo from '@/assets/flipz-logo.png';
 
 const Index = () => {
   const [isRevealed, setIsRevealed] = useState(false);
@@ -72,7 +73,7 @@ const Index = () => {
       {/* Header */}
       <header className="pt-12 pb-6 px-4 text-center">
         <div className="mb-2">
-          <h1 className="font-logo text-5xl text-white tracking-wide">FLIPZ</h1>
+          <img src={flipzLogo} alt="FLIPZ" className="h-16 mx-auto" />
         </div>
         <p className="text-muted-foreground text-sm">Découvrez une nouvelle carte chaque jour</p>
       </header>
