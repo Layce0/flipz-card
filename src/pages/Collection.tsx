@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Navigation } from '@/components/Navigation';
 import { CollectionBook } from '@/components/CollectionBook';
 import { RarityTabs } from '@/components/RarityTabs';
@@ -13,6 +14,7 @@ const Collection = () => {
   const [activeRarity, setActiveRarity] = useState<Rarity | 'all'>('all');
   const { user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   
   const { data: allCards = [], isLoading: cardsLoading } = useAllCards();
   const { data: userCards = [], isLoading: userCardsLoading } = useUserCards(user?.id);
@@ -81,9 +83,9 @@ const Collection = () => {
             <BookOpen className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h1 className="font-display text-xl text-foreground">Ma Collection</h1>
+            <h1 className="font-display text-xl text-foreground">{t('collection.title')}</h1>
             <p className="text-sm text-muted-foreground">
-              {userCards.length} / {allCards.length} cartes uniques ({totalCardsCollected} total)
+              {t('collection.uniqueCards', { collected: userCards.length, total: allCards.length, totalCount: totalCardsCollected })}
             </p>
           </div>
         </div>
@@ -105,7 +107,7 @@ const Collection = () => {
           </div>
         ) : allCards.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">Aucune carte disponible</p>
+            <p className="text-muted-foreground">{t('collection.noCards')}</p>
           </div>
         ) : (
           <CollectionBook 

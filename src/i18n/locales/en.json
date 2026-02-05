@@ -12,7 +12,10 @@
     "previous": "Previous",
     "finish": "Finish",
     "cards": "cards",
-    "card": "card"
+    "card": "card",
+    "error": "An error occurred",
+    "unique": "unique",
+    "total": "total"
   },
   "nav": {
     "home": "Home",
@@ -33,7 +36,12 @@
   "home": {
     "welcome": "Welcome to",
     "dailyCard": "Daily Card",
-    "loadingCard": "Loading card..."
+    "loadingCard": "Loading card...",
+    "subtitle": "Discover a new card every day",
+    "nextCard": "Next card in",
+    "noCard": "No card available today",
+    "comeBackTomorrow": "Come back tomorrow!",
+    "cardAdded": "Card added to your collection!"
   },
   "profile": {
     "title": "Profile",
@@ -80,24 +88,53 @@
   "collection": {
     "title": "My Collection",
     "empty": "No cards in this category",
+    "noCards": "No cards available",
     "count": "{{count}} card",
-    "count_plural": "{{count}} cards"
+    "count_plural": "{{count}} cards",
+    "uniqueCards": "{{collected}} / {{total}} unique cards ({{totalCount}} total)"
   },
   "packs": {
-    "title": "Open Packs",
+    "title": "Card Packs",
+    "subtitle": "Watch an ad to open a pack",
     "free": "Free Pack",
     "standard": "Standard Pack",
     "lucky": "Lucky Pack",
     "ultra": "Ultra Pack",
+    "mystery": "Mystery Pack",
+    "randomCards": "random cards",
     "open": "Open",
-    "buy": "Buy"
+    "buy": "Buy",
+    "watchAd": "Watch an ad",
+    "adInProgress": "Ad in progress...",
+    "pleaseWait": "Please wait...",
+    "nextCard": "Next card",
+    "cardProgress": "Card {{current}} / {{total}}",
+    "cardsAdded": "{{count}} cards added to your collection!",
+    "openError": "Error opening pack"
   },
   "shop": {
     "title": "Shop",
+    "subtitle": "Buy packs and trade your cards",
     "packs": "Card Packs",
     "trade": "Card Trading",
     "tradeDescription": "Trade your duplicate cards",
-    "tradeButton": "Trade cards"
+    "tradeButton": "Trade cards",
+    "loginRequired": "Login to access",
+    "loginRequiredMessage": "You must be logged in to access the shop.",
+    "mustBeConnected": "You must be logged in to buy",
+    "purchaseCanceled": "Purchase canceled",
+    "verifyingPurchase": "Verifying your purchase...",
+    "cardsReceived": "You received {{count}} cards!",
+    "purchaseError": "Error verifying purchase",
+    "paymentError": "Error creating payment",
+    "newCards": "Your new cards!",
+    "clickToReveal": "Click on the cards to reveal them",
+    "standardPacks": "Standard Packs",
+    "standardPacksDesc": "Base drop rates for all rarities",
+    "luckyPacks": "Lucky Packs",
+    "luckyPacksDesc": "x2 chance for epic and legendary cards",
+    "ultraPacks": "Ultra Lucky Packs",
+    "ultraPacksDesc": "x5 chance for epic and legendary cards"
   },
   "trade": {
     "title": "Card Trading",
@@ -106,18 +143,30 @@
     "selected_plural": "{{count}} selected",
     "exchange": "Exchange",
     "cardsObtained": "Cards obtained!",
-    "noCards": "No cards available for trading"
+    "noCards": "No cards available for trading",
+    "needCards": "You need {{count}} identical cards",
+    "tradeSuccess": "Trade successful! You received {{count}} cards!",
+    "tradeError": "Error during trade"
   },
   "auth": {
+    "title": "Mystery Cards",
     "login": "Login",
     "signup": "Sign up",
     "email": "Email",
     "password": "Password",
     "loginButton": "Log in",
-    "signupButton": "Sign up",
-    "noAccount": "No account?",
-    "hasAccount": "Already have an account?",
-    "loginRequired": "Log in to access this feature"
+    "signupButton": "Create account",
+    "noAccount": "No account? Sign up",
+    "hasAccount": "Already have an account? Log in",
+    "loginRequired": "Log in to access this feature",
+    "loginSubtitle": "Log in to access your collection",
+    "signupSubtitle": "Create an account to start collecting",
+    "loginSuccess": "Login successful!",
+    "signupSuccess": "Account created successfully!",
+    "invalidCredentials": "Invalid email or password",
+    "emailAlreadyUsed": "This email is already in use",
+    "invalidEmail": "Invalid email",
+    "passwordTooShort": "Password must be at least 6 characters"
   },
   "cardReveal": {
     "progress": "Card {{current}} of {{total}}"

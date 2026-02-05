@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { MysteryCard } from '@/components/MysteryCard';
 import { Navigation } from '@/components/Navigation';
-import { Button } from '@/components/ui/button';
-import { Clock, Loader2, Sparkles } from 'lucide-react';
+import { Clock, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTodayCard, useHasCollectedToday, useCollectCard } from '@/hooks/useCards';
 import { toast } from 'sonner';
@@ -13,6 +13,7 @@ const Index = () => {
   const [timeLeft, setTimeLeft] = useState('');
   const { user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   
   const { data: todayCard, isLoading: cardLoading } = useTodayCard(user?.id);
   const { data: hasCollected, isLoading: collectedLoading } = useHasCollectedToday(user?.id, todayCard?.id);
@@ -48,11 +49,11 @@ const Index = () => {
     
     try {
       await collectCard.mutateAsync({ userId: user.id, cardId: todayCard.id });
-      toast.success('Carte ajoutée à votre collection !');
+      toast.success(t('home.cardAdded'));
     } catch (error: any) {
       // Ignore duplicate collection errors (already collected)
       if (error?.code !== '23505') {
-        toast.error('Une erreur est survenue');
+        toast.error(t('common.error'));
       }
     }
   };
@@ -68,7 +69,7 @@ const Index = () => {
         <div className="mb-2">
           <img src={flipzLogo} alt="FLIPZ" className="h-28 sm:h-36 mx-auto" />
         </div>
-        <p className="text-muted-foreground text-sm">Découvrez une nouvelle carte chaque jour</p>
+        <p className="text-muted-foreground text-sm">{t('home.subtitle')}</p>
       </header>
 
       {/* Daily card section */}
@@ -76,7 +77,7 @@ const Index = () => {
         {/* Timer */}
         <div className="flex items-center gap-2 bg-card/50 px-4 py-2 rounded-full border border-border mb-8">
           <Clock className="w-4 h-4 text-primary" />
-          <span className="text-sm text-muted-foreground">Prochaine carte dans</span>
+          <span className="text-sm text-muted-foreground">{t('home.nextCard')}</span>
           <span className="font-mono text-primary font-semibold">{timeLeft}</span>
         </div>
 
@@ -86,8 +87,8 @@ const Index = () => {
           </div>
         ) : !todayCard ? (
           <div className="text-center py-20">
-            <p className="text-muted-foreground mb-4">Aucune carte disponible aujourd'hui</p>
-            <p className="text-sm text-muted-foreground/70">Revenez demain !</p>
+            <p className="text-muted-foreground mb-4">{t('home.noCard')}</p>
+            <p className="text-sm text-muted-foreground/70">{t('home.comeBackTomorrow')}</p>
           </div>
         ) : (
           <>
