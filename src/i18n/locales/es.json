@@ -138,12 +138,17 @@
   },
   "trade": {
     "title": "Intercambio de cartas",
+    "subtitle": "Transforma tus duplicados",
     "selectCards": "Selecciona las cartas a intercambiar",
     "selected": "{{count}} seleccionada",
     "selected_plural": "{{count}} seleccionadas",
     "exchange": "Intercambiar",
     "cardsObtained": "¡Cartas obtenidas!",
     "noCards": "No hay cartas disponibles para intercambiar",
+    "noEligible": "No hay cartas elegibles (mínimo {{required}} ejemplares idénticos)",
+    "description": "Intercambia {{required}} cartas {{rarity}} idénticas por {{reward}} cartas aleatorias",
+    "confirmTitle": "Confirmar intercambio",
+    "confirmDescription": "¿Intercambiar {{required}} ejemplares de \"{{title}}\" por {{reward}} cartas aleatorias?",
     "needCards": "Necesitas {{count}} cartas idénticas",
     "tradeSuccess": "¡Intercambio exitoso! ¡Recibiste {{count}} cartas!",
     "tradeError": "Error durante el intercambio"

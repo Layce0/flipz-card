@@ -138,12 +138,17 @@
   },
   "trade": {
     "title": "Échange de cartes",
+    "subtitle": "Transformez vos doublons",
     "selectCards": "Sélectionnez les cartes à échanger",
     "selected": "{{count}} sélectionnée",
     "selected_plural": "{{count}} sélectionnées",
     "exchange": "Échanger",
     "cardsObtained": "Cartes obtenues !",
     "noCards": "Aucune carte disponible pour l'échange",
+    "noEligible": "Aucune carte éligible (minimum {{required}} exemplaires identiques)",
+    "description": "Échangez {{required}} cartes {{rarity}} identiques contre {{reward}} cartes aléatoires",
+    "confirmTitle": "Confirmer l'échange",
+    "confirmDescription": "Échanger {{required}} exemplaires de \"{{title}}\" contre {{reward}} cartes aléatoires ?",
     "needCards": "Vous avez besoin de {{count}} cartes identiques",
     "tradeSuccess": "Échange réussi ! Vous avez reçu {{count}} cartes !",
     "tradeError": "Erreur lors de l'échange"

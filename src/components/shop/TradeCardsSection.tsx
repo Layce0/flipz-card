@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -17,6 +18,7 @@ interface TradeCardsSectionProps {
 }
 
 export const TradeCardsSection = ({ userCards, onTrade, isTrading }: TradeCardsSectionProps) => {
+  const { t } = useTranslation();
   const [selectedCard, setSelectedCard] = useState<UserCardWithCount | null>(null);
   const [rewardCards, setRewardCards] = useState<any[]>([]);
   const [showReward, setShowReward] = useState(false);
@@ -59,8 +61,8 @@ export const TradeCardsSection = ({ userCards, onTrade, isTrading }: TradeCardsS
             <ArrowRightLeft className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h2 className="font-display text-lg text-foreground">Échanges de cartes</h2>
-            <p className="text-sm text-muted-foreground">Transformez vos doublons</p>
+            <h2 className="font-display text-lg text-foreground">{t('trade.title')}</h2>
+            <p className="text-sm text-muted-foreground">{t('trade.subtitle')}</p>
           </div>
         </div>
 
@@ -68,6 +70,7 @@ export const TradeCardsSection = ({ userCards, onTrade, isTrading }: TradeCardsS
           const config = TRADE_CONFIG[rarity];
           const rarityConfig = RARITY_CONFIG[rarity];
           const eligibleCards = getEligibleCardsByRarity(rarity);
+          const rarityLabel = t(`rarity.${rarity}`);
 
           return (
             <Card key={rarity} className="overflow-hidden">
@@ -80,22 +83,26 @@ export const TradeCardsSection = ({ userCards, onTrade, isTrading }: TradeCardsS
                     )}
                     style={{ color: rarity === 'legendary' ? 'hsl(240, 20%, 6%)' : 'white' }}
                   >
-                    {rarityConfig.label}
+                    {rarityLabel}
                   </span>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Package className="w-4 h-4" />
-                    <span>{config.required} → {config.reward} cartes</span>
+                    <span>{config.required} → {config.reward} {t('common.cards')}</span>
                   </div>
                 </div>
                 <CardDescription className="mt-2">
-                  Échangez {config.required} cartes {rarityConfig.label.toLowerCase()}s identiques contre {config.reward} cartes aléatoires
-                  {config.keep > 0 && ` (vous gardez ${config.keep} carte)`}
+                  {t('trade.description', { 
+                    required: config.required, 
+                    rarity: rarityLabel.toLowerCase(), 
+                    reward: config.reward,
+                    keep: config.keep 
+                  })}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 {eligibleCards.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    Aucune carte éligible (minimum {config.required} exemplaires identiques)
+                    {t('trade.noEligible', { required: config.required })}
                   </p>
                 ) : (
                   <ScrollArea className="w-full">
@@ -137,14 +144,13 @@ export const TradeCardsSection = ({ userCards, onTrade, isTrading }: TradeCardsS
       <Dialog open={!!selectedCard} onOpenChange={() => setSelectedCard(null)}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Confirmer l'échange</DialogTitle>
+            <DialogTitle>{t('trade.confirmTitle')}</DialogTitle>
             <DialogDescription>
-              {selectedCard && (
-                <>
-                  Échanger {TRADE_CONFIG[selectedCard.rarity as Rarity].required} exemplaires de "{selectedCard.title}" contre{' '}
-                  {TRADE_CONFIG[selectedCard.rarity as Rarity].reward} cartes aléatoires ?
-                </>
-              )}
+              {selectedCard && t('trade.confirmDescription', {
+                required: TRADE_CONFIG[selectedCard.rarity as Rarity].required,
+                title: selectedCard.title,
+                reward: TRADE_CONFIG[selectedCard.rarity as Rarity].reward
+              })}
             </DialogDescription>
           </DialogHeader>
 
@@ -176,7 +182,7 @@ export const TradeCardsSection = ({ userCards, onTrade, isTrading }: TradeCardsS
 
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setSelectedCard(null)}>
-              Annuler
+              {t('common.cancel')}
             </Button>
             <Button
               variant="gold"
@@ -186,7 +192,7 @@ export const TradeCardsSection = ({ userCards, onTrade, isTrading }: TradeCardsS
               {localTrading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                'Échanger'
+                t('trade.exchange')
               )}
             </Button>
           </DialogFooter>
@@ -199,10 +205,10 @@ export const TradeCardsSection = ({ userCards, onTrade, isTrading }: TradeCardsS
           <DialogHeader>
             <DialogTitle className="text-center flex items-center justify-center gap-2">
               <Sparkles className="w-5 h-5 text-primary" />
-              Nouvelles cartes !
+              {t('shop.newCards')}
             </DialogTitle>
             <DialogDescription className="text-center">
-              Cliquez sur les cartes pour les révéler
+              {t('shop.clickToReveal')}
             </DialogDescription>
           </DialogHeader>
 
@@ -225,7 +231,7 @@ export const TradeCardsSection = ({ userCards, onTrade, isTrading }: TradeCardsS
               onClick={() => setShowReward(false)}
               className="w-full"
             >
-              Fermer
+              {t('common.close')}
             </Button>
           </DialogFooter>
         </DialogContent>

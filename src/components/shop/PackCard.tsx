@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PackConfig, formatPrice } from '@/types/pack';
@@ -12,6 +13,8 @@ interface PackCardProps {
 }
 
 export const PackCard = ({ pack, onPurchase, isLoading, disabled }: PackCardProps) => {
+  const { t } = useTranslation();
+  
   const getPackStyles = () => {
     switch (pack.type) {
       case 'lucky':
@@ -41,6 +44,17 @@ export const PackCard = ({ pack, onPurchase, isLoading, disabled }: PackCardProp
           icon: Zap,
           badgeStyle: 'bg-muted text-muted-foreground',
         };
+    }
+  };
+
+  const getPackName = () => {
+    switch (pack.type) {
+      case 'lucky':
+        return t('packs.lucky');
+      case 'ultra':
+        return t('packs.ultra');
+      default:
+        return t('packs.standard');
     }
   };
 
@@ -89,8 +103,8 @@ export const PackCard = ({ pack, onPurchase, isLoading, disabled }: PackCardProp
       {/* Bottom content */}
       <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
         <div className="text-center mb-2">
-          <h3 className="font-display text-sm text-foreground truncate">{pack.name}</h3>
-          <p className="text-xs text-muted-foreground">{pack.cardCount} cartes</p>
+          <h3 className="font-display text-sm text-foreground truncate">{getPackName()}</h3>
+          <p className="text-xs text-muted-foreground">{pack.cardCount} {t('common.cards')}</p>
         </div>
         
         <Button

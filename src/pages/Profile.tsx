@@ -20,23 +20,6 @@ const LANGUAGES = [
   { code: 'fr', name: 'Français' },
   { code: 'en', name: 'English' },
   { code: 'es', name: 'Español' },
-  { code: 'de', name: 'Deutsch' },
-  { code: 'it', name: 'Italiano' },
-  { code: 'pt', name: 'Português' },
-  { code: 'nl', name: 'Nederlands' },
-  { code: 'pl', name: 'Polski' },
-  { code: 'ru', name: 'Русский' },
-  { code: 'ja', name: '日本語' },
-  { code: 'ko', name: '한국어' },
-  { code: 'zh', name: '中文' },
-  { code: 'ar', name: 'العربية' },
-  { code: 'tr', name: 'Türkçe' },
-  { code: 'sv', name: 'Svenska' },
-  { code: 'da', name: 'Dansk' },
-  { code: 'no', name: 'Norsk' },
-  { code: 'fi', name: 'Suomi' },
-  { code: 'cs', name: 'Čeština' },
-  { code: 'el', name: 'Ελληνικά' },
 ];
 
 interface ProfileData {
