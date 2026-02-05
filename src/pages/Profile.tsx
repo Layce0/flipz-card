@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserCardStats } from '@/hooks/useCards';
@@ -7,13 +8,12 @@ import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { User, Settings, BarChart3, LogOut, Camera, Lock, Save, Sun, Moon } from 'lucide-react';
+import { User, Settings, BarChart3, LogOut, Camera, Lock, Save } from 'lucide-react';
 import { toast } from 'sonner';
 
 const LANGUAGES = [
@@ -43,14 +43,12 @@ interface ProfileData {
   username: string | null;
   avatar_url: string | null;
   language: string;
-  notifications_enabled: boolean;
-  visual_effects_enabled: boolean;
-  theme: string;
 }
 
 const Profile = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const { data: cardStats = { total: 0, common: 0, rare: 0, epic: 0, legendary: 0 } } = useUserCardStats(user?.id);
@@ -58,9 +56,6 @@ const Profile = () => {
     username: '',
     avatar_url: null,
     language: 'fr',
-    notifications_enabled: true,
-    visual_effects_enabled: true,
-    theme: 'dark',
   });
   const [passwords, setPasswords] = useState({
     current: '',
@@ -82,21 +77,21 @@ const Profile = () => {
     
     const { data, error } = await supabase
       .from('profiles')
-      .select('username, avatar_url, language, notifications_enabled, visual_effects_enabled, theme')
+      .select('username, avatar_url, language')
       .eq('id', user.id)
       .single();
 
     if (error) {
       console.error('Error fetching profile:', error);
     } else if (data) {
+      const lang = data.language || 'fr';
       setProfile({
         username: data.username || '',
         avatar_url: data.avatar_url,
-        language: data.language || 'fr',
-        notifications_enabled: data.notifications_enabled ?? true,
-        visual_effects_enabled: data.visual_effects_enabled ?? true,
-        theme: data.theme || 'dark',
+        language: lang,
       });
+      // Apply saved language
+      i18n.changeLanguage(lang);
     }
     setLoading(false);
   };
@@ -113,7 +108,7 @@ const Profile = () => {
       .upload(filePath, file, { upsert: true });
 
     if (uploadError) {
-      toast.error('Erreur lors du téléchargement de l\'avatar');
+      toast.error(t('profile.avatarError'));
       return;
     }
 
@@ -122,7 +117,7 @@ const Profile = () => {
       .getPublicUrl(filePath);
 
     setProfile(prev => ({ ...prev, avatar_url: publicUrl }));
-    toast.success('Avatar mis à jour !');
+    toast.success(t('profile.avatarSuccess'));
   };
 
   const saveProfile = async () => {
@@ -135,29 +130,30 @@ const Profile = () => {
         username: profile.username,
         avatar_url: profile.avatar_url,
         language: profile.language,
-        notifications_enabled: profile.notifications_enabled,
-        visual_effects_enabled: profile.visual_effects_enabled,
-        theme: profile.theme,
       })
       .eq('id', user.id);
+
+    // Apply language change
+    i18n.changeLanguage(profile.language);
+    localStorage.setItem('app-language', profile.language);
 
     setSaving(false);
 
     if (error) {
-      toast.error('Erreur lors de la sauvegarde');
+      toast.error(t('profile.saveError'));
     } else {
-      toast.success('Profil sauvegardé !');
+      toast.success(t('profile.saveSuccess'));
     }
   };
 
   const changePassword = async () => {
     if (passwords.new !== passwords.confirm) {
-      toast.error('Les mots de passe ne correspondent pas');
+      toast.error(t('profile.password.mismatch'));
       return;
     }
 
     if (passwords.new.length < 6) {
-      toast.error('Le mot de passe doit contenir au moins 6 caractères');
+      toast.error(t('profile.password.tooShort'));
       return;
     }
 
@@ -170,9 +166,9 @@ const Profile = () => {
     setChangingPassword(false);
 
     if (error) {
-      toast.error('Erreur lors du changement de mot de passe');
+      toast.error(t('profile.password.error'));
     } else {
-      toast.success('Mot de passe modifié !');
+      toast.success(t('profile.password.success'));
       setPasswords({ current: '', new: '', confirm: '' });
     }
   };
@@ -192,18 +188,13 @@ const Profile = () => {
   };
 
   const getRarityLabel = (rarity: string) => {
-    switch (rarity) {
-      case 'legendary': return 'Légendaire';
-      case 'epic': return 'Épique';
-      case 'rare': return 'Rare';
-      default: return 'Commun';
-    }
+    return t(`rarity.${rarity}`);
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Chargement...</div>
+        <div className="animate-pulse text-muted-foreground">{t('common.loading')}</div>
       </div>
     );
   }
@@ -241,15 +232,15 @@ const Profile = () => {
           <TabsList className="grid w-full grid-cols-3 mb-4">
             <TabsTrigger value="profile" className="flex items-center gap-1.5">
               <User className="w-4 h-4" />
-              <span className="hidden sm:inline">Profil</span>
+              <span className="hidden sm:inline">{t('profile.tabs.profile')}</span>
             </TabsTrigger>
             <TabsTrigger value="stats" className="flex items-center gap-1.5">
               <BarChart3 className="w-4 h-4" />
-              <span className="hidden sm:inline">Stats</span>
+              <span className="hidden sm:inline">{t('profile.tabs.stats')}</span>
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-1.5">
               <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">Paramètres</span>
+              <span className="hidden sm:inline">{t('profile.tabs.settings')}</span>
             </TabsTrigger>
           </TabsList>
 
@@ -257,22 +248,22 @@ const Profile = () => {
           <TabsContent value="profile" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Informations</CardTitle>
-                <CardDescription>Modifiez vos informations personnelles</CardDescription>
+                <CardTitle className="text-lg">{t('profile.info.title')}</CardTitle>
+                <CardDescription>{t('profile.info.description')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="username">Pseudo</Label>
+                  <Label htmlFor="username">{t('profile.info.username')}</Label>
                   <Input
                     id="username"
                     value={profile.username || ''}
                     onChange={(e) => setProfile(prev => ({ ...prev, username: e.target.value }))}
-                    placeholder="Votre pseudo"
+                    placeholder={t('profile.info.usernamePlaceholder')}
                   />
                 </div>
                 <Button onClick={saveProfile} disabled={saving} className="w-full">
                   <Save className="w-4 h-4 mr-2" />
-                  {saving ? 'Sauvegarde...' : 'Sauvegarder'}
+                  {saving ? t('common.saving') : t('common.save')}
                 </Button>
               </CardContent>
             </Card>
@@ -281,13 +272,13 @@ const Profile = () => {
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Lock className="w-5 h-5" />
-                  Mot de passe
+                  {t('profile.password.title')}
                 </CardTitle>
-                <CardDescription>Changez votre mot de passe</CardDescription>
+                <CardDescription>{t('profile.password.description')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="new-password">Nouveau mot de passe</Label>
+                  <Label htmlFor="new-password">{t('profile.password.new')}</Label>
                   <Input
                     id="new-password"
                     type="password"
@@ -297,7 +288,7 @@ const Profile = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="confirm-password">Confirmer le mot de passe</Label>
+                  <Label htmlFor="confirm-password">{t('profile.password.confirm')}</Label>
                   <Input
                     id="confirm-password"
                     type="password"
@@ -312,14 +303,14 @@ const Profile = () => {
                   variant="outline"
                   className="w-full"
                 >
-                  {changingPassword ? 'Modification...' : 'Changer le mot de passe'}
+                  {changingPassword ? t('profile.password.changing') : t('profile.password.change')}
                 </Button>
               </CardContent>
             </Card>
 
             <Button onClick={handleLogout} variant="destructive" className="w-full">
               <LogOut className="w-4 h-4 mr-2" />
-              Déconnexion
+              {t('profile.logout')}
             </Button>
           </TabsContent>
 
@@ -327,13 +318,13 @@ const Profile = () => {
           <TabsContent value="stats" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Collection</CardTitle>
-                <CardDescription>Votre progression dans la collection</CardDescription>
+                <CardTitle className="text-lg">{t('stats.title')}</CardTitle>
+                <CardDescription>{t('stats.description')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="text-center mb-6">
                   <span className="text-4xl font-bold text-primary">{cardStats.total}</span>
-                  <p className="text-sm text-muted-foreground">cartes possédées</p>
+                  <p className="text-sm text-muted-foreground">{t('stats.cardsOwned')}</p>
                 </div>
 
                 <div className="space-y-4">
@@ -360,13 +351,13 @@ const Profile = () => {
           <TabsContent value="settings" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Préférences</CardTitle>
-                <CardDescription>Personnalisez votre expérience</CardDescription>
+                <CardTitle className="text-lg">{t('settings.title')}</CardTitle>
+                <CardDescription>{t('settings.description')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Language */}
                 <div className="space-y-2">
-                  <Label>Langue</Label>
+                  <Label>{t('settings.language')}</Label>
                   <Select
                     value={profile.language}
                     onValueChange={(value) => setProfile(prev => ({ ...prev, language: value }))}
@@ -384,65 +375,9 @@ const Profile = () => {
                   </Select>
                 </div>
 
-                {/* Theme */}
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>Thème</Label>
-                    <p className="text-sm text-muted-foreground">
-                      {profile.theme === 'dark' ? 'Sombre' : 'Clair'}
-                    </p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setProfile(prev => ({ 
-                      ...prev, 
-                      theme: prev.theme === 'dark' ? 'light' : 'dark' 
-                    }))}
-                  >
-                    {profile.theme === 'dark' ? (
-                      <Moon className="w-4 h-4" />
-                    ) : (
-                      <Sun className="w-4 h-4" />
-                    )}
-                  </Button>
-                </div>
-
-                {/* Notifications */}
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>Notifications</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Recevoir des notifications
-                    </p>
-                  </div>
-                  <Switch
-                    checked={profile.notifications_enabled}
-                    onCheckedChange={(checked) => 
-                      setProfile(prev => ({ ...prev, notifications_enabled: checked }))
-                    }
-                  />
-                </div>
-
-                {/* Visual Effects */}
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>Effets visuels</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Animations et effets
-                    </p>
-                  </div>
-                  <Switch
-                    checked={profile.visual_effects_enabled}
-                    onCheckedChange={(checked) => 
-                      setProfile(prev => ({ ...prev, visual_effects_enabled: checked }))
-                    }
-                  />
-                </div>
-
                 <Button onClick={saveProfile} disabled={saving} className="w-full">
                   <Save className="w-4 h-4 mr-2" />
-                  {saving ? 'Sauvegarde...' : 'Sauvegarder les paramètres'}
+                  {saving ? t('common.saving') : t('settings.saveSettings')}
                 </Button>
               </CardContent>
             </Card>

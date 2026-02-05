@@ -1,0 +1,125 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "next": "Next",
+    "previous": "Previous",
+    "finish": "Finish",
+    "cards": "cards",
+    "card": "card"
+  },
+  "nav": {
+    "home": "Home",
+    "collection": "Collection",
+    "packs": "Packs",
+    "shop": "Shop",
+    "admin": "Admin",
+    "profile": "Profile",
+    "login": "Login"
+  },
+  "rarity": {
+    "common": "Common",
+    "rare": "Rare",
+    "epic": "Epic",
+    "legendary": "Legendary",
+    "all": "All"
+  },
+  "home": {
+    "welcome": "Welcome to",
+    "dailyCard": "Daily Card",
+    "loadingCard": "Loading card..."
+  },
+  "profile": {
+    "title": "Profile",
+    "tabs": {
+      "profile": "Profile",
+      "stats": "Stats",
+      "settings": "Settings"
+    },
+    "info": {
+      "title": "Information",
+      "description": "Edit your personal information",
+      "username": "Username",
+      "usernamePlaceholder": "Your username"
+    },
+    "password": {
+      "title": "Password",
+      "description": "Change your password",
+      "new": "New password",
+      "confirm": "Confirm password",
+      "change": "Change password",
+      "changing": "Changing...",
+      "mismatch": "Passwords do not match",
+      "tooShort": "Password must be at least 6 characters",
+      "success": "Password changed!",
+      "error": "Error changing password"
+    },
+    "logout": "Logout",
+    "saveSuccess": "Profile saved!",
+    "saveError": "Error saving profile",
+    "avatarSuccess": "Avatar updated!",
+    "avatarError": "Error uploading avatar"
+  },
+  "stats": {
+    "title": "Collection",
+    "description": "Your collection progress",
+    "cardsOwned": "cards owned"
+  },
+  "settings": {
+    "title": "Preferences",
+    "description": "Customize your experience",
+    "language": "Language",
+    "saveSettings": "Save settings"
+  },
+  "collection": {
+    "title": "My Collection",
+    "empty": "No cards in this category",
+    "count": "{{count}} card",
+    "count_plural": "{{count}} cards"
+  },
+  "packs": {
+    "title": "Open Packs",
+    "free": "Free Pack",
+    "standard": "Standard Pack",
+    "lucky": "Lucky Pack",
+    "ultra": "Ultra Pack",
+    "open": "Open",
+    "buy": "Buy"
+  },
+  "shop": {
+    "title": "Shop",
+    "packs": "Card Packs",
+    "trade": "Card Trading",
+    "tradeDescription": "Trade your duplicate cards",
+    "tradeButton": "Trade cards"
+  },
+  "trade": {
+    "title": "Card Trading",
+    "selectCards": "Select cards to trade",
+    "selected": "{{count}} selected",
+    "selected_plural": "{{count}} selected",
+    "exchange": "Exchange",
+    "cardsObtained": "Cards obtained!",
+    "noCards": "No cards available for trading"
+  },
+  "auth": {
+    "login": "Login",
+    "signup": "Sign up",
+    "email": "Email",
+    "password": "Password",
+    "loginButton": "Log in",
+    "signupButton": "Sign up",
+    "noAccount": "No account?",
+    "hasAccount": "Already have an account?",
+    "loginRequired": "Log in to access this feature"
+  },
+  "cardReveal": {
+    "progress": "Card {{current}} of {{total}}"
+  }
+}

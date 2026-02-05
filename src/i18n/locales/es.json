@@ -1,0 +1,125 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "saving": "Guardando...",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "close": "Cerrar",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "finish": "Terminar",
+    "cards": "cartas",
+    "card": "carta"
+  },
+  "nav": {
+    "home": "Inicio",
+    "collection": "Colección",
+    "packs": "Paquetes",
+    "shop": "Tienda",
+    "admin": "Admin",
+    "profile": "Perfil",
+    "login": "Iniciar sesión"
+  },
+  "rarity": {
+    "common": "Común",
+    "rare": "Raro",
+    "epic": "Épico",
+    "legendary": "Legendario",
+    "all": "Todas"
+  },
+  "home": {
+    "welcome": "Bienvenido a",
+    "dailyCard": "Carta del día",
+    "loadingCard": "Cargando carta..."
+  },
+  "profile": {
+    "title": "Perfil",
+    "tabs": {
+      "profile": "Perfil",
+      "stats": "Estadísticas",
+      "settings": "Configuración"
+    },
+    "info": {
+      "title": "Información",
+      "description": "Edita tu información personal",
+      "username": "Nombre de usuario",
+      "usernamePlaceholder": "Tu nombre de usuario"
+    },
+    "password": {
+      "title": "Contraseña",
+      "description": "Cambia tu contraseña",
+      "new": "Nueva contraseña",
+      "confirm": "Confirmar contraseña",
+      "change": "Cambiar contraseña",
+      "changing": "Cambiando...",
+      "mismatch": "Las contraseñas no coinciden",
+      "tooShort": "La contraseña debe tener al menos 6 caracteres",
+      "success": "¡Contraseña cambiada!",
+      "error": "Error al cambiar la contraseña"
+    },
+    "logout": "Cerrar sesión",
+    "saveSuccess": "¡Perfil guardado!",
+    "saveError": "Error al guardar el perfil",
+    "avatarSuccess": "¡Avatar actualizado!",
+    "avatarError": "Error al subir el avatar"
+  },
+  "stats": {
+    "title": "Colección",
+    "description": "Tu progreso en la colección",
+    "cardsOwned": "cartas poseídas"
+  },
+  "settings": {
+    "title": "Preferencias",
+    "description": "Personaliza tu experiencia",
+    "language": "Idioma",
+    "saveSettings": "Guardar configuración"
+  },
+  "collection": {
+    "title": "Mi Colección",
+    "empty": "No hay cartas en esta categoría",
+    "count": "{{count}} carta",
+    "count_plural": "{{count}} cartas"
+  },
+  "packs": {
+    "title": "Abrir paquetes",
+    "free": "Paquete Gratis",
+    "standard": "Paquete Estándar",
+    "lucky": "Paquete Suerte",
+    "ultra": "Paquete Ultra",
+    "open": "Abrir",
+    "buy": "Comprar"
+  },
+  "shop": {
+    "title": "Tienda",
+    "packs": "Paquetes de cartas",
+    "trade": "Intercambio de cartas",
+    "tradeDescription": "Intercambia tus cartas duplicadas",
+    "tradeButton": "Intercambiar cartas"
+  },
+  "trade": {
+    "title": "Intercambio de cartas",
+    "selectCards": "Selecciona las cartas a intercambiar",
+    "selected": "{{count}} seleccionada",
+    "selected_plural": "{{count}} seleccionadas",
+    "exchange": "Intercambiar",
+    "cardsObtained": "¡Cartas obtenidas!",
+    "noCards": "No hay cartas disponibles para intercambiar"
+  },
+  "auth": {
+    "login": "Iniciar sesión",
+    "signup": "Registrarse",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "loginButton": "Iniciar sesión",
+    "signupButton": "Registrarse",
+    "noAccount": "¿No tienes cuenta?",
+    "hasAccount": "¿Ya tienes cuenta?",
+    "loginRequired": "Inicia sesión para acceder a esta función"
+  },
+  "cardReveal": {
+    "progress": "Carta {{current}} de {{total}}"
+  }
+}

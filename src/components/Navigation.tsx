@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Home, BookOpen, Package, Shield, LogIn, Store, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,21 +7,22 @@ import { useAuth } from '@/contexts/AuthContext';
 export const Navigation = () => {
   const location = useLocation();
   const { user, isAdmin } = useAuth();
+  const { t } = useTranslation();
 
   const navItems = [
-    { path: '/', icon: Home, label: 'Accueil', show: true },
-    { path: '/collection', icon: BookOpen, label: 'Collection', show: true },
-    { path: '/packs', icon: Package, label: 'Packs', show: true },
-    { path: '/shop', icon: Store, label: 'Boutique', show: !!user },
-    { path: '/admin', icon: Shield, label: 'Admin', show: isAdmin },
-    { path: '/profile', icon: User, label: 'Profil', show: !!user },
-    { path: '/auth', icon: LogIn, label: 'Connexion', show: !user },
+    { path: '/', icon: Home, labelKey: 'nav.home', show: true },
+    { path: '/collection', icon: BookOpen, labelKey: 'nav.collection', show: true },
+    { path: '/packs', icon: Package, labelKey: 'nav.packs', show: true },
+    { path: '/shop', icon: Store, labelKey: 'nav.shop', show: !!user },
+    { path: '/admin', icon: Shield, labelKey: 'nav.admin', show: isAdmin },
+    { path: '/profile', icon: User, labelKey: 'nav.profile', show: !!user },
+    { path: '/auth', icon: LogIn, labelKey: 'nav.login', show: !user },
   ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/90 backdrop-blur-lg border-t border-border safe-area-bottom">
       <div className="flex items-center justify-around py-2 px-4 max-w-lg mx-auto">
-        {navItems.filter(item => item.show).map(({ path, icon: Icon, label }) => {
+        {navItems.filter(item => item.show).map(({ path, icon: Icon, labelKey }) => {
           const isActive = location.pathname === path;
           return (
             <Link
@@ -34,7 +36,7 @@ export const Navigation = () => {
               )}
             >
               <Icon className={cn("w-5 h-5", isActive && "drop-shadow-[0_0_8px_hsl(45_90%_55%)]")} />
-              <span className="text-xs font-medium">{label}</span>
+              <span className="text-xs font-medium">{t(labelKey)}</span>
             </Link>
           );
         })}
