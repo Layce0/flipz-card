@@ -250,22 +250,30 @@ export const useDeleteUserCards = () => {
   });
 };
 
-// Check if user has collected today's card
+// Check if user has collected today's card (today only)
 export const useHasCollectedToday = (userId: string | undefined, cardId: string | undefined) => {
   return useQuery({
-    queryKey: ['has-collected', userId, cardId],
+    queryKey: ['has-collected-today', userId, cardId],
     queryFn: async () => {
       if (!userId || !cardId) return false;
+      
+      // Get today's date boundaries
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
       
       const { data, error } = await supabase
         .from('user_cards')
         .select('id')
         .eq('user_id', userId)
         .eq('card_id', cardId)
-        .single();
+        .gte('obtained_at', today.toISOString())
+        .lt('obtained_at', tomorrow.toISOString())
+        .limit(1);
       
-      if (error && error.code !== 'PGRST116') throw error;
-      return !!data;
+      if (error) throw error;
+      return data && data.length > 0;
     },
     enabled: !!userId && !!cardId,
   });
@@ -285,7 +293,7 @@ export const useCollectCard = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-cards'] });
-      queryClient.invalidateQueries({ queryKey: ['has-collected'] });
+      queryClient.invalidateQueries({ queryKey: ['has-collected-today'] });
       queryClient.invalidateQueries({ queryKey: ['user-card-stats'] });
     },
   });
