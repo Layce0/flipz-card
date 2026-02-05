@@ -1,0 +1,125 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "save": "Sauvegarder",
+    "saving": "Sauvegarde...",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "close": "Fermer",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "finish": "Terminer",
+    "cards": "cartes",
+    "card": "carte"
+  },
+  "nav": {
+    "home": "Accueil",
+    "collection": "Collection",
+    "packs": "Packs",
+    "shop": "Boutique",
+    "admin": "Admin",
+    "profile": "Profil",
+    "login": "Connexion"
+  },
+  "rarity": {
+    "common": "Commun",
+    "rare": "Rare",
+    "epic": "Épique",
+    "legendary": "Légendaire",
+    "all": "Toutes"
+  },
+  "home": {
+    "welcome": "Bienvenue sur",
+    "dailyCard": "Carte du jour",
+    "loadingCard": "Chargement de la carte..."
+  },
+  "profile": {
+    "title": "Profil",
+    "tabs": {
+      "profile": "Profil",
+      "stats": "Stats",
+      "settings": "Paramètres"
+    },
+    "info": {
+      "title": "Informations",
+      "description": "Modifiez vos informations personnelles",
+      "username": "Pseudo",
+      "usernamePlaceholder": "Votre pseudo"
+    },
+    "password": {
+      "title": "Mot de passe",
+      "description": "Changez votre mot de passe",
+      "new": "Nouveau mot de passe",
+      "confirm": "Confirmer le mot de passe",
+      "change": "Changer le mot de passe",
+      "changing": "Modification...",
+      "mismatch": "Les mots de passe ne correspondent pas",
+      "tooShort": "Le mot de passe doit contenir au moins 6 caractères",
+      "success": "Mot de passe modifié !",
+      "error": "Erreur lors du changement de mot de passe"
+    },
+    "logout": "Déconnexion",
+    "saveSuccess": "Profil sauvegardé !",
+    "saveError": "Erreur lors de la sauvegarde",
+    "avatarSuccess": "Avatar mis à jour !",
+    "avatarError": "Erreur lors du téléchargement de l'avatar"
+  },
+  "stats": {
+    "title": "Collection",
+    "description": "Votre progression dans la collection",
+    "cardsOwned": "cartes possédées"
+  },
+  "settings": {
+    "title": "Préférences",
+    "description": "Personnalisez votre expérience",
+    "language": "Langue",
+    "saveSettings": "Sauvegarder les paramètres"
+  },
+  "collection": {
+    "title": "Ma Collection",
+    "empty": "Aucune carte dans cette catégorie",
+    "count": "{{count}} carte",
+    "count_plural": "{{count}} cartes"
+  },
+  "packs": {
+    "title": "Ouvrir des packs",
+    "free": "Pack Gratuit",
+    "standard": "Pack Standard",
+    "lucky": "Pack Chanceux",
+    "ultra": "Pack Ultra",
+    "open": "Ouvrir",
+    "buy": "Acheter"
+  },
+  "shop": {
+    "title": "Boutique",
+    "packs": "Packs de cartes",
+    "trade": "Échange de cartes",
+    "tradeDescription": "Échangez vos cartes en double",
+    "tradeButton": "Échanger des cartes"
+  },
+  "trade": {
+    "title": "Échange de cartes",
+    "selectCards": "Sélectionnez les cartes à échanger",
+    "selected": "{{count}} sélectionnée",
+    "selected_plural": "{{count}} sélectionnées",
+    "exchange": "Échanger",
+    "cardsObtained": "Cartes obtenues !",
+    "noCards": "Aucune carte disponible pour l'échange"
+  },
+  "auth": {
+    "login": "Connexion",
+    "signup": "Inscription",
+    "email": "Email",
+    "password": "Mot de passe",
+    "loginButton": "Se connecter",
+    "signupButton": "S'inscrire",
+    "noAccount": "Pas de compte ?",
+    "hasAccount": "Déjà un compte ?",
+    "loginRequired": "Connectez-vous pour accéder à cette fonctionnalité"
+  },
+  "cardReveal": {
+    "progress": "Carte {{current}} sur {{total}}"
+  }
+}
