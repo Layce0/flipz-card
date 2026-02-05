@@ -102,21 +102,6 @@ const Index = () => {
               />
             </div>
 
-            {/* CTA */}
-            {!isRevealed ? (
-              <div className="text-center animate-fade-in">
-                <p className="text-muted-foreground mb-4">Votre carte du jour vous attend !</p>
-                <Button variant="gold" size="xl" onClick={handleReveal} disabled={collectCard.isPending}>
-                  <Sparkles className="w-5 h-5" />
-                  {user ? 'Révéler la carte' : 'Se connecter pour révéler'}
-                </Button>
-              </div>
-            ) : (
-              <div className="text-center animate-fade-in">
-                <p className="text-primary font-display text-lg mb-2">Félicitations !</p>
-                <p className="text-muted-foreground text-sm">Cette carte a été ajoutée à votre collection</p>
-              </div>
-            )}
           </>
         )}
       </main>
