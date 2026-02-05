@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { ArrowRightLeft, Package } from 'lucide-react';
+import { ArrowRightLeft, Package, Loader2 } from 'lucide-react';
 import { Rarity, RARITY_CONFIG } from '@/types/card';
 import { TRADE_CONFIG } from '@/types/pack';
-import { UserCardWithCount } from '@/hooks/useCards';
+import { UserCardWithCount, useDeleteUserCards, useRandomCards, useCollectCard } from '@/hooks/useCards';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface TradeOverviewDialogProps {
   userCards: UserCardWithCount[];
@@ -13,12 +15,49 @@ interface TradeOverviewDialogProps {
 
 export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => {
   const [open, setOpen] = useState(false);
+  const [tradingCardId, setTradingCardId] = useState<string | null>(null);
+  const { user } = useAuth();
+  
+  const deleteUserCards = useDeleteUserCards();
+  const getRandomCards = useRandomCards();
+  const collectCard = useCollectCard();
 
   const getEligibleCardsByRarity = (rarity: Rarity) => {
     const config = TRADE_CONFIG[rarity];
     return userCards.filter(
       (card) => card.rarity === rarity && card.count >= config.required
     );
+  };
+
+  const handleTrade = async (cardId: string, rarity: Rarity) => {
+    if (!user) return;
+    
+    const config = TRADE_CONFIG[rarity];
+    setTradingCardId(cardId);
+    
+    try {
+      // Delete the required number of cards
+      await deleteUserCards.mutateAsync({ 
+        userId: user.id, 
+        cardId, 
+        count: config.required 
+      });
+      
+      // Get reward cards
+      const newCards = await getRandomCards.mutateAsync({ count: config.reward });
+      
+      // Collect the new cards
+      for (const card of newCards) {
+        await collectCard.mutateAsync({ userId: user.id, cardId: card.id });
+      }
+      
+      toast.success(`Échange réussi ! ${config.reward} nouvelles cartes ajoutées.`);
+    } catch (error) {
+      console.error('Trade error:', error);
+      toast.error("Erreur lors de l'échange");
+    } finally {
+      setTradingCardId(null);
+    }
   };
 
   const rarities: Rarity[] = ['legendary', 'epic', 'rare', 'common'];
@@ -89,9 +128,11 @@ export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => 
                       style={{ direction: 'rtl' }}
                     >
                       {eligibleCards.map((card) => (
-                        <div
+                        <button
                           key={card.id}
-                          className="flex-shrink-0 relative w-16 aspect-[2/3] rounded-lg overflow-hidden border border-border/50 group"
+                          onClick={() => handleTrade(card.id, rarity)}
+                          disabled={tradingCardId !== null}
+                          className="flex-shrink-0 relative w-16 aspect-[2/3] rounded-lg overflow-hidden border border-border/50 group hover:border-primary transition-colors disabled:opacity-50"
                           style={{ direction: 'ltr' }}
                         >
                           <img
@@ -109,13 +150,19 @@ export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => 
                               ×{card.count}
                             </span>
                           </div>
-                          {/* Hover tooltip */}
-                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <span className="text-[10px] text-white text-center px-1">
-                              -{config.required} → +{config.reward}
-                            </span>
-                          </div>
-                        </div>
+                          {/* Hover overlay / Loading */}
+                          {tradingCardId === card.id ? (
+                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                              <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                            </div>
+                          ) : (
+                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <span className="text-[10px] text-white text-center px-1">
+                                Échanger
+                              </span>
+                            </div>
+                          )}
+                        </button>
                       ))}
                     </div>
                   </div>
