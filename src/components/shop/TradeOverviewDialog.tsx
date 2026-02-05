@@ -1,13 +1,15 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ArrowRightLeft, Package, Loader2 } from 'lucide-react';
 import { Rarity, RARITY_CONFIG } from '@/types/card';
+import { GameCard } from '@/types/card';
 import { TRADE_CONFIG } from '@/types/pack';
 import { UserCardWithCount, useDeleteUserCards, useRandomCards, useCollectCard } from '@/hooks/useCards';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { CardRevealDialog } from '@/components/CardRevealDialog';
 
 interface TradeOverviewDialogProps {
   userCards: UserCardWithCount[];
@@ -16,6 +18,8 @@ interface TradeOverviewDialogProps {
 export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => {
   const [open, setOpen] = useState(false);
   const [tradingCardId, setTradingCardId] = useState<string | null>(null);
+  const [revealCards, setRevealCards] = useState<GameCard[]>([]);
+  const [showReveal, setShowReveal] = useState(false);
   const { user } = useAuth();
   
   const deleteUserCards = useDeleteUserCards();
@@ -52,12 +56,21 @@ export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => 
       }
       
       toast.success(`Échange réussi ! ${config.reward} nouvelles cartes ajoutées.`);
+      
+      // Show reveal dialog with obtained cards
+      setRevealCards(newCards);
+      setShowReveal(true);
     } catch (error) {
       console.error('Trade error:', error);
       toast.error("Erreur lors de l'échange");
     } finally {
       setTradingCardId(null);
     }
+  };
+
+  const handleRevealClose = () => {
+    setShowReveal(false);
+    setRevealCards([]);
   };
 
   const rarities: Rarity[] = ['legendary', 'epic', 'rare', 'common'];
@@ -85,6 +98,9 @@ export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => 
             <ArrowRightLeft className="w-5 h-5 text-primary" />
             Aperçu des échanges
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Échangez vos cartes contre de nouvelles cartes
+          </DialogDescription>
         </DialogHeader>
         
         <p className="text-sm text-muted-foreground">
@@ -189,6 +205,15 @@ export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => 
           </Button>
         </div>
       </DialogContent>
+      
+      {/* Card reveal dialog */}
+      <CardRevealDialog
+        cards={revealCards}
+        open={showReveal}
+        onClose={handleRevealClose}
+        autoCollect={false}
+        title="Cartes obtenues !"
+      />
     </Dialog>
   );
 };
