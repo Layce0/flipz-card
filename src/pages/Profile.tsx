@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useUserCardStats } from '@/hooks/useCards';
 import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -47,19 +48,12 @@ interface ProfileData {
   theme: string;
 }
 
-interface CardStats {
-  total: number;
-  common: number;
-  rare: number;
-  epic: number;
-  legendary: number;
-}
-
 const Profile = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const { data: cardStats = { total: 0, common: 0, rare: 0, epic: 0, legendary: 0 } } = useUserCardStats(user?.id);
   const [profile, setProfile] = useState<ProfileData>({
     username: '',
     avatar_url: null,
@@ -67,13 +61,6 @@ const Profile = () => {
     notifications_enabled: true,
     visual_effects_enabled: true,
     theme: 'dark',
-  });
-  const [cardStats, setCardStats] = useState<CardStats>({
-    total: 0,
-    common: 0,
-    rare: 0,
-    epic: 0,
-    legendary: 0,
   });
   const [passwords, setPasswords] = useState({
     current: '',
@@ -88,7 +75,6 @@ const Profile = () => {
       return;
     }
     fetchProfile();
-    fetchCardStats();
   }, [user, navigate]);
 
   const fetchProfile = async () => {
@@ -113,37 +99,6 @@ const Profile = () => {
       });
     }
     setLoading(false);
-  };
-
-  const fetchCardStats = async () => {
-    if (!user) return;
-
-    const { data, error } = await supabase
-      .from('user_cards')
-      .select('card_id, cards(rarity)')
-      .eq('user_id', user.id);
-
-    if (error) {
-      console.error('Error fetching card stats:', error);
-      return;
-    }
-
-    const stats: CardStats = {
-      total: data?.length || 0,
-      common: 0,
-      rare: 0,
-      epic: 0,
-      legendary: 0,
-    };
-
-    data?.forEach((item: any) => {
-      const rarity = item.cards?.rarity;
-      if (rarity && rarity in stats) {
-        stats[rarity as keyof Omit<CardStats, 'total'>]++;
-      }
-    });
-
-    setCardStats(stats);
   };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
