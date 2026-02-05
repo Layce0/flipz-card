@@ -3,14 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { MysteryCard } from '@/components/MysteryCard';
 import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
-import { Clock, Gift, Loader2, Sparkles } from 'lucide-react';
+import { Clock, Loader2, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTodayCard, useHasCollectedToday, useCollectCard } from '@/hooks/useCards';
 import { toast } from 'sonner';
 import flipzLogo from '@/assets/flipz-logo.png';
 
 const Index = () => {
-  const [isRevealed, setIsRevealed] = useState(false);
   const [timeLeft, setTimeLeft] = useState('');
   const { user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -18,12 +17,6 @@ const Index = () => {
   const { data: todayCard, isLoading: cardLoading } = useTodayCard(user?.id);
   const { data: hasCollected, isLoading: collectedLoading } = useHasCollectedToday(user?.id, todayCard?.id);
   const collectCard = useCollectCard();
-
-  useEffect(() => {
-    if (hasCollected) {
-      setIsRevealed(true);
-    }
-  }, [hasCollected]);
 
   useEffect(() => {
     const updateTimer = () => {
@@ -52,8 +45,6 @@ const Index = () => {
     }
 
     if (!todayCard) return;
-
-    setIsRevealed(true);
     
     try {
       await collectCard.mutateAsync({ userId: user.id, cardId: todayCard.id });
@@ -67,6 +58,8 @@ const Index = () => {
   };
 
   const isLoading = cardLoading || collectedLoading;
+  // Card is revealed if user has collected it
+  const isRevealed = hasCollected === true;
 
   return (
     <div className="min-h-screen pb-24">
@@ -112,11 +105,8 @@ const Index = () => {
             {/* CTA */}
             {!isRevealed ? (
               <div className="text-center animate-fade-in">
-                <div className="flex items-center gap-2 text-muted-foreground mb-4">
-                  <Gift className="w-5 h-5" />
-                  <span>Votre carte du jour vous attend !</span>
-                </div>
-                <Button variant="gold" size="xl" onClick={handleReveal}>
+                <p className="text-muted-foreground mb-4">Votre carte du jour vous attend !</p>
+                <Button variant="gold" size="xl" onClick={handleReveal} disabled={collectCard.isPending}>
                   <Sparkles className="w-5 h-5" />
                   {user ? 'Révéler la carte' : 'Se connecter pour révéler'}
                 </Button>

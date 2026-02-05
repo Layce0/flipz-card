@@ -1,7 +1,5 @@
-import { useState } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { RefreshCw, Package, Loader2, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { GameCard, RARITY_CONFIG, Rarity } from '@/types/card';
 import { cn } from '@/lib/utils';
 
@@ -10,27 +8,17 @@ interface CardDetailDialogProps {
   count: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onTrade: (cardId: string) => Promise<void>;
-  isTrading: boolean;
 }
 
 export const CardDetailDialog = ({ 
   card, 
   count, 
   open, 
-  onOpenChange, 
-  onTrade, 
-  isTrading 
+  onOpenChange
 }: CardDetailDialogProps) => {
   if (!card) return null;
 
   const config = RARITY_CONFIG[card.rarity as Rarity];
-  const canTrade = count >= 4;
-
-  const handleTrade = async () => {
-    await onTrade(card.id);
-    onOpenChange(false);
-  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -81,34 +69,6 @@ export const CardDetailDialog = ({
             <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
               {card.description}
             </p>
-          </div>
-
-          {/* Trade button */}
-          <div className="pt-2 border-t border-border">
-            {canTrade ? (
-              <Button 
-                variant="gold"
-                className="w-full gap-2"
-                onClick={handleTrade}
-                disabled={isTrading}
-              >
-                {isTrading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <>
-                    <RefreshCw className="w-4 h-4" />
-                    Échanger 3 cartes → Pack de 3
-                  </>
-                )}
-              </Button>
-            ) : (
-              <div className="text-center py-2">
-                <p className="text-sm text-muted-foreground">
-                  <Package className="w-4 h-4 inline mr-1" />
-                  {4 - count} carte{4 - count > 1 ? 's' : ''} de plus pour échanger
-                </p>
-              </div>
-            )}
           </div>
         </div>
       </DialogContent>
