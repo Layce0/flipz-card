@@ -12,7 +12,10 @@
     "previous": "Précédent",
     "finish": "Terminer",
     "cards": "cartes",
-    "card": "carte"
+    "card": "carte",
+    "error": "Une erreur est survenue",
+    "unique": "uniques",
+    "total": "total"
   },
   "nav": {
     "home": "Accueil",
@@ -33,7 +36,12 @@
   "home": {
     "welcome": "Bienvenue sur",
     "dailyCard": "Carte du jour",
-    "loadingCard": "Chargement de la carte..."
+    "loadingCard": "Chargement de la carte...",
+    "subtitle": "Découvrez une nouvelle carte chaque jour",
+    "nextCard": "Prochaine carte dans",
+    "noCard": "Aucune carte disponible aujourd'hui",
+    "comeBackTomorrow": "Revenez demain !",
+    "cardAdded": "Carte ajoutée à votre collection !"
   },
   "profile": {
     "title": "Profil",
@@ -80,24 +88,53 @@
   "collection": {
     "title": "Ma Collection",
     "empty": "Aucune carte dans cette catégorie",
+    "noCards": "Aucune carte disponible",
     "count": "{{count}} carte",
-    "count_plural": "{{count}} cartes"
+    "count_plural": "{{count}} cartes",
+    "uniqueCards": "{{collected}} / {{total}} cartes uniques ({{totalCount}} total)"
   },
   "packs": {
-    "title": "Ouvrir des packs",
+    "title": "Packs de Cartes",
+    "subtitle": "Regardez une pub pour ouvrir un pack",
     "free": "Pack Gratuit",
     "standard": "Pack Standard",
     "lucky": "Pack Chanceux",
     "ultra": "Pack Ultra",
+    "mystery": "Pack Mystère",
+    "randomCards": "cartes aléatoires",
     "open": "Ouvrir",
-    "buy": "Acheter"
+    "buy": "Acheter",
+    "watchAd": "Regarder une pub",
+    "adInProgress": "Pub en cours...",
+    "pleaseWait": "Merci de patienter...",
+    "nextCard": "Carte suivante",
+    "cardProgress": "Carte {{current}} / {{total}}",
+    "cardsAdded": "{{count}} cartes ajoutées à votre collection !",
+    "openError": "Erreur lors de l'ouverture du pack"
   },
   "shop": {
     "title": "Boutique",
+    "subtitle": "Achetez des packs et échangez vos cartes",
     "packs": "Packs de cartes",
     "trade": "Échange de cartes",
     "tradeDescription": "Échangez vos cartes en double",
-    "tradeButton": "Échanger des cartes"
+    "tradeButton": "Échanger des cartes",
+    "loginRequired": "Connectez-vous pour accéder",
+    "loginRequiredMessage": "Vous devez être connecté pour accéder à la boutique.",
+    "mustBeConnected": "Vous devez être connecté pour acheter",
+    "purchaseCanceled": "Achat annulé",
+    "verifyingPurchase": "Vérification de votre achat...",
+    "cardsReceived": "Vous avez reçu {{count}} cartes !",
+    "purchaseError": "Erreur lors de la vérification de l'achat",
+    "paymentError": "Erreur lors de la création du paiement",
+    "newCards": "Vos nouvelles cartes !",
+    "clickToReveal": "Cliquez sur les cartes pour les révéler",
+    "standardPacks": "Packs Standard",
+    "standardPacksDesc": "Probabilités de base pour toutes les raretés",
+    "luckyPacks": "Packs Chanceux",
+    "luckyPacksDesc": "x2 de chances pour les cartes épiques et légendaires",
+    "ultraPacks": "Packs Ultra Chanceux",
+    "ultraPacksDesc": "x5 de chances pour les cartes épiques et légendaires"
   },
   "trade": {
     "title": "Échange de cartes",
@@ -106,18 +143,30 @@
     "selected_plural": "{{count}} sélectionnées",
     "exchange": "Échanger",
     "cardsObtained": "Cartes obtenues !",
-    "noCards": "Aucune carte disponible pour l'échange"
+    "noCards": "Aucune carte disponible pour l'échange",
+    "needCards": "Vous avez besoin de {{count}} cartes identiques",
+    "tradeSuccess": "Échange réussi ! Vous avez reçu {{count}} cartes !",
+    "tradeError": "Erreur lors de l'échange"
   },
   "auth": {
+    "title": "Cartes Mystères",
     "login": "Connexion",
     "signup": "Inscription",
     "email": "Email",
     "password": "Mot de passe",
     "loginButton": "Se connecter",
-    "signupButton": "S'inscrire",
-    "noAccount": "Pas de compte ?",
-    "hasAccount": "Déjà un compte ?",
-    "loginRequired": "Connectez-vous pour accéder à cette fonctionnalité"
+    "signupButton": "Créer un compte",
+    "noAccount": "Pas de compte ? Inscrivez-vous",
+    "hasAccount": "Déjà un compte ? Connectez-vous",
+    "loginRequired": "Connectez-vous pour accéder à cette fonctionnalité",
+    "loginSubtitle": "Connectez-vous pour accéder à votre collection",
+    "signupSubtitle": "Créez un compte pour commencer à collecter",
+    "loginSuccess": "Connexion réussie !",
+    "signupSuccess": "Compte créé avec succès !",
+    "invalidCredentials": "Email ou mot de passe incorrect",
+    "emailAlreadyUsed": "Cet email est déjà utilisé",
+    "invalidEmail": "Email invalide",
+    "passwordTooShort": "Le mot de passe doit contenir au moins 6 caractères"
   },
   "cardReveal": {
     "progress": "Carte {{current}} sur {{total}}"

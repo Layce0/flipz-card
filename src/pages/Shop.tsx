@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Navigation } from '@/components/Navigation';
 import { PackSection } from '@/components/shop/PackSection';
 import { TradeOverviewDialog } from '@/components/shop/TradeOverviewDialog';
@@ -16,6 +17,7 @@ import { MysteryCard } from '@/components/MysteryCard';
 
 const Shop = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const { data: userCards = [], isLoading: cardsLoading, refetch: refetchCards } = useUserCards(user?.id);
   const deleteCards = useDeleteUserCards();
@@ -43,7 +45,7 @@ const Shop = () => {
     }
 
     if (searchParams.get('canceled') === 'true') {
-      toast.error('Achat annulé');
+      toast.error(t('shop.purchaseCanceled'));
       setSearchParams({});
     }
   }, [searchParams]);
@@ -60,11 +62,11 @@ const Shop = () => {
         setPurchasedCards(data.cards);
         setRevealedCards(new Set());
         setShowPurchaseReward(true);
-        toast.success(`Vous avez reçu ${data.cardCount} cartes !`);
+        toast.success(t('shop.cardsReceived', { count: data.cardCount }));
         refetchCards();
       }
     } catch (error: any) {
-      toast.error('Erreur lors de la vérification de l\'achat');
+      toast.error(t('shop.purchaseError'));
     } finally {
       setVerifyingPurchase(false);
     }
@@ -72,7 +74,7 @@ const Shop = () => {
 
   const handlePurchase = async (packId: string) => {
     if (!user) {
-      toast.error('Vous devez être connecté pour acheter');
+      toast.error(t('shop.mustBeConnected'));
       return;
     }
 
@@ -89,7 +91,7 @@ const Shop = () => {
         window.location.href = data.url;
       }
     } catch (error: any) {
-      toast.error('Erreur lors de la création du paiement');
+      toast.error(t('shop.paymentError'));
     } finally {
       setLoadingPackId(null);
     }
@@ -97,13 +99,13 @@ const Shop = () => {
 
   const handleTrade = async (card: UserCardWithCount): Promise<any[]> => {
     if (!user) {
-      toast.error('Vous devez être connecté');
+      toast.error(t('shop.mustBeConnected'));
       return [];
     }
 
     const config = TRADE_CONFIG[card.rarity as Rarity];
     if (card.count < config.required) {
-      toast.error(`Vous avez besoin de ${config.required} cartes identiques`);
+      toast.error(t('trade.needCards', { count: config.required }));
       return [];
     }
 
@@ -126,10 +128,10 @@ const Shop = () => {
         await collectCard.mutateAsync({ userId: user.id, cardId: newCard.id });
       }
 
-      toast.success(`Échange réussi ! Vous avez reçu ${config.reward} cartes !`);
+      toast.success(t('trade.tradeSuccess', { count: config.reward }));
       return newCards;
     } catch (error) {
-      toast.error("Erreur lors de l'échange");
+      toast.error(t('trade.tradeError'));
       return [];
     } finally {
       setIsTrading(false);
@@ -153,14 +155,14 @@ const Shop = () => {
               <Store className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h1 className="font-display text-2xl text-foreground">Boutique</h1>
-              <p className="text-sm text-muted-foreground">Connectez-vous pour accéder</p>
+              <h1 className="font-display text-2xl text-foreground">{t('shop.title')}</h1>
+              <p className="text-sm text-muted-foreground">{t('shop.loginRequired')}</p>
             </div>
           </div>
         </header>
         <main className="px-4">
           <p className="text-center text-muted-foreground py-12">
-            Vous devez être connecté pour accéder à la boutique.
+            {t('shop.loginRequiredMessage')}
           </p>
         </main>
         <Navigation />
@@ -177,8 +179,8 @@ const Shop = () => {
             <Store className="w-7 h-7 text-primary" />
           </div>
           <div>
-            <h1 className="font-display text-2xl text-foreground">Boutique</h1>
-            <p className="text-sm text-muted-foreground">Achetez des packs et échangez vos cartes</p>
+            <h1 className="font-display text-2xl text-foreground">{t('shop.title')}</h1>
+            <p className="text-sm text-muted-foreground">{t('shop.subtitle')}</p>
           </div>
         </div>
         {!cardsLoading && (
@@ -190,14 +192,14 @@ const Shop = () => {
         {verifyingPurchase ? (
           <div className="flex flex-col items-center justify-center py-12 gap-4">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            <p className="text-muted-foreground">Vérification de votre achat...</p>
+            <p className="text-muted-foreground">{t('shop.verifyingPurchase')}</p>
           </div>
         ) : (
           <>
             {/* Standard Packs */}
             <PackSection
-              title="Packs Standard"
-              description="Probabilités de base pour toutes les raretés"
+              title={t('shop.standardPacks')}
+              description={t('shop.standardPacksDesc')}
               packs={standardPacks}
               onPurchase={handlePurchase}
               isLoading={!!loadingPackId}
@@ -206,8 +208,8 @@ const Shop = () => {
 
             {/* Lucky Packs */}
             <PackSection
-              title="Packs Chanceux"
-              description="x2 de chances pour les cartes épiques et légendaires"
+              title={t('shop.luckyPacks')}
+              description={t('shop.luckyPacksDesc')}
               packs={luckyPacks}
               onPurchase={handlePurchase}
               isLoading={!!loadingPackId}
@@ -216,8 +218,8 @@ const Shop = () => {
 
             {/* Ultra Lucky Packs */}
             <PackSection
-              title="Packs Ultra Chanceux"
-              description="x5 de chances pour les cartes épiques et légendaires"
+              title={t('shop.ultraPacks')}
+              description={t('shop.ultraPacksDesc')}
               packs={ultraPacks}
               onPurchase={handlePurchase}
               isLoading={!!loadingPackId}
@@ -233,10 +235,10 @@ const Shop = () => {
           <DialogHeader>
             <DialogTitle className="text-center flex items-center justify-center gap-2">
               <Sparkles className="w-5 h-5 text-primary" />
-              Vos nouvelles cartes !
+              {t('shop.newCards')}
             </DialogTitle>
             <DialogDescription className="text-center">
-              Cliquez sur les cartes pour les révéler
+              {t('shop.clickToReveal')}
             </DialogDescription>
           </DialogHeader>
 
@@ -259,7 +261,7 @@ const Shop = () => {
               onClick={() => setShowPurchaseReward(false)}
               className="w-full"
             >
-              Fermer
+              {t('common.close')}
             </Button>
           </DialogFooter>
         </DialogContent>

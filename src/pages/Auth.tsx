@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,11 +9,6 @@ import { Sparkles, Mail, Lock, LogIn, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-const authSchema = z.object({
-  email: z.string().email('Email invalide'),
-  password: z.string().min(6, 'Le mot de passe doit contenir au moins 6 caractères'),
-});
-
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
@@ -20,6 +16,12 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
+
+  const authSchema = z.object({
+    email: z.string().email(t('auth.invalidEmail')),
+    password: z.string().min(6, t('auth.passwordTooShort')),
+  });
 
   useEffect(() => {
     if (user) {
@@ -44,29 +46,29 @@ const Auth = () => {
         const { error } = await signIn(email, password);
         if (error) {
           if (error.message.includes('Invalid login credentials')) {
-            toast.error('Email ou mot de passe incorrect');
+            toast.error(t('auth.invalidCredentials'));
           } else {
             toast.error(error.message);
           }
         } else {
-          toast.success('Connexion réussie !');
+          toast.success(t('auth.loginSuccess'));
           navigate('/');
         }
       } else {
         const { error } = await signUp(email, password);
         if (error) {
           if (error.message.includes('already registered')) {
-            toast.error('Cet email est déjà utilisé');
+            toast.error(t('auth.emailAlreadyUsed'));
           } else {
             toast.error(error.message);
           }
         } else {
-          toast.success('Compte créé avec succès !');
+          toast.success(t('auth.signupSuccess'));
           navigate('/');
         }
       }
     } catch (error) {
-      toast.error('Une erreur est survenue');
+      toast.error(t('common.error'));
     } finally {
       setIsLoading(false);
     }
@@ -81,17 +83,17 @@ const Auth = () => {
             <Sparkles className="w-10 h-10 text-primary" />
           </div>
           <h1 className="font-display text-2xl text-gradient-gold mb-2">
-            Cartes Mystères
+            {t('auth.title')}
           </h1>
           <p className="text-muted-foreground text-sm">
-            {isLogin ? 'Connectez-vous pour accéder à votre collection' : 'Créez un compte pour commencer à collecter'}
+            {isLogin ? t('auth.loginSubtitle') : t('auth.signupSubtitle')}
           </p>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t('auth.email')}</Label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
@@ -107,7 +109,7 @@ const Auth = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Mot de passe</Label>
+            <Label htmlFor="password">{t('auth.password')}</Label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
@@ -129,16 +131,16 @@ const Auth = () => {
             disabled={isLoading}
           >
             {isLoading ? (
-              <span className="animate-pulse">Chargement...</span>
+              <span className="animate-pulse">{t('common.loading')}</span>
             ) : isLogin ? (
               <>
                 <LogIn className="w-4 h-4" />
-                Se connecter
+                {t('auth.loginButton')}
               </>
             ) : (
               <>
                 <UserPlus className="w-4 h-4" />
-                Créer un compte
+                {t('auth.signupButton')}
               </>
             )}
           </Button>
@@ -151,7 +153,7 @@ const Auth = () => {
             onClick={() => setIsLogin(!isLogin)}
             className="text-sm text-muted-foreground hover:text-primary transition-colors"
           >
-            {isLogin ? "Pas de compte ? Inscrivez-vous" : "Déjà un compte ? Connectez-vous"}
+            {isLogin ? t('auth.noAccount') : t('auth.hasAccount')}
           </button>
         </div>
       </div>

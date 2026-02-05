@@ -12,7 +12,10 @@
     "previous": "Anterior",
     "finish": "Terminar",
     "cards": "cartas",
-    "card": "carta"
+    "card": "carta",
+    "error": "Ocurrió un error",
+    "unique": "únicas",
+    "total": "total"
   },
   "nav": {
     "home": "Inicio",
@@ -33,7 +36,12 @@
   "home": {
     "welcome": "Bienvenido a",
     "dailyCard": "Carta del día",
-    "loadingCard": "Cargando carta..."
+    "loadingCard": "Cargando carta...",
+    "subtitle": "Descubre una nueva carta cada día",
+    "nextCard": "Próxima carta en",
+    "noCard": "No hay carta disponible hoy",
+    "comeBackTomorrow": "¡Vuelve mañana!",
+    "cardAdded": "¡Carta añadida a tu colección!"
   },
   "profile": {
     "title": "Perfil",
@@ -80,24 +88,53 @@
   "collection": {
     "title": "Mi Colección",
     "empty": "No hay cartas en esta categoría",
+    "noCards": "No hay cartas disponibles",
     "count": "{{count}} carta",
-    "count_plural": "{{count}} cartas"
+    "count_plural": "{{count}} cartas",
+    "uniqueCards": "{{collected}} / {{total}} cartas únicas ({{totalCount}} total)"
   },
   "packs": {
-    "title": "Abrir paquetes",
+    "title": "Paquetes de Cartas",
+    "subtitle": "Mira un anuncio para abrir un paquete",
     "free": "Paquete Gratis",
     "standard": "Paquete Estándar",
     "lucky": "Paquete Suerte",
     "ultra": "Paquete Ultra",
+    "mystery": "Paquete Misterio",
+    "randomCards": "cartas aleatorias",
     "open": "Abrir",
-    "buy": "Comprar"
+    "buy": "Comprar",
+    "watchAd": "Ver un anuncio",
+    "adInProgress": "Anuncio en curso...",
+    "pleaseWait": "Por favor espera...",
+    "nextCard": "Siguiente carta",
+    "cardProgress": "Carta {{current}} / {{total}}",
+    "cardsAdded": "¡{{count}} cartas añadidas a tu colección!",
+    "openError": "Error al abrir el paquete"
   },
   "shop": {
     "title": "Tienda",
+    "subtitle": "Compra paquetes e intercambia tus cartas",
     "packs": "Paquetes de cartas",
     "trade": "Intercambio de cartas",
     "tradeDescription": "Intercambia tus cartas duplicadas",
-    "tradeButton": "Intercambiar cartas"
+    "tradeButton": "Intercambiar cartas",
+    "loginRequired": "Inicia sesión para acceder",
+    "loginRequiredMessage": "Debes iniciar sesión para acceder a la tienda.",
+    "mustBeConnected": "Debes iniciar sesión para comprar",
+    "purchaseCanceled": "Compra cancelada",
+    "verifyingPurchase": "Verificando tu compra...",
+    "cardsReceived": "¡Recibiste {{count}} cartas!",
+    "purchaseError": "Error al verificar la compra",
+    "paymentError": "Error al crear el pago",
+    "newCards": "¡Tus nuevas cartas!",
+    "clickToReveal": "Haz clic en las cartas para revelarlas",
+    "standardPacks": "Paquetes Estándar",
+    "standardPacksDesc": "Probabilidades base para todas las rarezas",
+    "luckyPacks": "Paquetes Suerte",
+    "luckyPacksDesc": "x2 de probabilidad para cartas épicas y legendarias",
+    "ultraPacks": "Paquetes Ultra Suerte",
+    "ultraPacksDesc": "x5 de probabilidad para cartas épicas y legendarias"
   },
   "trade": {
     "title": "Intercambio de cartas",
@@ -106,18 +143,30 @@
     "selected_plural": "{{count}} seleccionadas",
     "exchange": "Intercambiar",
     "cardsObtained": "¡Cartas obtenidas!",
-    "noCards": "No hay cartas disponibles para intercambiar"
+    "noCards": "No hay cartas disponibles para intercambiar",
+    "needCards": "Necesitas {{count}} cartas idénticas",
+    "tradeSuccess": "¡Intercambio exitoso! ¡Recibiste {{count}} cartas!",
+    "tradeError": "Error durante el intercambio"
   },
   "auth": {
+    "title": "Cartas Misteriosas",
     "login": "Iniciar sesión",
     "signup": "Registrarse",
     "email": "Correo electrónico",
     "password": "Contraseña",
     "loginButton": "Iniciar sesión",
-    "signupButton": "Registrarse",
-    "noAccount": "¿No tienes cuenta?",
-    "hasAccount": "¿Ya tienes cuenta?",
-    "loginRequired": "Inicia sesión para acceder a esta función"
+    "signupButton": "Crear cuenta",
+    "noAccount": "¿No tienes cuenta? Regístrate",
+    "hasAccount": "¿Ya tienes cuenta? Inicia sesión",
+    "loginRequired": "Inicia sesión para acceder a esta función",
+    "loginSubtitle": "Inicia sesión para acceder a tu colección",
+    "signupSubtitle": "Crea una cuenta para empezar a coleccionar",
+    "loginSuccess": "¡Inicio de sesión exitoso!",
+    "signupSuccess": "¡Cuenta creada con éxito!",
+    "invalidCredentials": "Correo o contraseña incorrectos",
+    "emailAlreadyUsed": "Este correo ya está en uso",
+    "invalidEmail": "Correo inválido",
+    "passwordTooShort": "La contraseña debe tener al menos 6 caracteres"
   },
   "cardReveal": {
     "progress": "Carta {{current}} de {{total}}"

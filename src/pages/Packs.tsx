@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { MysteryCard } from '@/components/MysteryCard';
@@ -13,6 +14,7 @@ import { cn } from '@/lib/utils';
 const Packs = () => {
   const { user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [isWatchingAd, setIsWatchingAd] = useState(false);
   const [revealedCards, setRevealedCards] = useState<GameCard[]>([]);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
@@ -42,7 +44,7 @@ const Packs = () => {
       setCurrentCardIndex(0);
       setIsRevealing(true);
     } catch (error) {
-      toast.error('Erreur lors de l\'ouverture du pack');
+      toast.error(t('packs.openError'));
     }
   };
 
@@ -70,7 +72,7 @@ const Packs = () => {
       setCardRevealed(false);
     } else {
       // All cards revealed
-      toast.success(`${revealedCards.length} cartes ajoutées à votre collection !`);
+      toast.success(t('packs.cardsAdded', { count: revealedCards.length }));
       handleClose();
     }
   };
@@ -99,9 +101,9 @@ const Packs = () => {
             <Package className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h1 className="font-display text-xl text-foreground">Packs de Cartes</h1>
+            <h1 className="font-display text-xl text-foreground">{t('packs.title')}</h1>
             <p className="text-sm text-muted-foreground">
-              Regardez une pub pour ouvrir un pack
+              {t('packs.subtitle')}
             </p>
           </div>
         </div>
@@ -117,8 +119,8 @@ const Packs = () => {
                 <div className="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center mb-4 pulse-glow">
                   <Package className="w-12 h-12 text-primary" />
                 </div>
-                <p className="font-display text-xl text-center text-primary mb-2">Pack Mystère</p>
-                <p className="text-sm text-muted-foreground text-center">3 cartes aléatoires</p>
+                <p className="font-display text-xl text-center text-primary mb-2">{t('packs.mystery')}</p>
+                <p className="text-sm text-muted-foreground text-center">3 {t('packs.randomCards')}</p>
                 <div className="shimmer absolute inset-0 pointer-events-none" />
               </div>
             </div>
@@ -134,12 +136,12 @@ const Packs = () => {
               {isWatchingAd ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Pub en cours...
+                  {t('packs.adInProgress')}
                 </>
               ) : (
                 <>
                   <Play className="w-5 h-5" />
-                  {user ? 'Regarder une pub' : 'Se connecter'}
+                  {user ? t('packs.watchAd') : t('nav.login')}
                 </>
               )}
             </Button>
@@ -149,7 +151,7 @@ const Packs = () => {
                 <div className="w-full max-w-xs bg-muted rounded-full h-2 mb-2">
                   <div className="bg-primary h-2 rounded-full animate-pulse" style={{ width: '100%' }} />
                 </div>
-                <p className="text-sm text-muted-foreground">Merci de patienter...</p>
+                <p className="text-sm text-muted-foreground">{t('packs.pleaseWait')}</p>
               </div>
             )}
           </>
@@ -197,7 +199,7 @@ const Packs = () => {
             </div>
 
             <p className="text-muted-foreground text-sm">
-              Carte {currentCardIndex + 1} / {revealedCards.length}
+              {t('packs.cardProgress', { current: currentCardIndex + 1, total: revealedCards.length })}
             </p>
 
             {/* Next button - appears after card is revealed */}
@@ -210,11 +212,11 @@ const Packs = () => {
               >
                 {currentCardIndex < revealedCards.length - 1 ? (
                   <>
-                    Carte suivante
+                    {t('packs.nextCard')}
                     <ChevronRight className="w-5 h-5" />
                   </>
                 ) : (
-                  'Terminer'
+                  t('common.finish')
                 )}
               </Button>
             )}
