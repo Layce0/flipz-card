@@ -124,6 +124,9 @@ const Profile = () => {
     if (!user) return;
     setSaving(true);
 
+    const previousLanguage = i18n.language;
+    const languageChanged = previousLanguage !== profile.language;
+
     const { error } = await supabase
       .from('profiles')
       .update({
@@ -133,16 +136,20 @@ const Profile = () => {
       })
       .eq('id', user.id);
 
-    // Apply language change
-    i18n.changeLanguage(profile.language);
-    localStorage.setItem('app-language', profile.language);
-
     setSaving(false);
 
     if (error) {
       toast.error(t('profile.saveError'));
     } else {
-      toast.success(t('profile.saveSuccess'));
+      // Save language to localStorage before reload
+      localStorage.setItem('app-language', profile.language);
+      
+      if (languageChanged) {
+        // Reload the app to apply language change globally
+        window.location.reload();
+      } else {
+        toast.success(t('profile.saveSuccess'));
+      }
     }
   };
 
