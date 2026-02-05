@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { GameCard, RARITY_CONFIG } from '@/types/card';
 import { cn } from '@/lib/utils';
 
@@ -7,6 +8,7 @@ interface CollectionCardProps {
 }
 
 export const CollectionCard = ({ card, onClick }: CollectionCardProps) => {
+  const { t } = useTranslation();
   const rarityConfig = RARITY_CONFIG[card.rarity];
 
   return (
@@ -44,7 +46,7 @@ export const CollectionCard = ({ card, onClick }: CollectionCardProps) => {
             )}
             style={{ color: card.rarity === 'legendary' ? 'hsl(240, 20%, 6%)' : 'white' }}
           >
-            {rarityConfig.label}
+            {t(`rarity.${card.rarity}`)}
           </span>
           <h4 className="font-display text-sm text-foreground truncate">{card.title}</h4>
         </div>

@@ -138,12 +138,17 @@
   },
   "trade": {
     "title": "Card Trading",
+    "subtitle": "Transform your duplicates",
     "selectCards": "Select cards to trade",
     "selected": "{{count}} selected",
     "selected_plural": "{{count}} selected",
     "exchange": "Exchange",
     "cardsObtained": "Cards obtained!",
     "noCards": "No cards available for trading",
+    "noEligible": "No eligible cards (minimum {{required}} identical copies)",
+    "description": "Exchange {{required}} identical {{rarity}} cards for {{reward}} random cards",
+    "confirmTitle": "Confirm trade",
+    "confirmDescription": "Exchange {{required}} copies of \"{{title}}\" for {{reward}} random cards?",
     "needCards": "You need {{count}} identical cards",
     "tradeSuccess": "Trade successful! You received {{count}} cards!",
     "tradeError": "Error during trade"

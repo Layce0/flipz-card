@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { X } from 'lucide-react';
 import { GameCard, RARITY_CONFIG, Rarity } from '@/types/card';
@@ -16,6 +17,8 @@ export const CardDetailDialog = ({
   open, 
   onOpenChange
 }: CardDetailDialogProps) => {
+  const { t } = useTranslation();
+  
   if (!card) return null;
 
   const config = RARITY_CONFIG[card.rarity as Rarity];
@@ -53,7 +56,7 @@ export const CardDetailDialog = ({
             )}
             style={{ color: card.rarity === 'legendary' ? 'hsl(240, 20%, 6%)' : 'white' }}
           >
-            {config.label}
+            {t(`rarity.${card.rarity}`)}
           </div>
 
           {/* Shimmer for legendary */}
