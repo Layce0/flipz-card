@@ -104,6 +104,41 @@ export const useUserCards = (userId: string | undefined) => {
 
 export type UserCardWithCount = GameCard & { obtained_at: string; count: number };
 
+// Fetch user card stats
+export const useUserCardStats = (userId: string | undefined) => {
+  return useQuery({
+    queryKey: ['user-card-stats', userId],
+    queryFn: async () => {
+      if (!userId) return { total: 0, common: 0, rare: 0, epic: 0, legendary: 0 };
+      
+      const { data, error } = await supabase
+        .from('user_cards')
+        .select('card_id, cards(rarity)')
+        .eq('user_id', userId);
+      
+      if (error) throw error;
+      
+      const stats = {
+        total: data?.length || 0,
+        common: 0,
+        rare: 0,
+        epic: 0,
+        legendary: 0,
+      };
+      
+      data?.forEach((item: any) => {
+        const rarity = item.cards?.rarity as Rarity | undefined;
+        if (rarity && rarity in stats) {
+          stats[rarity]++;
+        }
+      });
+      
+      return stats;
+    },
+    enabled: !!userId,
+  });
+};
+
 // Get today's card - random per user based on date + userId
 export const useTodayCard = (userId: string | undefined) => {
   return useQuery({
@@ -210,6 +245,7 @@ export const useDeleteUserCards = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-cards'] });
+      queryClient.invalidateQueries({ queryKey: ['user-card-stats'] });
     },
   });
 };
@@ -250,6 +286,7 @@ export const useCollectCard = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-cards'] });
       queryClient.invalidateQueries({ queryKey: ['has-collected'] });
+      queryClient.invalidateQueries({ queryKey: ['user-card-stats'] });
     },
   });
 };
