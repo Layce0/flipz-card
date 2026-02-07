@@ -19,6 +19,30 @@ const getCorsHeaders = (origin: string | null) => {
   };
 };
 
+// Simple in-memory rate limiter (per function instance)
+// For production, consider using Redis/Upstash for distributed rate limiting
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 20; // 20 requests per minute per user (higher for verification retries)
+
+const checkRateLimit = (userId: string): { allowed: boolean; remaining: number; retryAfter?: number } => {
+  const now = Date.now();
+  const userLimit = rateLimitMap.get(userId);
+  
+  if (!userLimit || now > userLimit.resetTime) {
+    rateLimitMap.set(userId, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1 };
+  }
+  
+  if (userLimit.count >= RATE_LIMIT_MAX_REQUESTS) {
+    const retryAfter = Math.ceil((userLimit.resetTime - now) / 1000);
+    return { allowed: false, remaining: 0, retryAfter };
+  }
+  
+  userLimit.count++;
+  return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - userLimit.count };
+};
+
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[VERIFY-PACK-PURCHASE] ${step}${detailsStr}`);
@@ -52,6 +76,27 @@ serve(async (req) => {
     const user = userData.user;
     if (!user) throw new Error("User not authenticated");
     logStep("User authenticated", { userId: user.id });
+
+    // Rate limiting check
+    const rateLimit = checkRateLimit(user.id);
+    if (!rateLimit.allowed) {
+      logStep("Rate limit exceeded", { userId: user.id, retryAfter: rateLimit.retryAfter });
+      return new Response(
+        JSON.stringify({ 
+          error: 'Too many requests. Please wait before trying again.',
+          retryAfter: rateLimit.retryAfter 
+        }),
+        { 
+          status: 429, 
+          headers: { 
+            ...corsHeaders, 
+            "Content-Type": "application/json",
+            "Retry-After": String(rateLimit.retryAfter)
+          } 
+        }
+      );
+    }
+    logStep("Rate limit check passed", { remaining: rateLimit.remaining });
 
     // Check if session already processed (idempotency check)
     const { data: existingTransaction } = await supabaseClient

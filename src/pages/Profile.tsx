@@ -87,7 +87,7 @@ const Profile = () => {
     const filePath = `${user.id}/avatar.${fileExt}`;
 
     const { error: uploadError } = await supabase.storage
-      .from('card-images')
+      .from('avatars')
       .upload(filePath, file, { upsert: true });
 
     if (uploadError) {
@@ -96,7 +96,7 @@ const Profile = () => {
     }
 
     const { data: { publicUrl } } = supabase.storage
-      .from('card-images')
+      .from('avatars')
       .getPublicUrl(filePath);
 
     setProfile(prev => ({ ...prev, avatar_url: publicUrl }));
