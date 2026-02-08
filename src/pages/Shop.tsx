@@ -88,7 +88,8 @@ const Shop = () => {
       if (error) throw error;
 
       if (data.url) {
-        window.location.href = data.url;
+        // Open in new tab to avoid iframe restrictions
+        window.open(data.url, '_blank');
       }
     } catch (error: any) {
       toast.error(t('shop.paymentError'));
