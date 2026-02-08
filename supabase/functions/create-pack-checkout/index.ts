@@ -2,44 +2,32 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
-// Allowed origins for CORS
-const ALLOWED_ORIGINS = [
-  'https://daily-card-quest.lovable.app',
-  'https://id-preview--292d3511-a5af-422b-bf8b-81ad9534130a.lovable.app',
-];
-
-const getCorsHeaders = (origin: string | null) => {
-  const allowedOrigin = origin && ALLOWED_ORIGINS.some(allowed => origin.startsWith(allowed.replace('https://', 'https://')) || origin === allowed)
-    ? origin 
-    : ALLOWED_ORIGINS[0];
-  
-  return {
-    "Access-Control-Allow-Origin": allowedOrigin,
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-  };
+// CORS headers - allow all origins
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 // Pack configurations with Stripe price IDs
 const PACK_CONFIGS: Record<string, { priceId: string; cardCount: number; type: string; multiplier: number }> = {
   // Standard packs
-  'standard_5': { priceId: 'price_1Sx7NRRso6ZwmIeuWMjDhAdL', cardCount: 5, type: 'standard', multiplier: 1 },
-  'standard_10': { priceId: 'price_1Sx7NhRso6ZwmIeuxrPl1yJ8', cardCount: 10, type: 'standard', multiplier: 1 },
-  'standard_20': { priceId: 'price_1Sx7O0Rso6ZwmIeuoPSLJAOm', cardCount: 20, type: 'standard', multiplier: 1 },
-  'standard_50': { priceId: 'price_1Sx7OMRso6ZwmIeuFpbMa8yY', cardCount: 50, type: 'standard', multiplier: 1 },
+  'standard_5': { priceId: 'price_1SybWhDcvxD9sOlhySErbdCF', cardCount: 5, type: 'standard', multiplier: 1 },
+  'standard_10': { priceId: 'price_1SybX9DcvxD9sOlhp32Yd5VR', cardCount: 10, type: 'standard', multiplier: 1 },
+  'standard_20': { priceId: 'price_1SybXJDcvxD9sOlhz8EuCn8M', cardCount: 20, type: 'standard', multiplier: 1 },
+  'standard_50': { priceId: 'price_1SybXUDcvxD9sOlhMqRoYzxI', cardCount: 50, type: 'standard', multiplier: 1 },
   // Lucky packs (x2)
-  'lucky_5': { priceId: 'price_1Sx7PbRso6ZwmIeuqi8AlaKE', cardCount: 5, type: 'lucky', multiplier: 2 },
-  'lucky_10': { priceId: 'price_1Sx7PvRso6ZwmIeu0iHNAaqe', cardCount: 10, type: 'lucky', multiplier: 2 },
-  'lucky_20': { priceId: 'price_1Sx7QBRso6ZwmIeuQUUZLrEd', cardCount: 20, type: 'lucky', multiplier: 2 },
-  'lucky_50': { priceId: 'price_1Sx7QsRso6ZwmIeuoDtF5g1T', cardCount: 50, type: 'lucky', multiplier: 2 },
+  'lucky_5': { priceId: 'price_1SybXjDcvxD9sOlhVUQh1g6A', cardCount: 5, type: 'lucky', multiplier: 2 },
+  'lucky_10': { priceId: 'price_1SybXwDcvxD9sOlhQgmOAldW', cardCount: 10, type: 'lucky', multiplier: 2 },
+  'lucky_20': { priceId: 'price_1SybY9DcvxD9sOlhfhwBM9ql', cardCount: 20, type: 'lucky', multiplier: 2 },
+  'lucky_50': { priceId: 'price_1SybYNDcvxD9sOlh0zf7FM2z', cardCount: 50, type: 'lucky', multiplier: 2 },
   // Ultra lucky packs (x5)
-  'ultra_5': { priceId: 'price_1Sx7ZqRso6ZwmIeu02wvzo6c', cardCount: 5, type: 'ultra', multiplier: 5 },
-  'ultra_10': { priceId: 'price_1Sx7a9Rso6ZwmIeu3ijE6VNL', cardCount: 10, type: 'ultra', multiplier: 5 },
-  'ultra_20': { priceId: 'price_1Sx7aXRso6ZwmIeu3ysEMlNu', cardCount: 20, type: 'ultra', multiplier: 5 },
-  'ultra_50': { priceId: 'price_1Sx7b1Rso6ZwmIeu0ljVHJAE', cardCount: 50, type: 'ultra', multiplier: 5 },
+  'ultra_5': { priceId: 'price_1SybYhDcvxD9sOlhJLrgYHFk', cardCount: 5, type: 'ultra', multiplier: 5 },
+  'ultra_10': { priceId: 'price_1SybZFDcvxD9sOlhzgqw2tJz', cardCount: 10, type: 'ultra', multiplier: 5 },
+  'ultra_20': { priceId: 'price_1SybZQDcvxD9sOlhQ7VYGr7x', cardCount: 20, type: 'ultra', multiplier: 5 },
+  'ultra_50': { priceId: 'price_1SybZaDcvxD9sOlhUf146OOs', cardCount: 50, type: 'ultra', multiplier: 5 },
 };
 
 // Simple in-memory rate limiter (per function instance)
-// For production, consider using Redis/Upstash for distributed rate limiting
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
 const RATE_LIMIT_MAX_REQUESTS = 10; // 10 requests per minute per user
@@ -68,9 +56,7 @@ const logStep = (step: string, details?: any) => {
 };
 
 serve(async (req) => {
-  const origin = req.headers.get("origin");
-  const corsHeaders = getCorsHeaders(origin);
-
+  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -92,7 +78,10 @@ serve(async (req) => {
     logStep("Pack selected", { packId, packConfig });
 
     // Get authenticated user
-    const authHeader = req.headers.get("Authorization")!;
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      throw new Error("No authorization header");
+    }
     const token = authHeader.replace("Bearer ", "");
     const { data } = await supabaseClient.auth.getUser(token);
     const user = data.user;
@@ -121,7 +110,11 @@ serve(async (req) => {
     logStep("Rate limit check passed", { remaining: rateLimit.remaining });
 
     // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeKey) {
+      throw new Error("STRIPE_SECRET_KEY is not configured");
+    }
+    const stripe = new Stripe(stripeKey, {
       apiVersion: "2025-08-27.basil",
     });
 
@@ -132,6 +125,9 @@ serve(async (req) => {
       customerId = customers.data[0].id;
       logStep("Found existing customer", { customerId });
     }
+
+    // Get origin for success/cancel URLs
+    const origin = req.headers.get("origin") || "https://daily-card-quest.lovable.app";
 
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
@@ -145,8 +141,8 @@ serve(async (req) => {
         },
       ],
       mode: "payment",
-      success_url: `${req.headers.get("origin")}/shop?success=true&pack=${packId}&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.get("origin")}/shop?canceled=true`,
+      success_url: `${origin}/shop?success=true&pack=${packId}&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/shop?canceled=true`,
       metadata: {
         userId: user.id,
         packId: packId,
