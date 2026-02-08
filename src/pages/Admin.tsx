@@ -55,6 +55,8 @@ const Admin = () => {
     release_date: new Date().toISOString().split('T')[0],
   });
 
+  // Note: AdminRoute wrapper in App.tsx handles auth/admin validation
+  // This effect is kept as a safety fallback
   useEffect(() => {
     if (!authLoading && (!user || !isAdmin)) {
       navigate('/');
