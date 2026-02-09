@@ -11,20 +11,20 @@ const corsHeaders = {
 // Pack configurations with Stripe price IDs
 const PACK_CONFIGS: Record<string, { priceId: string; cardCount: number; type: string; multiplier: number }> = {
   // Standard packs
-  'standard_5': { priceId: 'price_1SybWhDcvxD9sOlhySErbdCF', cardCount: 5, type: 'standard', multiplier: 1 },
-  'standard_10': { priceId: 'price_1SybX9DcvxD9sOlhp32Yd5VR', cardCount: 10, type: 'standard', multiplier: 1 },
-  'standard_20': { priceId: 'price_1SybXJDcvxD9sOlhz8EuCn8M', cardCount: 20, type: 'standard', multiplier: 1 },
-  'standard_50': { priceId: 'price_1SybXUDcvxD9sOlhMqRoYzxI', cardCount: 50, type: 'standard', multiplier: 1 },
+  'standard_5': { priceId: 'price_1Sz28ZDcvxD9sOlh00izyONy', cardCount: 5, type: 'standard', multiplier: 1 },
+  'standard_10': { priceId: 'price_1Sz28xDcvxD9sOlhQ0sMekyO', cardCount: 10, type: 'standard', multiplier: 1 },
+  'standard_20': { priceId: 'price_1Sz293DcvxD9sOlhYsE7maT9', cardCount: 20, type: 'standard', multiplier: 1 },
+  'standard_50': { priceId: 'price_1Sz294DcvxD9sOlhfhz1Fbkl', cardCount: 50, type: 'standard', multiplier: 1 },
   // Lucky packs (x2)
-  'lucky_5': { priceId: 'price_1SybXjDcvxD9sOlhVUQh1g6A', cardCount: 5, type: 'lucky', multiplier: 2 },
-  'lucky_10': { priceId: 'price_1SybXwDcvxD9sOlhQgmOAldW', cardCount: 10, type: 'lucky', multiplier: 2 },
-  'lucky_20': { priceId: 'price_1SybY9DcvxD9sOlhfhwBM9ql', cardCount: 20, type: 'lucky', multiplier: 2 },
-  'lucky_50': { priceId: 'price_1SybYNDcvxD9sOlh0zf7FM2z', cardCount: 50, type: 'lucky', multiplier: 2 },
+  'lucky_5': { priceId: 'price_1Sz295DcvxD9sOlhVwHJJZnH', cardCount: 5, type: 'lucky', multiplier: 2 },
+  'lucky_10': { priceId: 'price_1Sz296DcvxD9sOlhOJfyfK4g', cardCount: 10, type: 'lucky', multiplier: 2 },
+  'lucky_20': { priceId: 'price_1Sz297DcvxD9sOlhHY7phoLC', cardCount: 20, type: 'lucky', multiplier: 2 },
+  'lucky_50': { priceId: 'price_1Sz297DcvxD9sOlhDJb7ffI4', cardCount: 50, type: 'lucky', multiplier: 2 },
   // Ultra lucky packs (x5)
-  'ultra_5': { priceId: 'price_1SybYhDcvxD9sOlhJLrgYHFk', cardCount: 5, type: 'ultra', multiplier: 5 },
-  'ultra_10': { priceId: 'price_1SybZFDcvxD9sOlhzgqw2tJz', cardCount: 10, type: 'ultra', multiplier: 5 },
-  'ultra_20': { priceId: 'price_1SybZQDcvxD9sOlhQ7VYGr7x', cardCount: 20, type: 'ultra', multiplier: 5 },
-  'ultra_50': { priceId: 'price_1SybZaDcvxD9sOlhUf146OOs', cardCount: 50, type: 'ultra', multiplier: 5 },
+  'ultra_5': { priceId: 'price_1Sz298DcvxD9sOlhctghXuW6', cardCount: 5, type: 'ultra', multiplier: 5 },
+  'ultra_10': { priceId: 'price_1Sz299DcvxD9sOlh8Ldb9wv4', cardCount: 10, type: 'ultra', multiplier: 5 },
+  'ultra_20': { priceId: 'price_1Sz29ADcvxD9sOlhl3duA3wD', cardCount: 20, type: 'ultra', multiplier: 5 },
+  'ultra_50': { priceId: 'price_1Sz29BDcvxD9sOlhMpuQUioR', cardCount: 50, type: 'ultra', multiplier: 5 },
 };
 
 // Simple in-memory rate limiter (per function instance)
