@@ -251,6 +251,7 @@ const Shop = () => {
                   isRevealed={revealedCards.has(index)}
                   onReveal={() => handleRevealCard(index)}
                   size="sm"
+                  isNew={!userCards.some(uc => uc.id === card.id)}
                 />
               </div>
             ))}

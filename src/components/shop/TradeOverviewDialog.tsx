@@ -213,6 +213,7 @@ export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => 
         onClose={handleRevealClose}
         autoCollect={false}
         title="Cartes obtenues !"
+        ownedCardIds={new Set(userCards.map(c => c.id))}
       />
     </Dialog>
   );
