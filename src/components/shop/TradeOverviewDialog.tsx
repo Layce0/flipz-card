@@ -20,6 +20,7 @@ export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => 
   const [tradingCardId, setTradingCardId] = useState<string | null>(null);
   const [revealCards, setRevealCards] = useState<GameCard[]>([]);
   const [showReveal, setShowReveal] = useState(false);
+  const [ownedIdsSnapshot, setOwnedIdsSnapshot] = useState<Set<string>>(new Set());
   const { user } = useAuth();
   
   const deleteUserCards = useDeleteUserCards();
@@ -38,7 +39,8 @@ export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => 
     
     const config = TRADE_CONFIG[rarity];
     setTradingCardId(cardId);
-    
+    // Snapshot owned card IDs BEFORE the trade so reveal can detect new cards
+    setOwnedIdsSnapshot(new Set(userCards.map(c => c.id)));
     try {
       // Delete the required number of cards
       await deleteUserCards.mutateAsync({ 
@@ -213,7 +215,7 @@ export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => 
         onClose={handleRevealClose}
         autoCollect={false}
         title="Cartes obtenues !"
-        ownedCardIds={new Set(userCards.map(c => c.id))}
+        ownedCardIds={ownedIdsSnapshot}
       />
     </Dialog>
   );
