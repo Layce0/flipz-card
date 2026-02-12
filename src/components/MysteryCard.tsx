@@ -1,7 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { GameCard, RARITY_CONFIG } from '@/types/card';
 import { cn } from '@/lib/utils';
 import { HelpCircle } from 'lucide-react';
+
+interface Particle {
+  id: number;
+  x: number;
+  y: number;
+  angle: number;
+  speed: number;
+  size: number;
+  opacity: number;
+}
 
 interface MysteryCardProps {
   card: GameCard;
@@ -12,14 +22,32 @@ interface MysteryCardProps {
 
 export const MysteryCard = ({ card, isRevealed = false, onReveal, size = 'md' }: MysteryCardProps) => {
   const [flipped, setFlipped] = useState(isRevealed);
+  const [particles, setParticles] = useState<Particle[]>([]);
+  const [showParticles, setShowParticles] = useState(false);
 
-  // Sync flipped state with isRevealed prop
   useEffect(() => {
     if (isRevealed) {
       setFlipped(true);
     }
   }, [isRevealed]);
+
   const rarityConfig = RARITY_CONFIG[card.rarity];
+
+  const spawnParticles = useCallback(() => {
+    const count = size === 'sm' ? 16 : size === 'md' ? 24 : 32;
+    const newParticles: Particle[] = Array.from({ length: count }, (_, i) => ({
+      id: i,
+      x: 50 + (Math.random() - 0.5) * 20,
+      y: 50 + (Math.random() - 0.5) * 20,
+      angle: (360 / count) * i + (Math.random() - 0.5) * 30,
+      speed: 40 + Math.random() * 60,
+      size: 3 + Math.random() * 5,
+      opacity: 0.7 + Math.random() * 0.3,
+    }));
+    setParticles(newParticles);
+    setShowParticles(true);
+    setTimeout(() => setShowParticles(false), 700);
+  }, [size]);
 
   const sizeClasses = {
     sm: 'w-40 h-56',
@@ -30,18 +58,47 @@ export const MysteryCard = ({ card, isRevealed = false, onReveal, size = 'md' }:
   const handleClick = () => {
     if (!flipped && onReveal) {
       setFlipped(true);
+      spawnParticles();
       onReveal();
     }
   };
 
   return (
     <div 
-      className={cn(
-        "flip-card cursor-pointer",
-        sizeClasses[size]
-      )}
+      className={cn("flip-card cursor-pointer relative", sizeClasses[size])}
       onClick={handleClick}
     >
+      {/* Particles */}
+      {showParticles && (
+        <div className="absolute inset-0 pointer-events-none z-50 overflow-visible">
+          {particles.map((p) => {
+            const rad = (p.angle * Math.PI) / 180;
+            const tx = Math.cos(rad) * p.speed;
+            const ty = Math.sin(rad) * p.speed;
+            return (
+              <span
+                key={p.id}
+                className="absolute rounded-full"
+                style={{
+                  left: `${p.x}%`,
+                  top: `${p.y}%`,
+                  width: p.size,
+                  height: p.size,
+                  backgroundColor: rarityConfig.color,
+                  opacity: 0,
+                  boxShadow: `0 0 ${p.size * 2}px ${rarityConfig.color}`,
+                  animation: `particle-burst 0.65s ease-out forwards`,
+                  // @ts-ignore
+                  '--tx': `${tx}px`,
+                  '--ty': `${ty}px`,
+                  '--start-opacity': p.opacity,
+                } as React.CSSProperties}
+              />
+            );
+          })}
+        </div>
+      )}
+
       <div className={cn(
         "flip-card-inner relative w-full h-full",
         flipped && "flipped"
@@ -60,7 +117,6 @@ export const MysteryCard = ({ card, isRevealed = false, onReveal, size = 'md' }:
 
         {/* Card Front */}
         <div className="flip-card-back absolute inset-0 rounded-2xl overflow-hidden card-shadow">
-          {/* Rarity border glow */}
           <div 
             className={cn(
               "absolute inset-0 rounded-2xl",
@@ -71,11 +127,9 @@ export const MysteryCard = ({ card, isRevealed = false, onReveal, size = 'md' }:
             }}
           />
           
-          {/* Card content */}
           <div className="relative h-full bg-card rounded-2xl border-2 overflow-hidden"
             style={{ borderColor: rarityConfig.color }}
           >
-            {/* Image */}
             <div className="relative h-[55%] overflow-hidden">
               <img 
                 src={card.image_url} 
@@ -85,9 +139,7 @@ export const MysteryCard = ({ card, isRevealed = false, onReveal, size = 'md' }:
               <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
             </div>
 
-            {/* Info */}
             <div className="p-4 space-y-2">
-              {/* Rarity badge */}
               <div className="flex items-center gap-2">
                 <span 
                   className={cn(
@@ -100,18 +152,15 @@ export const MysteryCard = ({ card, isRevealed = false, onReveal, size = 'md' }:
                 </span>
               </div>
 
-              {/* Title */}
               <h3 className="font-display text-lg leading-tight text-foreground">
                 {card.title}
               </h3>
 
-              {/* Description */}
               <p className="text-sm text-muted-foreground line-clamp-3">
                 {card.description}
               </p>
             </div>
 
-            {/* Shimmer effect for legendary */}
             {card.rarity === 'legendary' && (
               <div className="shimmer absolute inset-0 pointer-events-none" />
             )}
