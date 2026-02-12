@@ -100,6 +100,7 @@ const Index = () => {
                 isRevealed={isRevealed}
                 onReveal={handleReveal}
                 size="lg"
+                isNew={!isRevealed}
               />
             </div>
 

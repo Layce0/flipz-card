@@ -18,9 +18,10 @@ interface MysteryCardProps {
   isRevealed?: boolean;
   onReveal?: () => void;
   size?: 'sm' | 'md' | 'lg';
+  isNew?: boolean;
 }
 
-export const MysteryCard = ({ card, isRevealed = false, onReveal, size = 'md' }: MysteryCardProps) => {
+export const MysteryCard = ({ card, isRevealed = false, onReveal, size = 'md', isNew = false }: MysteryCardProps) => {
   const [flipped, setFlipped] = useState(isRevealed);
   const [particles, setParticles] = useState<Particle[]>([]);
   const [showParticles, setShowParticles] = useState(false);
@@ -163,6 +164,15 @@ export const MysteryCard = ({ card, isRevealed = false, onReveal, size = 'md' }:
 
             {card.rarity === 'legendary' && (
               <div className="shimmer absolute inset-0 pointer-events-none" />
+            )}
+
+            {/* New badge */}
+            {isNew && flipped && (
+              <div className="absolute top-3 right-3 z-10 animate-scale-in">
+                <span className="px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold uppercase tracking-wider">
+                  Nouveau
+                </span>
+              </div>
             )}
           </div>
         </div>
