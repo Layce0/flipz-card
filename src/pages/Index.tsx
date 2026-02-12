@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { MysteryCard } from '@/components/MysteryCard';
+import { RARITY_CONFIG } from '@/types/card';
 import { Navigation } from '@/components/Navigation';
 import { Clock, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -95,7 +96,13 @@ const Index = () => {
           <>
             {/* Card */}
             <div className="relative mb-8">
-              <div className="absolute -inset-8 bg-gradient-radial from-primary/20 via-transparent to-transparent blur-2xl" />
+              <div 
+                className="absolute -inset-4 rounded-3xl animate-pulse"
+                style={{
+                  background: `radial-gradient(ellipse at center, ${RARITY_CONFIG[todayCard.rarity].color}30 0%, transparent 70%)`,
+                  boxShadow: `0 0 40px 10px ${RARITY_CONFIG[todayCard.rarity].color}25, 0 0 80px 20px ${RARITY_CONFIG[todayCard.rarity].color}15`,
+                }}
+              />
               <MysteryCard 
                 card={todayCard} 
                 isRevealed={isRevealed}
