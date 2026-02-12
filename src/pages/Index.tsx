@@ -5,7 +5,7 @@ import { MysteryCard } from '@/components/MysteryCard';
 import { Navigation } from '@/components/Navigation';
 import { Clock, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTodayCard, useHasCollectedToday, useCollectCard } from '@/hooks/useCards';
+import { useTodayCard, useHasCollectedToday, useCollectCard, useUserCards } from '@/hooks/useCards';
 import { toast } from 'sonner';
 import flipzLogo from '@/assets/flipz-logo.png';
 
@@ -17,6 +17,7 @@ const Index = () => {
   
   const { data: todayCard, isLoading: cardLoading } = useTodayCard(user?.id);
   const { data: hasCollected, isLoading: collectedLoading } = useHasCollectedToday(user?.id, todayCard?.id);
+  const { data: userCards = [] } = useUserCards(user?.id);
   const collectCard = useCollectCard();
 
   useEffect(() => {
@@ -100,7 +101,7 @@ const Index = () => {
                 isRevealed={isRevealed}
                 onReveal={handleReveal}
                 size="lg"
-                isNew={!isRevealed}
+                isNew={!userCards.some(uc => uc.id === todayCard.id && uc.count > 1)}
               />
             </div>
 
