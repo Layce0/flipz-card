@@ -34,19 +34,19 @@ export const MysteryCard = ({ card, isRevealed = false, onReveal, size = 'md' }:
   const rarityConfig = RARITY_CONFIG[card.rarity];
 
   const spawnParticles = useCallback(() => {
-    const count = size === 'sm' ? 16 : size === 'md' ? 24 : 32;
+    const count = size === 'sm' ? 28 : size === 'md' ? 40 : 50;
     const newParticles: Particle[] = Array.from({ length: count }, (_, i) => ({
       id: i,
-      x: 50 + (Math.random() - 0.5) * 20,
-      y: 50 + (Math.random() - 0.5) * 20,
-      angle: (360 / count) * i + (Math.random() - 0.5) * 30,
-      speed: 40 + Math.random() * 60,
-      size: 3 + Math.random() * 5,
-      opacity: 0.7 + Math.random() * 0.3,
+      x: 50 + (Math.random() - 0.5) * 16,
+      y: 50 + (Math.random() - 0.5) * 16,
+      angle: (360 / count) * i + (Math.random() - 0.5) * 40,
+      speed: 80 + Math.random() * 120,
+      size: 5 + Math.random() * 9,
+      opacity: 0.8 + Math.random() * 0.2,
     }));
     setParticles(newParticles);
     setShowParticles(true);
-    setTimeout(() => setShowParticles(false), 700);
+    setTimeout(() => setShowParticles(false), 900);
   }, [size]);
 
   const sizeClasses = {
@@ -86,8 +86,8 @@ export const MysteryCard = ({ card, isRevealed = false, onReveal, size = 'md' }:
                   height: p.size,
                   backgroundColor: rarityConfig.color,
                   opacity: 0,
-                  boxShadow: `0 0 ${p.size * 2}px ${rarityConfig.color}`,
-                  animation: `particle-burst 0.65s ease-out forwards`,
+                  boxShadow: `0 0 ${p.size * 3}px ${p.size}px ${rarityConfig.color}`,
+                  animation: `particle-burst 0.8s ease-out forwards`,
                   // @ts-ignore
                   '--tx': `${tx}px`,
                   '--ty': `${ty}px`,
