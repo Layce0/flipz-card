@@ -9,6 +9,7 @@ import { GameCard, Rarity } from '@/types/card';
 import { BookOpen, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAllCards, useUserCards } from '@/hooks/useCards';
+import { useNewCardIndicator } from '@/hooks/useNewCardIndicator';
 
 const Collection = () => {
   const [activeRarity, setActiveRarity] = useState<Rarity | 'all'>('all');
@@ -18,6 +19,14 @@ const Collection = () => {
   
   const { data: allCards = [], isLoading: cardsLoading } = useAllCards();
   const { data: userCards = [], isLoading: userCardsLoading } = useUserCards(user?.id);
+  const { markAsSeen } = useNewCardIndicator();
+
+  // Mark cards as seen when visiting collection
+  useEffect(() => {
+    if (user && !userCardsLoading) {
+      markAsSeen();
+    }
+  }, [user, userCardsLoading, markAsSeen]);
   
   // Card detail dialog state
   const [selectedCard, setSelectedCard] = useState<GameCard | null>(null);
