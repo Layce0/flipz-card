@@ -81,13 +81,14 @@
            <div className="absolute -inset-8 bg-gradient-radial from-primary/20 via-transparent to-transparent blur-2xl" />
            
            {cards[currentCardIndex] && (
-             <MysteryCard
-               key={currentCardIndex}
-               card={cards[currentCardIndex]}
-               isRevealed={cardRevealed}
-               onReveal={handleRevealCard}
-               size="lg"
-             />
+              <MysteryCard
+                key={currentCardIndex}
+                card={cards[currentCardIndex]}
+                isRevealed={cardRevealed}
+                onReveal={handleRevealCard}
+                size="lg"
+                isNew={true}
+              />
            )}
          </div>
  
