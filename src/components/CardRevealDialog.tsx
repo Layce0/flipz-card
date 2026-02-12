@@ -8,21 +8,23 @@
  import { useAuth } from '@/contexts/AuthContext';
  import { useCollectCard } from '@/hooks/useCards';
  
- interface CardRevealDialogProps {
-   cards: GameCard[];
-   open: boolean;
-   onClose: () => void;
-   autoCollect?: boolean; // If true, cards are collected on reveal
-   title?: string;
- }
+interface CardRevealDialogProps {
+  cards: GameCard[];
+  open: boolean;
+  onClose: () => void;
+  autoCollect?: boolean; // If true, cards are collected on reveal
+  title?: string;
+  ownedCardIds?: Set<string>; // IDs of cards already in collection
+}
  
- export const CardRevealDialog = ({ 
-   cards, 
-   open, 
-   onClose,
-   autoCollect = false,
-   title = "Nouvelles cartes !"
- }: CardRevealDialogProps) => {
+export const CardRevealDialog = ({ 
+  cards, 
+  open, 
+  onClose,
+  autoCollect = false,
+  title = "Nouvelles cartes !",
+  ownedCardIds,
+}: CardRevealDialogProps) => {
    const [currentCardIndex, setCurrentCardIndex] = useState(0);
    const [cardRevealed, setCardRevealed] = useState(false);
    const { user } = useAuth();
@@ -87,7 +89,7 @@
                 isRevealed={cardRevealed}
                 onReveal={handleRevealCard}
                 size="lg"
-                isNew={true}
+                isNew={!ownedCardIds || !ownedCardIds.has(cards[currentCardIndex].id)}
               />
            )}
          </div>
