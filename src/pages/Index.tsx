@@ -97,10 +97,11 @@ const Index = () => {
             {/* Card */}
             <div className="relative mb-8">
               <div 
-                className="absolute -inset-4 rounded-3xl animate-pulse"
+                className="absolute -inset-6 rounded-3xl"
                 style={{
-                  background: `radial-gradient(ellipse at center, ${RARITY_CONFIG[todayCard.rarity].color}30 0%, transparent 70%)`,
-                  boxShadow: `0 0 40px 10px ${RARITY_CONFIG[todayCard.rarity].color}25, 0 0 80px 20px ${RARITY_CONFIG[todayCard.rarity].color}15`,
+                  background: `radial-gradient(ellipse at center, ${RARITY_CONFIG[todayCard.rarity].color.replace(')', ' / 0.25)')} 0%, transparent 70%)`,
+                  boxShadow: `0 0 50px 15px ${RARITY_CONFIG[todayCard.rarity].color.replace(')', ' / 0.2)')}, 0 0 100px 30px ${RARITY_CONFIG[todayCard.rarity].color.replace(')', ' / 0.1)')}`,
+                  animation: 'pulseGlow 2.5s ease-in-out infinite',
                 }}
               />
               <MysteryCard 
