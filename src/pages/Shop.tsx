@@ -244,17 +244,22 @@ const Shop = () => {
           </DialogHeader>
 
           <div className="grid grid-cols-3 gap-3 py-4 max-h-[60vh] overflow-y-auto">
-            {purchasedCards.map((card, index) => (
-              <div key={index} className="flex justify-center">
-                <MysteryCard
-                  card={card}
-                  isRevealed={revealedCards.has(index)}
-                  onReveal={() => handleRevealCard(index)}
-                  size="sm"
-                  isNew={!userCards.some(uc => uc.id === card.id)}
-                />
-              </div>
-            ))}
+            {purchasedCards.map((card, index) => {
+              const alreadyOwned = userCards.some(uc => uc.id === card.id);
+              const discoveredEarlierInPack = purchasedCards.slice(0, index).some(c => c.id === card.id);
+              const isNew = !alreadyOwned && !discoveredEarlierInPack;
+              return (
+                <div key={index} className="flex justify-center">
+                  <MysteryCard
+                    card={card}
+                    isRevealed={revealedCards.has(index)}
+                    onReveal={() => handleRevealCard(index)}
+                    size="sm"
+                    isNew={isNew}
+                  />
+                </div>
+              );
+            })}
           </div>
 
           <DialogFooter>

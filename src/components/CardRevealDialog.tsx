@@ -1,4 +1,4 @@
- import { useState } from 'react';
+ import { useState, useMemo } from 'react';
  import { Dialog, DialogContent } from '@/components/ui/dialog';
  import { Button } from '@/components/ui/button';
  import { MysteryCard } from '@/components/MysteryCard';
@@ -14,7 +14,7 @@ interface CardRevealDialogProps {
   onClose: () => void;
   autoCollect?: boolean; // If true, cards are collected on reveal
   title?: string;
-  ownedCardIds?: Set<string>; // IDs of cards already in collection
+  ownedCardIds?: Set<string>; // IDs of cards already in collection before this session
 }
  
 export const CardRevealDialog = ({ 
@@ -82,16 +82,23 @@ export const CardRevealDialog = ({
          <div className="relative mb-6">
            <div className="absolute -inset-8 bg-gradient-radial from-primary/20 via-transparent to-transparent blur-2xl" />
            
-           {cards[currentCardIndex] && (
-              <MysteryCard
-                key={currentCardIndex}
-                card={cards[currentCardIndex]}
-                isRevealed={cardRevealed}
-                onReveal={handleRevealCard}
-                size="lg"
-                isNew={!ownedCardIds || !ownedCardIds.has(cards[currentCardIndex].id)}
-              />
-           )}
+            {cards[currentCardIndex] && (
+               <MysteryCard
+                 key={currentCardIndex}
+                 card={cards[currentCardIndex]}
+                 isRevealed={cardRevealed}
+                 onReveal={handleRevealCard}
+                 size="lg"
+                 isNew={(() => {
+                   const cardId = cards[currentCardIndex].id;
+                   // Not new if already owned before this session
+                   if (ownedCardIds?.has(cardId)) return false;
+                   // Not new if already revealed earlier in this session
+                   const previouslyRevealed = cards.slice(0, currentCardIndex).some(c => c.id === cardId);
+                   return !previouslyRevealed;
+                 })()}
+               />
+            )}
          </div>
  
          {/* Progress indicator */}
