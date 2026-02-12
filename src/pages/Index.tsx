@@ -76,7 +76,7 @@ const Index = () => {
       {/* Daily card section */}
       <main className="px-4 flex flex-col items-center">
         {/* Timer */}
-        <div className="flex items-center gap-2 bg-card/50 px-4 py-2 rounded-full border border-border mb-8">
+        <div className="relative flex items-center gap-2 bg-card/80 px-5 py-2.5 rounded-full mb-8 timer-glow-border">
           <Clock className="w-4 h-4 text-primary" />
           <span className="text-sm text-muted-foreground">{t('home.nextCard')}</span>
           <span className="font-mono text-primary font-semibold">{timeLeft}</span>
