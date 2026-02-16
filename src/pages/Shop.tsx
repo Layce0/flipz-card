@@ -14,6 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useUserCards, useDeleteUserCards, useRandomCards, useCollectCard, UserCardWithCount } from '@/hooks/useCards';
 import { supabase } from '@/integrations/supabase/client';
 import { MysteryCard } from '@/components/MysteryCard';
+import { RedeemCodeSection } from '@/components/shop/RedeemCodeSection';
 
 const Shop = () => {
   const { user } = useAuth();
@@ -122,7 +123,7 @@ const Shop = () => {
       });
 
       // Get random reward cards
-      const newCards = await getRandomCards.mutateAsync({ count: config.reward });
+      const newCards = await getRandomCards.mutateAsync({ count: config.reward, userId: user.id });
 
       // Collect all new cards
       for (const newCard of newCards) {
@@ -228,6 +229,9 @@ const Shop = () => {
             />
           </>
         )}
+
+        {/* Redeem Code Section */}
+        <RedeemCodeSection />
       </main>
 
       {/* Purchase Reward Dialog */}

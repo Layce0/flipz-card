@@ -44,6 +44,38 @@ export type Database = {
         }
         Relationships: []
       }
+      code_redemptions: {
+        Row: {
+          boost_expires_at: string | null
+          code_id: string
+          id: string
+          redeemed_at: string
+          user_id: string
+        }
+        Insert: {
+          boost_expires_at?: string | null
+          code_id: string
+          id?: string
+          redeemed_at?: string
+          user_id: string
+        }
+        Update: {
+          boost_expires_at?: string | null
+          code_id?: string
+          id?: string
+          redeemed_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "code_redemptions_code_id_fkey"
+            columns: ["code_id"]
+            isOneToOne: false
+            referencedRelation: "reward_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       drop_rates: {
         Row: {
           created_at: string
@@ -288,6 +320,42 @@ export type Database = {
           processed_at?: string | null
           session_id?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      reward_codes: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          max_uses: number | null
+          reward_config: Json
+          reward_type: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          reward_config?: Json
+          reward_type: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          reward_config?: Json
+          reward_type?: string
         }
         Relationships: []
       }

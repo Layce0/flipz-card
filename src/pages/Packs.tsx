@@ -39,7 +39,7 @@ const Packs = () => {
     
     // Get 3 random cards
     try {
-      const cards = await getRandomCards.mutateAsync({ count: 3 });
+      const cards = await getRandomCards.mutateAsync({ count: 3, userId: user.id });
       setRevealedCards(cards);
       setCurrentCardIndex(0);
       setIsRevealing(true);
