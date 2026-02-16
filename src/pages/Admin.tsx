@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Shield, Plus, Trash2, Upload, Loader2, Gift, Save, Pencil } from 'lucide-react';
+import { RewardCodesManager } from '@/components/admin/RewardCodesManager';
 import { Rarity, RARITY_CONFIG, GameCard } from '@/types/card';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
@@ -476,6 +477,9 @@ const Admin = () => {
             </div>
           )}
         </section>
+
+        {/* Reward Codes Manager */}
+        <RewardCodesManager />
 
         {/* Card list */}
         <section>

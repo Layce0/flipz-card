@@ -50,7 +50,7 @@ export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => 
       });
       
       // Get reward cards
-      const newCards = await getRandomCards.mutateAsync({ count: config.reward });
+      const newCards = await getRandomCards.mutateAsync({ count: config.reward, userId: user.id });
       
       // Collect the new cards
       for (const card of newCards) {

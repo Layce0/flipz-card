@@ -1,1 +1,4 @@
 project_id = "twhykngemnlljngxnxaf"
+
+[functions.redeem-code]
+verify_jwt = false

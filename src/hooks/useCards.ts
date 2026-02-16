@@ -170,11 +170,20 @@ export const useTodayCard = (userId: string | undefined) => {
 // Get random cards for pack opening - now uses database drop rates
 export const useRandomCards = () => {
   return useMutation({
-    mutationFn: async ({ count }: { count: number }) => {
-      // Fetch cards and drop rates in parallel
-      const [cardsResult, ratesResult] = await Promise.all([
+    mutationFn: async ({ count, userId }: { count: number; userId?: string }) => {
+      // Fetch cards, drop rates, and active boosts in parallel
+      const boostQuery = userId
+        ? supabase
+            .from('code_redemptions')
+            .select('id, code_id, boost_expires_at')
+            .eq('user_id', userId)
+            .gt('boost_expires_at', new Date().toISOString())
+        : null;
+
+      const [cardsResult, ratesResult, boostsResult] = await Promise.all([
         supabase.from('cards').select('*'),
-        supabase.from('drop_rates').select('*')
+        supabase.from('drop_rates').select('*'),
+        boostQuery,
       ]);
       
       if (cardsResult.error) throw cardsResult.error;
@@ -184,28 +193,58 @@ export const useRandomCards = () => {
       const dropRates = ratesResult.data || [];
       
       if (cards.length === 0) return [];
-      
-      // Build rarity weights from database
+
+      // Check for active boosts
+      let luckMultiplier = 1;
+      let packBonusCards = 0;
+      let packMultiplier = 1;
+
+      if (boostsResult?.data && boostsResult.data.length > 0) {
+        const codeIds = boostsResult.data.map((r: any) => r.code_id);
+        const { data: codes } = await supabase
+          .from('reward_codes')
+          .select('id, reward_type, reward_config')
+          .in('id', codeIds);
+
+        (codes || []).forEach((code: any) => {
+          const config = code.reward_config as Record<string, any>;
+          if (code.reward_type === 'boost_luck' && config?.multiplier) {
+            luckMultiplier = Math.max(luckMultiplier, config.multiplier);
+          }
+          if (code.reward_type === 'boost_pack') {
+            if (config?.bonus) packBonusCards = Math.max(packBonusCards, config.bonus);
+            if (config?.multiplier) packMultiplier = Math.max(packMultiplier, config.multiplier);
+          }
+        });
+      }
+
+      // Build rarity weights from database, applying luck boost
       const rarityWeights: Record<string, number> = {};
       dropRates.forEach(dr => {
         rarityWeights[dr.rarity] = dr.rate;
       });
       
-      // Fallback weights if not in database
       const defaultWeights: Record<string, number> = {
         common: 60, rare: 25, epic: 12, legendary: 3
       };
-      
+
+      // Apply luck multiplier to epic/legendary
       const weightedCards: GameCard[] = [];
       cards.forEach(card => {
-        const weight = rarityWeights[card.rarity] ?? defaultWeights[card.rarity] ?? 1;
+        let weight = rarityWeights[card.rarity] ?? defaultWeights[card.rarity] ?? 1;
+        if ((card.rarity === 'epic' || card.rarity === 'legendary') && luckMultiplier > 1) {
+          weight = Math.round(weight * luckMultiplier);
+        }
         for (let i = 0; i < weight; i++) {
           weightedCards.push(card as GameCard);
         }
       });
+
+      // Apply pack bonuses to card count
+      const finalCount = (count * packMultiplier) + packBonusCards;
       
       const result: GameCard[] = [];
-      for (let i = 0; i < count; i++) {
+      for (let i = 0; i < finalCount; i++) {
         const randomIndex = Math.floor(Math.random() * weightedCards.length);
         result.push(weightedCards[randomIndex]);
       }
