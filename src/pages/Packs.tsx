@@ -7,6 +7,7 @@ import { MysteryCard } from '@/components/MysteryCard';
 import { Package, Play, Loader2, X, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRandomCards, useCollectCard } from '@/hooks/useCards';
+import { useAdMob } from '@/hooks/useAdMob';
 import { toast } from 'sonner';
 import { GameCard } from '@/types/card';
 import { cn } from '@/lib/utils';
@@ -15,6 +16,7 @@ const Packs = () => {
   const { user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { showInterstitial, isLoading: isAdLoading } = useAdMob();
   const [isWatchingAd, setIsWatchingAd] = useState(false);
   const [revealedCards, setRevealedCards] = useState<GameCard[]>([]);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
@@ -32,10 +34,15 @@ const Packs = () => {
 
     setIsWatchingAd(true);
     
-    // Simulate watching an ad (3 seconds)
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    // Show a real ad (native) or simulate (web)
+    const adWatched = await showInterstitial();
     
     setIsWatchingAd(false);
+    
+    if (!adWatched) {
+      toast.error(t('packs.adError', 'Impossible de charger la publicité'));
+      return;
+    }
     
     // Get 3 random cards
     try {
