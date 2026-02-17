@@ -163,20 +163,20 @@ const Packs = () => {
             )}
           </>
         ) : (
-          <>
-            {/* Card reveal */}
+          <div className="fixed inset-0 z-[60] bg-background flex flex-col items-center justify-center p-4"
+            style={{ touchAction: 'none' }}
+          >
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleClose}
+              className="absolute top-4 right-4 z-20 bg-card/80"
+            >
+              <X className="w-5 h-5" />
+            </Button>
+
             <div className="relative mb-6">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleClose}
-                className="absolute -top-4 -right-4 z-20 bg-card/80"
-              >
-                <X className="w-5 h-5" />
-              </Button>
-              
               <div className="absolute -inset-8 bg-gradient-radial from-primary/20 via-transparent to-transparent blur-2xl" />
-              
               {revealedCards[currentCardIndex] && (
                 <MysteryCard
                   key={currentCardIndex}
@@ -188,7 +188,6 @@ const Packs = () => {
               )}
             </div>
 
-            {/* Progress indicator */}
             <div className="flex gap-2 mb-4">
               {revealedCards.map((_, index) => (
                 <div
@@ -209,7 +208,6 @@ const Packs = () => {
               {t('packs.cardProgress', { current: currentCardIndex + 1, total: revealedCards.length })}
             </p>
 
-            {/* Next button - appears after card is revealed */}
             {cardRevealed && (
               <Button 
                 variant="gold" 
@@ -227,7 +225,7 @@ const Packs = () => {
                 )}
               </Button>
             )}
-          </>
+          </div>
         )}
       </main>
 

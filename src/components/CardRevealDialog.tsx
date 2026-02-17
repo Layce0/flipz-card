@@ -63,8 +63,10 @@ export const CardRevealDialog = ({
    if (cards.length === 0) return null;
  
    return (
-     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
-       <DialogContent className="max-w-sm bg-transparent border-none shadow-none p-0 flex flex-col items-center">
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()} modal>
+        <DialogContent className="fixed inset-0 z-[60] max-w-none w-screen h-screen bg-background border-none shadow-none rounded-none p-0 flex flex-col items-center justify-center translate-x-0 translate-y-0 top-0 left-0 data-[state=open]:slide-in-from-bottom-0"
+          style={{ touchAction: 'none' }}
+        >
          {/* Close button */}
          <Button
            variant="ghost"
