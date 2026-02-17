@@ -41,7 +41,9 @@ export const PackRevealFlow = ({ cards, isOpen, onClose }: PackRevealFlowProps) 
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-background/95 flex flex-col items-center justify-center p-4">
+    <div className="fixed inset-0 z-[60] bg-background flex flex-col items-center justify-center p-4"
+      style={{ touchAction: 'none' }}
+    >
       {/* Close button */}
       <Button
         variant="ghost"
