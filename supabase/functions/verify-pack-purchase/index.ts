@@ -178,39 +178,21 @@ serve(async (req) => {
       });
     }
 
-    // Combine pack multiplier with luck boost
-    const effectiveMultiplier = multiplier * luckMultiplier;
-
-    // Build rarity weights with multiplier
-    const baseWeights: Record<string, number> = {};
-    (dropRates || []).forEach((dr: { rarity: string; rate: number }) => {
-      baseWeights[dr.rarity] = dr.rate;
-    });
-
-    // Default weights
-    const defaultWeights: Record<string, number> = {
-      common: 60, rare: 25, epic: 12, legendary: 3
+    // Fixed probability tables for luck boost multipliers
+    const LUCK_TABLES: Record<number, Record<string, number>> = {
+      1:   { common: 60, rare: 25, epic: 12, legendary: 3 },
+      1.5: { common: 30, rare: 47.5, epic: 16.5, legendary: 6 },
+      2:   { common: 30, rare: 40, epic: 22, legendary: 8 },
+      2.5: { common: 27, rare: 35.5, epic: 27.5, legendary: 10 },
+      3:   { common: 25, rare: 30, epic: 33, legendary: 12 },
+      3.5: { common: 20, rare: 27.5, epic: 38.5, legendary: 14 },
+      4:   { common: 10, rare: 30, epic: 44, legendary: 16 },
     };
 
-    // Apply multiplier to epic/legendary chances
-    const adjustedWeights: Record<string, number> = {};
-    const rarities = ['common', 'rare', 'epic', 'legendary'];
-    
-    rarities.forEach(rarity => {
-      const base = baseWeights[rarity] ?? defaultWeights[rarity];
-      if (rarity === 'epic' || rarity === 'legendary') {
-        adjustedWeights[rarity] = Math.min(base * effectiveMultiplier, 50);
-      } else {
-        adjustedWeights[rarity] = base;
-      }
-    });
-
-    // Normalize weights to 100%
-    const totalWeight = Object.values(adjustedWeights).reduce((a, b) => a + b, 0);
-    const normalizedWeights: Record<string, number> = {};
-    rarities.forEach(rarity => {
-      normalizedWeights[rarity] = (adjustedWeights[rarity] / totalWeight) * 100;
-    });
+    // Use the fixed table based on luck multiplier
+    const effectiveLuck = luckMultiplier > 1 ? luckMultiplier : 1;
+    const normalizedWeights: Record<string, number> = LUCK_TABLES[effectiveLuck] 
+      ?? LUCK_TABLES[1];
 
     logStep("Calculated weights", { packType, multiplier, luckMultiplier, effectiveMultiplier, normalizedWeights });
 
