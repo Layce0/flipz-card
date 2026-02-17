@@ -170,7 +170,7 @@ export const useTodayCard = (userId: string | undefined) => {
 // Get random cards for pack opening - now uses database drop rates
 export const useRandomCards = () => {
   return useMutation({
-    mutationFn: async ({ count, userId }: { count: number; userId?: string }) => {
+    mutationFn: async ({ count, userId, rarityMultiplier = 1 }: { count: number; userId?: string; rarityMultiplier?: number }) => {
       // Fetch cards, drop rates, and active boosts in parallel
       const boostQuery = userId
         ? supabase
@@ -218,7 +218,10 @@ export const useRandomCards = () => {
         });
       }
 
-      // Build rarity weights from database, applying luck boost
+      // Combine pack rarity multiplier with luck boost
+      const totalRarityMultiplier = rarityMultiplier * luckMultiplier;
+
+      // Build base rarity weights from database
       const rarityWeights: Record<string, number> = {};
       dropRates.forEach(dr => {
         rarityWeights[dr.rarity] = dr.rate;
@@ -228,13 +231,47 @@ export const useRandomCards = () => {
         common: 60, rare: 25, epic: 12, legendary: 3
       };
 
-      // Apply luck multiplier to epic/legendary
+      // Calculate adjusted weights so total stays at 100%
+      const baseCommon = rarityWeights['common'] ?? defaultWeights['common'];
+      const baseRare = rarityWeights['rare'] ?? defaultWeights['rare'];
+      const baseEpic = rarityWeights['epic'] ?? defaultWeights['epic'];
+      const baseLegendary = rarityWeights['legendary'] ?? defaultWeights['legendary'];
+      const baseTotal = baseCommon + baseRare + baseEpic + baseLegendary;
+
+      let finalEpic = baseEpic * totalRarityMultiplier;
+      let finalLegendary = baseLegendary * totalRarityMultiplier;
+
+      // Cap boosted rarities so they don't exceed total
+      const maxBoosted = baseTotal * 0.9; // cap at 90% of total
+      if (finalEpic + finalLegendary > maxBoosted) {
+        const scale = maxBoosted / (finalEpic + finalLegendary);
+        finalEpic *= scale;
+        finalLegendary *= scale;
+      }
+
+      // Redistribute surplus proportionally from common and rare
+      const surplus = (finalEpic + finalLegendary) - (baseEpic + baseLegendary);
+      const commonRareTotal = baseCommon + baseRare;
+      let finalCommon = baseCommon - surplus * (baseCommon / commonRareTotal);
+      let finalRare = baseRare - surplus * (baseRare / commonRareTotal);
+
+      // Ensure minimums
+      finalCommon = Math.max(1, Math.round(finalCommon));
+      finalRare = Math.max(1, Math.round(finalRare));
+      finalEpic = Math.max(1, Math.round(finalEpic));
+      finalLegendary = Math.max(1, Math.round(finalLegendary));
+
+      const adjustedWeights: Record<string, number> = {
+        common: finalCommon,
+        rare: finalRare,
+        epic: finalEpic,
+        legendary: finalLegendary,
+      };
+
+      // Build weighted card pool
       const weightedCards: GameCard[] = [];
       cards.forEach(card => {
-        let weight = rarityWeights[card.rarity] ?? defaultWeights[card.rarity] ?? 1;
-        if ((card.rarity === 'epic' || card.rarity === 'legendary') && luckMultiplier > 1) {
-          weight = Math.round(weight * luckMultiplier);
-        }
+        const weight = adjustedWeights[card.rarity] ?? 1;
         for (let i = 0; i < weight; i++) {
           weightedCards.push(card as GameCard);
         }

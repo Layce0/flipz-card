@@ -1,27 +1,29 @@
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Ticket, Loader2, Check, AlertCircle, Sparkles } from 'lucide-react';
+import { Ticket, Loader2, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
-import { MysteryCard } from '@/components/MysteryCard';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { useUserCards } from '@/hooks/useCards';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRandomCards, useCollectCard } from '@/hooks/useCards';
+import { GameCard } from '@/types/card';
+import { PackRevealFlow } from '@/components/shop/PackRevealFlow';
 
 export const RedeemCodeSection = () => {
   const { user } = useAuth();
-  const { data: userCards = [] } = useUserCards(user?.id);
   const [code, setCode] = useState('');
   const [isRedeeming, setIsRedeeming] = useState(false);
-  const [rewardCards, setRewardCards] = useState<any[]>([]);
-  const [showReward, setShowReward] = useState(false);
-  const [revealedCards, setRevealedCards] = useState<Set<number>>(new Set());
   const queryClient = useQueryClient();
 
+  // Pack reveal state
+  const [revealedCards, setRevealedCards] = useState<GameCard[]>([]);
+  const [isRevealing, setIsRevealing] = useState(false);
+  const getRandomCards = useRandomCards();
+  const collectCard = useCollectCard();
+
   const handleRedeem = async () => {
-    if (!code.trim()) return;
+    if (!code.trim() || !user) return;
 
     setIsRedeeming(true);
     try {
@@ -36,13 +38,34 @@ export const RedeemCodeSection = () => {
         return;
       }
 
-      if (data.reward?.type === 'pack' && data.reward?.cards) {
-        setRewardCards(data.reward.cards);
-        setRevealedCards(new Set());
-        setShowReward(true);
+      const reward = data.reward;
+
+      if (reward?.type === 'pack' || reward?.type === 'pack_lucky' || reward?.type === 'pack_ultra') {
+        // Open pack through normal RNG flow
+        const packType = reward.type;
+        const cardCount = reward.card_count || 5;
+        const rarityMultiplier = packType === 'pack_ultra' ? 5 : packType === 'pack_lucky' ? 2 : 1;
+
+        const cards = await getRandomCards.mutateAsync({
+          count: cardCount,
+          userId: user.id,
+          rarityMultiplier,
+        });
+
+        // Collect all cards
+        for (const card of cards) {
+          try {
+            await collectCard.mutateAsync({ userId: user.id, cardId: card.id });
+          } catch {}
+        }
+
+        setRevealedCards(cards);
+        setIsRevealing(true);
+        toast.success(data.message || 'Pack reçu !');
+      } else {
+        toast.success(data.message || 'Code utilisé avec succès !');
       }
 
-      toast.success(data.message || 'Code utilisé avec succès !');
       setCode('');
       queryClient.invalidateQueries({ queryKey: ['user-cards'] });
       queryClient.invalidateQueries({ queryKey: ['active-boosts'] });
@@ -53,8 +76,9 @@ export const RedeemCodeSection = () => {
     }
   };
 
-  const handleRevealCard = (index: number) => {
-    setRevealedCards(prev => new Set([...prev, index]));
+  const handleCloseReveal = () => {
+    setIsRevealing(false);
+    setRevealedCards([]);
   };
 
   return (
@@ -94,49 +118,11 @@ export const RedeemCodeSection = () => {
         </div>
       </section>
 
-      {/* Pack reward dialog */}
-      <Dialog open={showReward} onOpenChange={setShowReward}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="text-center flex items-center justify-center gap-2">
-              <Sparkles className="w-5 h-5 text-primary" />
-              Récompense du code !
-            </DialogTitle>
-            <DialogDescription className="text-center">
-              Cliquez sur les cartes pour les révéler
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="grid grid-cols-3 gap-3 py-4 max-h-[60vh] overflow-y-auto">
-            {rewardCards.map((card, index) => {
-              const alreadyOwned = userCards.some(uc => uc.id === card.id);
-              const discoveredEarlier = rewardCards.slice(0, index).some(c => c.id === card.id);
-              const isNew = !alreadyOwned && !discoveredEarlier;
-              return (
-                <div key={index} className="flex justify-center">
-                  <MysteryCard
-                    card={card}
-                    isRevealed={revealedCards.has(index)}
-                    onReveal={() => handleRevealCard(index)}
-                    size="sm"
-                    isNew={isNew}
-                  />
-                </div>
-              );
-            })}
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant="gold"
-              onClick={() => setShowReward(false)}
-              className="w-full"
-            >
-              Fermer
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <PackRevealFlow
+        cards={revealedCards}
+        isOpen={isRevealing}
+        onClose={handleCloseReveal}
+      />
     </>
   );
 };

@@ -114,49 +114,11 @@ Deno.serve(async (req) => {
         rewardDetails.card_id = cardId
       }
     } else if (rewardType === 'pack' || rewardType === 'pack_lucky' || rewardType === 'pack_ultra') {
-      // Give random cards based on pack config with rarity multiplier
+      // For all pack types, return pack info so the client opens it via the normal pack reveal flow
       const cardCount = config.card_count || 5
-      const rarityMultiplier = rewardType === 'pack_ultra' ? 5 : rewardType === 'pack_lucky' ? 2 : 1
-
-      // Fetch cards and drop rates
-      const [cardsResult, ratesResult] = await Promise.all([
-        supabaseAdmin.from('cards').select('*'),
-        supabaseAdmin.from('drop_rates').select('*')
-      ])
-
-      const cards = cardsResult.data || []
-      const dropRates = ratesResult.data || []
-
-      if (cards.length > 0) {
-        const rarityWeights: Record<string, number> = {}
-        dropRates.forEach((dr: any) => { rarityWeights[dr.rarity] = dr.rate })
-        const defaultWeights: Record<string, number> = { common: 60, rare: 25, epic: 12, legendary: 3 }
-
-        const weightedCards: any[] = []
-        cards.forEach((card: any) => {
-          let weight = rarityWeights[card.rarity] ?? defaultWeights[card.rarity] ?? 1
-          // Apply rarity multiplier for epic/legendary on lucky/ultra packs
-          if ((card.rarity === 'epic' || card.rarity === 'legendary') && rarityMultiplier > 1) {
-            weight = Math.round(weight * rarityMultiplier)
-          }
-          for (let i = 0; i < weight; i++) {
-            weightedCards.push(card)
-          }
-        })
-
-        const newCards: any[] = []
-        for (let i = 0; i < cardCount; i++) {
-          const randomIndex = Math.floor(Math.random() * weightedCards.length)
-          const card = weightedCards[randomIndex]
-          newCards.push(card)
-          await supabaseAdmin
-            .from('user_cards')
-            .insert({ user_id: user.id, card_id: card.id })
-        }
-        rewardDetails.cards = newCards
-        rewardDetails.card_count = cardCount
-        rewardDetails.pack_type = rewardType
-      }
+      rewardDetails.card_count = cardCount
+      rewardDetails.pack_type = rewardType
+      // Cards will be generated client-side through the standard RNG pack opening
     }
 
     // Record redemption
@@ -174,7 +136,7 @@ Deno.serve(async (req) => {
       message: rewardType.startsWith('boost')
         ? 'Boost activé pour 24h !'
         : rewardType.startsWith('pack')
-        ? `Vous avez reçu ${rewardDetails.card_count || 0} cartes !`
+        ? 'Pack reçu ! Ouvrez-le pour découvrir vos cartes.'
         : 'Récompense obtenue !'
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
