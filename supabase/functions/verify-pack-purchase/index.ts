@@ -189,10 +189,34 @@ serve(async (req) => {
       4:   { common: 10, rare: 30, epic: 44, legendary: 16 },
     };
 
-    // Use the fixed table based on luck multiplier
+    const LUCKY_PACK_TABLES: Record<number, Record<string, number>> = {
+      1:   { common: 30, rare: 40, epic: 22, legendary: 8 },
+      1.5: { common: 20, rare: 35, epic: 33, legendary: 12 },
+      2:   { common: 15, rare: 25, epic: 44, legendary: 16 },
+      2.5: { common: 10, rare: 15, epic: 55, legendary: 20 },
+      3:   { common: 2.5, rare: 7.5, epic: 66, legendary: 24 },
+      3.5: { common: 2.5, rare: 2.5, epic: 67, legendary: 28 },
+      4:   { common: 0.5, rare: 0.5, epic: 67, legendary: 32 },
+    };
+
+    const ULTRA_LUCKY_PACK_TABLES: Record<number, Record<string, number>> = {
+      1:   { common: 5, rare: 10, epic: 50, legendary: 35 },
+      1.5: { common: 2.5, rare: 5, epic: 62.5, legendary: 30 },
+      2:   { common: 1, rare: 1, epic: 58, legendary: 40 },
+      2.5: { common: 0.5, rare: 0.5, epic: 49, legendary: 50 },
+      3:   { common: 0.25, rare: 0.25, epic: 39.5, legendary: 60 },
+      3.5: { common: 0.1, rare: 0.1, epic: 29.8, legendary: 70 },
+      4:   { common: 0.05, rare: 0.05, epic: 19.9, legendary: 80 },
+    };
+
+    // Select the right table based on pack type
     const effectiveLuck = luckMultiplier > 1 ? luckMultiplier : 1;
-    const normalizedWeights: Record<string, number> = LUCK_TABLES[effectiveLuck] 
-      ?? LUCK_TABLES[1];
+    let tableSet = LUCK_TABLES;
+    if (packType === 'lucky') tableSet = LUCKY_PACK_TABLES;
+    else if (packType === 'ultra_lucky') tableSet = ULTRA_LUCKY_PACK_TABLES;
+
+    const normalizedWeights: Record<string, number> = tableSet[effectiveLuck] 
+      ?? tableSet[1];
 
     logStep("Calculated weights", { packType, multiplier, luckMultiplier, effectiveMultiplier, normalizedWeights });
 
