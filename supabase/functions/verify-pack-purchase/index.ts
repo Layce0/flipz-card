@@ -200,7 +200,7 @@ serve(async (req) => {
     };
 
     const ULTRA_LUCKY_PACK_TABLES: Record<number, Record<string, number>> = {
-      1:   { common: 5, rare: 10, epic: 50, legendary: 35 },
+      1:   { common: 10, rare: 15, epic: 55, legendary: 20 },
       1.5: { common: 2.5, rare: 5, epic: 62.5, legendary: 30 },
       2:   { common: 1, rare: 1, epic: 58, legendary: 40 },
       2.5: { common: 0.5, rare: 0.5, epic: 49, legendary: 50 },
