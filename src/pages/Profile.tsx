@@ -137,6 +137,11 @@ const Profile = () => {
   };
 
   const changePassword = async () => {
+    if (!passwords.current) {
+      toast.error(t('profile.password.currentRequired', 'Current password is required'));
+      return;
+    }
+
     if (passwords.new !== passwords.confirm) {
       toast.error(t('profile.password.mismatch'));
       return;
@@ -148,6 +153,18 @@ const Profile = () => {
     }
 
     setChangingPassword(true);
+
+    // Verify current password by re-authenticating
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: user!.email!,
+      password: passwords.current,
+    });
+
+    if (signInError) {
+      setChangingPassword(false);
+      toast.error(t('profile.password.currentIncorrect', 'Current password is incorrect'));
+      return;
+    }
 
     const { error } = await supabase.auth.updateUser({
       password: passwords.new,
@@ -267,6 +284,16 @@ const Profile = () => {
                 <CardDescription>{t('profile.password.description')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="current-password">{t('profile.password.current', 'Current password')}</Label>
+                  <Input
+                    id="current-password"
+                    type="password"
+                    value={passwords.current}
+                    onChange={(e) => setPasswords(prev => ({ ...prev, current: e.target.value }))}
+                    placeholder="••••••••"
+                  />
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="new-password">{t('profile.password.new')}</Label>
                   <Input
