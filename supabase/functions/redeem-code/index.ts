@@ -113,9 +113,10 @@ Deno.serve(async (req) => {
           .insert({ user_id: user.id, card_id: cardId })
         rewardDetails.card_id = cardId
       }
-    } else if (rewardType === 'pack') {
-      // Give random cards based on pack config
+    } else if (rewardType === 'pack' || rewardType === 'pack_lucky' || rewardType === 'pack_ultra') {
+      // Give random cards based on pack config with rarity multiplier
       const cardCount = config.card_count || 5
+      const rarityMultiplier = rewardType === 'pack_ultra' ? 5 : rewardType === 'pack_lucky' ? 2 : 1
 
       // Fetch cards and drop rates
       const [cardsResult, ratesResult] = await Promise.all([
@@ -133,7 +134,11 @@ Deno.serve(async (req) => {
 
         const weightedCards: any[] = []
         cards.forEach((card: any) => {
-          const weight = rarityWeights[card.rarity] ?? defaultWeights[card.rarity] ?? 1
+          let weight = rarityWeights[card.rarity] ?? defaultWeights[card.rarity] ?? 1
+          // Apply rarity multiplier for epic/legendary on lucky/ultra packs
+          if ((card.rarity === 'epic' || card.rarity === 'legendary') && rarityMultiplier > 1) {
+            weight = Math.round(weight * rarityMultiplier)
+          }
           for (let i = 0; i < weight; i++) {
             weightedCards.push(card)
           }
@@ -150,6 +155,7 @@ Deno.serve(async (req) => {
         }
         rewardDetails.cards = newCards
         rewardDetails.card_count = cardCount
+        rewardDetails.pack_type = rewardType
       }
     }
 
@@ -167,7 +173,7 @@ Deno.serve(async (req) => {
       reward: rewardDetails,
       message: rewardType.startsWith('boost')
         ? 'Boost activé pour 24h !'
-        : rewardType === 'pack'
+        : rewardType.startsWith('pack')
         ? `Vous avez reçu ${rewardDetails.card_count || 0} cartes !`
         : 'Récompense obtenue !'
     }), {
