@@ -13,7 +13,7 @@ import { useAllCards } from '@/hooks/useCards';
 import { RARITY_CONFIG, Rarity } from '@/types/card';
 import { cn } from '@/lib/utils';
 
-type RewardType = 'pack' | 'card' | 'boost_luck' | 'boost_pack';
+type RewardType = 'pack' | 'pack_lucky' | 'pack_ultra' | 'card' | 'boost_luck' | 'boost_pack';
 
 const LUCK_MULTIPLIERS = [1.5, 2, 2.5, 3, 3.5, 4];
 const PACK_BONUSES = [
@@ -62,7 +62,7 @@ export const RewardCodesManager = () => {
     mutationFn: async () => {
       let reward_config: Record<string, any> = {};
 
-      if (formData.reward_type === 'pack') {
+      if (formData.reward_type === 'pack' || formData.reward_type === 'pack_lucky' || formData.reward_type === 'pack_ultra') {
         reward_config = { card_count: formData.card_count };
       } else if (formData.reward_type === 'card') {
         reward_config = { card_id: formData.card_id };
@@ -126,7 +126,9 @@ export const RewardCodesManager = () => {
   });
 
   const getRewardLabel = (type: string, config: any) => {
-    if (type === 'pack') return `Pack ${config?.card_count || 5} cartes`;
+    if (type === 'pack') return `Pack Standard ${config?.card_count || 5} cartes`;
+    if (type === 'pack_lucky') return `Pack Chanceux ${config?.card_count || 5} cartes`;
+    if (type === 'pack_ultra') return `Pack Ultra Chanceux ${config?.card_count || 5} cartes`;
     if (type === 'card') return 'Carte spécifique';
     if (type === 'boost_luck') return `Luck ×${config?.multiplier || 2}`;
     if (type === 'boost_pack') {
@@ -234,7 +236,9 @@ export const RewardCodesManager = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pack">Pack de cartes</SelectItem>
+                  <SelectItem value="pack">Pack Standard</SelectItem>
+                  <SelectItem value="pack_lucky">Pack Chanceux (×2)</SelectItem>
+                  <SelectItem value="pack_ultra">Pack Ultra Chanceux (×5)</SelectItem>
                   <SelectItem value="card">Carte spécifique</SelectItem>
                   <SelectItem value="boost_luck">Boost de Luck</SelectItem>
                   <SelectItem value="boost_pack">Amélioration des packs</SelectItem>
@@ -243,7 +247,7 @@ export const RewardCodesManager = () => {
             </div>
 
             {/* Pack config */}
-            {formData.reward_type === 'pack' && (
+            {(formData.reward_type === 'pack' || formData.reward_type === 'pack_lucky' || formData.reward_type === 'pack_ultra') && (
               <div className="space-y-2">
                 <Label>Nombre de cartes</Label>
                 <Input

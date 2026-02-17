@@ -147,12 +147,39 @@ serve(async (req) => {
     if (cardsError) throw cardsError;
     if (!cards || cards.length === 0) throw new Error("No cards available");
 
-    // Get drop rates from database
+    // Get drop rates and active boosts from database
     const { data: dropRates, error: ratesError } = await supabaseClient
       .from('drop_rates')
       .select('*');
 
     if (ratesError) throw ratesError;
+
+    // Check for active luck boosts
+    let luckMultiplier = 1;
+    const now = new Date().toISOString();
+    const { data: activeRedemptions } = await supabaseClient
+      .from('code_redemptions')
+      .select('code_id, boost_expires_at')
+      .eq('user_id', user.id)
+      .gt('boost_expires_at', now);
+
+    if (activeRedemptions && activeRedemptions.length > 0) {
+      const codeIds = activeRedemptions.map((r: any) => r.code_id);
+      const { data: codes } = await supabaseClient
+        .from('reward_codes')
+        .select('id, reward_type, reward_config')
+        .in('id', codeIds);
+
+      (codes || []).forEach((code: any) => {
+        const config = code.reward_config as Record<string, any>;
+        if (code.reward_type === 'boost_luck' && config?.multiplier) {
+          luckMultiplier = Math.max(luckMultiplier, config.multiplier);
+        }
+      });
+    }
+
+    // Combine pack multiplier with luck boost
+    const effectiveMultiplier = multiplier * luckMultiplier;
 
     // Build rarity weights with multiplier
     const baseWeights: Record<string, number> = {};
@@ -172,7 +199,7 @@ serve(async (req) => {
     rarities.forEach(rarity => {
       const base = baseWeights[rarity] ?? defaultWeights[rarity];
       if (rarity === 'epic' || rarity === 'legendary') {
-        adjustedWeights[rarity] = Math.min(base * multiplier, 50); // Cap at 50%
+        adjustedWeights[rarity] = Math.min(base * effectiveMultiplier, 50);
       } else {
         adjustedWeights[rarity] = base;
       }
@@ -185,7 +212,7 @@ serve(async (req) => {
       normalizedWeights[rarity] = (adjustedWeights[rarity] / totalWeight) * 100;
     });
 
-    logStep("Calculated weights", { packType, multiplier, normalizedWeights });
+    logStep("Calculated weights", { packType, multiplier, luckMultiplier, effectiveMultiplier, normalizedWeights });
 
     // Generate weighted random cards
     const weightedCards: any[] = [];
