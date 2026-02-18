@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { MysteryCard } from '@/components/MysteryCard';
 import { Navigation } from '@/components/Navigation';
+import { WinstreakBadge } from '@/components/WinstreakBadge';
 import { Clock, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTodayCard, useHasCollectedToday, useCollectCard, useUserCards } from '@/hooks/useCards';
+import { useUserStreak, useUpdateStreak } from '@/hooks/useWinstreak';
 import { toast } from 'sonner';
 import flipzLogo from '@/assets/flipz-logo.png';
 
@@ -19,6 +21,8 @@ const Index = () => {
   const { data: hasCollected, isLoading: collectedLoading } = useHasCollectedToday(user?.id, todayCard?.id);
   const { data: userCards = [] } = useUserCards(user?.id);
   const collectCard = useCollectCard();
+  const { data: streakData } = useUserStreak(user?.id);
+  const updateStreak = useUpdateStreak();
 
   useEffect(() => {
     const updateTimer = () => {
@@ -50,6 +54,8 @@ const Index = () => {
     
     try {
       await collectCard.mutateAsync({ userId: user.id, cardId: todayCard.id });
+      // Update winstreak on card reveal
+      await updateStreak.mutateAsync(user.id);
       toast.success(t('home.cardAdded'));
     } catch (error: any) {
       // Ignore duplicate collection errors (already collected)
@@ -66,7 +72,13 @@ const Index = () => {
   return (
     <div className="min-h-screen pb-24">
       {/* Header */}
-      <header className="pt-12 pb-6 px-4 text-center">
+      <header className="pt-12 pb-6 px-4 text-center relative">
+        {/* Winstreak badge - top right */}
+        {streakData && streakData.current_streak > 0 && streakData.last_streak_date === new Date().toISOString().split('T')[0] && (
+          <div className="absolute top-12 right-4">
+            <WinstreakBadge streak={streakData.current_streak} />
+          </div>
+        )}
         <div className="mb-2">
           <img src={flipzLogo} alt="FLIPZ" className="h-28 sm:h-36 mx-auto" />
         </div>
