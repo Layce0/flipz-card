@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Shield, Plus, Trash2, Upload, Loader2, Gift, Save, Pencil } from 'lucide-react';
 import { RewardCodesManager } from '@/components/admin/RewardCodesManager';
+import { WinstreakRewardsManager } from '@/components/admin/WinstreakRewardsManager';
 import { Rarity, RARITY_CONFIG, GameCard } from '@/types/card';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
@@ -481,7 +482,10 @@ const Admin = () => {
         {/* Reward Codes Manager */}
         <RewardCodesManager />
 
-        {/* Card list */}
+        {/* Winstreak Rewards Manager */}
+        <WinstreakRewardsManager />
+
+
         <section>
           <h2 className="font-display text-lg mb-4 text-foreground">
             Cartes existantes ({cards.length})
