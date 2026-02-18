@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.open-free-pack]
 verify_jwt = false
+
+[functions.claim-winstreak-reward]
+verify_jwt = false
