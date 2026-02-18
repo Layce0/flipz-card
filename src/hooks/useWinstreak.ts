@@ -125,13 +125,17 @@ export const useClaimWinstreakReward = () => {
 
   return useMutation({
     mutationFn: async ({ userId, rewardId, dayNumber }: { userId: string; rewardId: string; dayNumber: number }) => {
-      const { error } = await supabase
-        .from('winstreak_claims')
-        .insert({ user_id: userId, reward_id: rewardId, day_number: dayNumber });
+      const { data, error } = await supabase.functions.invoke('claim-winstreak-reward', {
+        body: { rewardId, dayNumber }
+      });
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['winstreak-claims'] });
+      queryClient.invalidateQueries({ queryKey: ['user-cards'] });
+      queryClient.invalidateQueries({ queryKey: ['active-boosts'] });
     },
   });
 };
