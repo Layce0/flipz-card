@@ -2,3 +2,6 @@ project_id = "twhykngemnlljngxnxaf"
 
 [functions.redeem-code]
 verify_jwt = false
+
+[functions.open-free-pack]
+verify_jwt = false

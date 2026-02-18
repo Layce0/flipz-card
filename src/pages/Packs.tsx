@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { MysteryCard } from '@/components/MysteryCard';
 import { Package, Play, Loader2, X, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRandomCards, useCollectCard } from '@/hooks/useCards';
+import { useCollectCard } from '@/hooks/useCards';
 import { useAdMob } from '@/hooks/useAdMob';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { GameCard } from '@/types/card';
 import { cn } from '@/lib/utils';
@@ -22,9 +23,6 @@ const Packs = () => {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [isRevealing, setIsRevealing] = useState(false);
   const [cardRevealed, setCardRevealed] = useState(false);
-  
-  const getRandomCards = useRandomCards();
-  const collectCard = useCollectCard();
 
   const handleWatchAd = async () => {
     if (!user) {
@@ -34,7 +32,6 @@ const Packs = () => {
 
     setIsWatchingAd(true);
     
-    // Show a real ad (native) or simulate (web)
     const adWatched = await showInterstitial();
     
     setIsWatchingAd(false);
@@ -44,9 +41,13 @@ const Packs = () => {
       return;
     }
     
-    // Get 3 random cards
+    // Open pack via server-side RNG
     try {
-      const cards = await getRandomCards.mutateAsync({ count: 3, userId: user.id });
+      const { data, error } = await supabase.functions.invoke('open-free-pack');
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      
+      const cards = (data?.cards || []) as GameCard[];
       setRevealedCards(cards);
       setCurrentCardIndex(0);
       setIsRevealing(true);
@@ -58,17 +59,9 @@ const Packs = () => {
   const handleRevealCard = async () => {
     if (!user || currentCardIndex >= revealedCards.length) return;
     
-    // If card not yet revealed, reveal it and collect it
     if (!cardRevealed) {
       setCardRevealed(true);
-      
-      // Collect the card immediately when revealed
-      const card = revealedCards[currentCardIndex];
-      try {
-        await collectCard.mutateAsync({ userId: user.id, cardId: card.id });
-      } catch (error: any) {
-        // Silently ignore duplicate collection errors
-      }
+      // Cards already collected server-side, no need to collect again
       return;
     }
   };
@@ -78,7 +71,6 @@ const Packs = () => {
       setCurrentCardIndex(prev => prev + 1);
       setCardRevealed(false);
     } else {
-      // All cards revealed
       toast.success(t('packs.cardsAdded', { count: revealedCards.length }));
       handleClose();
     }

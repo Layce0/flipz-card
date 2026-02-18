@@ -143,11 +143,93 @@ Deno.serve(async (req) => {
         rewardDetails.card_id = cardId
       }
     } else if (rewardType === 'pack' || rewardType === 'pack_lucky' || rewardType === 'pack_ultra') {
-      // For all pack types, return pack info so the client opens it via the normal pack reveal flow
+      // SERVER-SIDE card generation for pack rewards
       const cardCount = config.card_count || 5
+
+      // Fetch all cards
+      const { data: allCards, error: cardsErr } = await supabaseAdmin.from('cards').select('*')
+      if (cardsErr || !allCards || allCards.length === 0) {
+        return new Response(JSON.stringify({ error: 'Erreur serveur' }), {
+          status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
+
+      // Determine luck multiplier from active boosts
+      let luckMult = 1
+      const { data: boosts } = await supabaseAdmin
+        .from('code_redemptions')
+        .select('code_id, boost_expires_at')
+        .eq('user_id', user.id)
+        .gt('boost_expires_at', new Date().toISOString())
+      if (boosts && boosts.length > 0) {
+        const bCodeIds = boosts.map((b: any) => b.code_id)
+        const { data: bCodes } = await supabaseAdmin
+          .from('reward_codes')
+          .select('id, reward_type, reward_config')
+          .in('id', bCodeIds)
+        ;(bCodes || []).forEach((c: any) => {
+          const cfg = c.reward_config as Record<string, any>
+          if (c.reward_type === 'boost_luck' && cfg?.multiplier) {
+            luckMult = Math.max(luckMult, cfg.multiplier)
+          }
+        })
+      }
+
+      // Pack type probability tables
+      const LUCK_TABLES: Record<number, Record<string, number>> = {
+        1: { common: 60, rare: 25, epic: 12, legendary: 3 },
+        1.5: { common: 30, rare: 47.5, epic: 16.5, legendary: 6 },
+        2: { common: 30, rare: 40, epic: 22, legendary: 8 },
+        2.5: { common: 27, rare: 35.5, epic: 27.5, legendary: 10 },
+        3: { common: 25, rare: 30, epic: 33, legendary: 12 },
+        3.5: { common: 20, rare: 27.5, epic: 38.5, legendary: 14 },
+        4: { common: 10, rare: 30, epic: 44, legendary: 16 },
+      }
+      const LUCKY_TABLES: Record<number, Record<string, number>> = {
+        1: { common: 30, rare: 40, epic: 22, legendary: 8 },
+        1.5: { common: 20, rare: 35, epic: 33, legendary: 12 },
+        2: { common: 15, rare: 25, epic: 44, legendary: 16 },
+        2.5: { common: 10, rare: 15, epic: 55, legendary: 20 },
+        3: { common: 2.5, rare: 7.5, epic: 66, legendary: 24 },
+        3.5: { common: 2.5, rare: 2.5, epic: 67, legendary: 28 },
+        4: { common: 0.5, rare: 0.5, epic: 67, legendary: 32 },
+      }
+      const ULTRA_TABLES: Record<number, Record<string, number>> = {
+        1: { common: 10, rare: 15, epic: 55, legendary: 20 },
+        1.5: { common: 2.5, rare: 5, epic: 62.5, legendary: 30 },
+        2: { common: 1, rare: 1, epic: 58, legendary: 40 },
+        2.5: { common: 0.5, rare: 0.5, epic: 49, legendary: 50 },
+        3: { common: 0.25, rare: 0.25, epic: 39.5, legendary: 60 },
+        3.5: { common: 0.1, rare: 0.1, epic: 29.8, legendary: 70 },
+        4: { common: 0.05, rare: 0.05, epic: 19.9, legendary: 80 },
+      }
+
+      const effectiveLuck = luckMult > 1 ? luckMult : 1
+      let tableSet = LUCK_TABLES
+      if (rewardType === 'pack_lucky') tableSet = LUCKY_TABLES
+      else if (rewardType === 'pack_ultra') tableSet = ULTRA_TABLES
+      const weights: Record<string, number> = tableSet[effectiveLuck] ?? tableSet[1]
+
+      // Build weighted pool and select cards
+      const pool: any[] = []
+      allCards.forEach((card: any) => {
+        const w = Math.round(weights[card.rarity] ?? 1)
+        for (let i = 0; i < w; i++) pool.push(card)
+      })
+
+      const selectedCards: any[] = []
+      for (let i = 0; i < cardCount; i++) {
+        selectedCards.push(pool[Math.floor(Math.random() * pool.length)])
+      }
+
+      // Insert cards server-side
+      await supabaseAdmin
+        .from('user_cards')
+        .insert(selectedCards.map((c: any) => ({ user_id: user.id, card_id: c.id })))
+
+      rewardDetails.cards = selectedCards
       rewardDetails.card_count = cardCount
       rewardDetails.pack_type = rewardType
-      // Cards will be generated client-side through the standard RNG pack opening
     }
 
     // Record redemption
