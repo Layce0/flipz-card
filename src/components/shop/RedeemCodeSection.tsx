@@ -6,7 +6,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRandomCards, useCollectCard } from '@/hooks/useCards';
 import { GameCard } from '@/types/card';
 import { PackRevealFlow } from '@/components/shop/PackRevealFlow';
 
@@ -19,8 +18,6 @@ export const RedeemCodeSection = () => {
   // Pack reveal state
   const [revealedCards, setRevealedCards] = useState<GameCard[]>([]);
   const [isRevealing, setIsRevealing] = useState(false);
-  const getRandomCards = useRandomCards();
-  const collectCard = useCollectCard();
 
   const handleRedeem = async () => {
     if (!code.trim() || !user) return;
@@ -41,24 +38,8 @@ export const RedeemCodeSection = () => {
       const reward = data.reward;
 
       if (reward?.type === 'pack' || reward?.type === 'pack_lucky' || reward?.type === 'pack_ultra') {
-        // Open pack through normal RNG flow
-        const packType = reward.type;
-        const cardCount = reward.card_count || 5;
-        const rarityMultiplier = packType === 'pack_ultra' ? 5 : packType === 'pack_lucky' ? 2 : 1;
-
-        const cards = await getRandomCards.mutateAsync({
-          count: cardCount,
-          userId: user.id,
-          rarityMultiplier,
-        });
-
-        // Collect all cards
-        for (const card of cards) {
-          try {
-            await collectCard.mutateAsync({ userId: user.id, cardId: card.id });
-          } catch {}
-        }
-
+        // Cards are now generated server-side and returned directly
+        const cards = (reward.cards || []) as GameCard[];
         setRevealedCards(cards);
         setIsRevealing(true);
         toast.success(data.message || 'Pack reçu !');
