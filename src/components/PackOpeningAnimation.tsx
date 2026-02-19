@@ -9,38 +9,38 @@ interface PackOpeningAnimationProps {
 
 export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimationProps) => {
   const [tapCount, setTapCount] = useState(0);
-  const [isShaking, setIsShaking] = useState(false);
+  const [shakeKey, setShakeKey] = useState(0);
   const [isExploding, setIsExploding] = useState(false);
+  const [locked, setLocked] = useState(false);
 
   const MAX_TAPS = 5;
 
   const handleTap = useCallback(() => {
-    if (isExploding || isShaking) return;
+    if (isExploding || locked) return;
 
     const newCount = tapCount + 1;
     setTapCount(newCount);
-    setIsShaking(true);
+    setShakeKey(prev => prev + 1);
+    setLocked(true);
 
     if (newCount >= MAX_TAPS) {
       setTimeout(() => {
-        setIsShaking(false);
         setIsExploding(true);
         setTimeout(() => {
           setTapCount(0);
           setIsExploding(false);
+          setLocked(false);
           onComplete();
         }, 600);
-      }, 300);
+      }, 400);
     } else {
-      setTimeout(() => setIsShaking(false), 300);
+      setTimeout(() => setLocked(false), 400);
     }
-  }, [tapCount, isShaking, isExploding, onComplete]);
+  }, [tapCount, locked, isExploding, onComplete]);
 
   if (!isOpen) return null;
 
-  const shakeClass = isShaking
-    ? `animate-pack-shake-${Math.min(tapCount, MAX_TAPS)}`
-    : '';
+  const shakeLevel = Math.min(tapCount, MAX_TAPS);
 
   return (
     <div
@@ -89,11 +89,12 @@ export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimatio
       {/* Pack sachet */}
       <div className="relative z-10">
         <img
+          key={shakeKey}
           src={packSachetImg}
           alt="Pack Flipz"
           className={cn(
             "w-72 h-auto select-none pointer-events-none drop-shadow-2xl",
-            shakeClass,
+            tapCount > 0 && !isExploding && `animate-pack-shake-${shakeLevel}`,
             isExploding && "animate-pack-explode-fast"
           )}
           draggable={false}
