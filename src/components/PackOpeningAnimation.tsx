@@ -19,7 +19,6 @@ const SHAKE_CONFIGS = [
 export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimationProps) => {
   const [tapCount, setTapCount] = useState(0);
   const [isExploding, setIsExploding] = useState(false);
-  const [locked, setLocked] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
 
   const MAX_TAPS = 5;
@@ -48,19 +47,18 @@ export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimatio
   }, []);
 
   const handleTap = useCallback(() => {
-    if (isExploding || locked) return;
+    if (isExploding) return;
 
     const newCount = tapCount + 1;
     setTapCount(newCount);
-    setLocked(true);
+    triggerShake(Math.min(newCount, MAX_TAPS));
 
     if (newCount >= MAX_TAPS) {
-      triggerShake(newCount);
       setTimeout(() => {
         setIsExploding(true);
-        // Animate the explode
         const el = imgRef.current;
         if (el) {
+          el.getAnimations().forEach(a => a.cancel());
           el.animate([
             { transform: 'scale(1)', opacity: 1 },
             { transform: 'scale(1.5)', opacity: 0.7 },
@@ -70,15 +68,11 @@ export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimatio
         setTimeout(() => {
           setTapCount(0);
           setIsExploding(false);
-          setLocked(false);
           onComplete();
         }, 550);
-      }, 500);
-    } else {
-      triggerShake(newCount);
-      setTimeout(() => setLocked(false), 500);
+      }, 300);
     }
-  }, [tapCount, locked, isExploding, onComplete, triggerShake]);
+  }, [tapCount, isExploding, onComplete, triggerShake]);
 
   if (!isOpen) return null;
 
