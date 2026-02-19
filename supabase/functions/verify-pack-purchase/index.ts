@@ -213,12 +213,12 @@ serve(async (req) => {
     const effectiveLuck = luckMultiplier > 1 ? luckMultiplier : 1;
     let tableSet = LUCK_TABLES;
     if (packType === 'lucky') tableSet = LUCKY_PACK_TABLES;
-    else if (packType === 'ultra_lucky') tableSet = ULTRA_LUCKY_PACK_TABLES;
+    else if (packType === 'ultra' || packType === 'ultra_lucky') tableSet = ULTRA_LUCKY_PACK_TABLES;
 
     const normalizedWeights: Record<string, number> = tableSet[effectiveLuck] 
       ?? tableSet[1];
 
-    logStep("Calculated weights", { packType, multiplier, luckMultiplier, effectiveMultiplier, normalizedWeights });
+    logStep("Calculated weights", { packType, multiplier, luckMultiplier, effectiveLuck, normalizedWeights });
 
     // Generate weighted random cards
     const weightedCards: any[] = [];
