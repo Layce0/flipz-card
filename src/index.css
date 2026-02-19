@@ -43,7 +43,7 @@
     --rarity-legendary: 45 95% 55%;
 
     /* Custom gradients */
-    --gradient-mystical: linear-gradient(135deg, hsl(260 50% 15%) 0%, hsl(240 30% 8%) 50%, hsl(280 40% 12%) 100%);
+    --gradient-mystical: linear-gradient(180deg, hsl(0 0% 2%) 0%, hsl(270 40% 8%) 60%, hsl(270 60% 15%) 85%, hsl(275 70% 25%) 100%);
     --gradient-gold: linear-gradient(135deg, hsl(45 100% 60%) 0%, hsl(35 90% 50%) 50%, hsl(45 100% 65%) 100%);
     --gradient-card: linear-gradient(180deg, hsl(240 15% 15%) 0%, hsl(240 15% 10%) 100%);
     
@@ -72,6 +72,50 @@
     @apply bg-background text-foreground font-body antialiased;
     background: var(--gradient-mystical);
     min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40%;
+    background: radial-gradient(ellipse 120% 60% at 50% 100%, hsl(275 80% 50% / 0.4) 0%, hsl(270 70% 40% / 0.2) 30%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 25%;
+    background: 
+      radial-gradient(1px 1px at 10% 90%, hsl(275 90% 75% / 0.8), transparent),
+      radial-gradient(1px 1px at 20% 85%, hsl(270 80% 70% / 0.6), transparent),
+      radial-gradient(2px 2px at 30% 95%, hsl(280 90% 80% / 0.9), transparent),
+      radial-gradient(1px 1px at 40% 88%, hsl(275 85% 65% / 0.5), transparent),
+      radial-gradient(1.5px 1.5px at 50% 92%, hsl(270 90% 75% / 0.7), transparent),
+      radial-gradient(1px 1px at 60% 86%, hsl(280 80% 70% / 0.6), transparent),
+      radial-gradient(2px 2px at 70% 94%, hsl(275 95% 80% / 0.8), transparent),
+      radial-gradient(1px 1px at 80% 89%, hsl(270 85% 65% / 0.5), transparent),
+      radial-gradient(1.5px 1.5px at 90% 91%, hsl(280 90% 75% / 0.7), transparent),
+      radial-gradient(1px 1px at 15% 93%, hsl(275 80% 70% / 0.6), transparent),
+      radial-gradient(2px 2px at 25% 87%, hsl(270 90% 80% / 0.8), transparent),
+      radial-gradient(1px 1px at 35% 96%, hsl(280 85% 65% / 0.5), transparent),
+      radial-gradient(1.5px 1.5px at 45% 84%, hsl(275 90% 75% / 0.7), transparent),
+      radial-gradient(1px 1px at 55% 97%, hsl(270 80% 70% / 0.6), transparent),
+      radial-gradient(2px 2px at 65% 83%, hsl(280 95% 80% / 0.9), transparent),
+      radial-gradient(1px 1px at 75% 90%, hsl(275 85% 65% / 0.5), transparent),
+      radial-gradient(1.5px 1.5px at 85% 95%, hsl(270 90% 75% / 0.7), transparent),
+      radial-gradient(1px 1px at 95% 88%, hsl(280 80% 70% / 0.6), transparent);
+    pointer-events: none;
+    z-index: 0;
   }
 
   h1, h2, h3, h4, h5, h6 {
