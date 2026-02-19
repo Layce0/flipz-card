@@ -59,17 +59,34 @@ export const useUserCards = (userId: string | undefined) => {
     queryFn: async () => {
       if (!userId) return [];
       
-      const { data, error } = await supabase
-        .from('user_cards')
-        .select(`
-          id,
-          obtained_at,
-          card_id,
-          cards (*)
-        `)
-        .eq('user_id', userId);
+      // Fetch all user cards in batches to support up to 10000 cards
+      let allData: any[] = [];
+      let from = 0;
+      const batchSize = 1000;
       
-      if (error) throw error;
+      while (true) {
+        const { data: batch, error: batchError } = await supabase
+          .from('user_cards')
+          .select(`
+            id,
+            obtained_at,
+            card_id,
+            cards (*)
+          `)
+          .eq('user_id', userId)
+          .range(from, from + batchSize - 1);
+        
+        if (batchError) throw batchError;
+        if (!batch || batch.length === 0) break;
+        
+        allData = allData.concat(batch);
+        if (batch.length < batchSize) break;
+        from += batchSize;
+      }
+      
+      const data = allData;
+      
+      
       
       // Group cards by card_id and count duplicates
       const cardCountMap = new Map<string, { card: GameCard; count: number; obtained_at: string }>();
