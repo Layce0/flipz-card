@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { MysteryCard } from '@/components/MysteryCard';
+import { PackOpeningAnimation } from '@/components/PackOpeningAnimation';
 import { Package, Play, Loader2, X, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCollectCard } from '@/hooks/useCards';
@@ -23,6 +24,7 @@ const Packs = () => {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [isRevealing, setIsRevealing] = useState(false);
   const [cardRevealed, setCardRevealed] = useState(false);
+  const [showPackAnimation, setShowPackAnimation] = useState(false);
 
   const handleWatchAd = async () => {
     if (!user) {
@@ -50,7 +52,7 @@ const Packs = () => {
       const cards = (data?.cards || []) as GameCard[];
       setRevealedCards(cards);
       setCurrentCardIndex(0);
-      setIsRevealing(true);
+      setShowPackAnimation(true);
     } catch (error) {
       toast.error(t('packs.openError'));
     }
@@ -81,6 +83,12 @@ const Packs = () => {
     setCurrentCardIndex(0);
     setIsRevealing(false);
     setCardRevealed(false);
+    setShowPackAnimation(false);
+  };
+
+  const handlePackAnimationComplete = () => {
+    setShowPackAnimation(false);
+    setIsRevealing(true);
   };
 
   if (authLoading) {
@@ -107,6 +115,12 @@ const Packs = () => {
           </div>
         </div>
       </header>
+
+      {/* Pack Opening Animation */}
+      <PackOpeningAnimation
+        isOpen={showPackAnimation}
+        onComplete={handlePackAnimationComplete}
+      />
 
       <main className="px-4 flex flex-col items-center">
         {!isRevealing ? (
