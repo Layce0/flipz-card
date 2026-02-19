@@ -9,7 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTodayCard, useHasCollectedToday, useCollectCard, useUserCards } from '@/hooks/useCards';
 import { useUserStreak, useUpdateStreak } from '@/hooks/useWinstreak';
 import { toast } from 'sonner';
-import flipzLogo from '@/assets/flipz-logo.png';
+import flipzLogo from '@/assets/flipz-logo-new.jpeg';
 
 const Index = () => {
   const [timeLeft, setTimeLeft] = useState('');
