@@ -270,7 +270,7 @@ export const useRandomCards = () => {
       const effectiveLuck = luckMultiplier > 1 ? luckMultiplier : 1;
       let tableSet = LUCK_TABLES;
       if (packType === 'lucky') tableSet = LUCKY_PACK_TABLES;
-      else if (packType === 'ultra_lucky') tableSet = ULTRA_LUCKY_PACK_TABLES;
+      else if (packType === 'ultra_lucky' || packType === 'ultra') tableSet = ULTRA_LUCKY_PACK_TABLES;
 
       const adjustedWeights: Record<string, number> = tableSet[effectiveLuck] 
         ?? tableSet[1];

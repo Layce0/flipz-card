@@ -123,7 +123,7 @@ const Shop = () => {
       });
 
       // Get random reward cards
-      const newCards = await getRandomCards.mutateAsync({ count: config.reward, userId: user.id });
+      const newCards = await getRandomCards.mutateAsync({ count: config.reward, userId: user.id, packType: 'standard' });
 
       // Collect all new cards
       for (const newCard of newCards) {
