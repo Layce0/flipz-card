@@ -311,37 +311,72 @@
   }
 
   /* Pack opening animations */
-  @keyframes pack-shake {
-    0%, 100% { transform: translateX(0) rotate(0deg); }
-    15% { transform: translateX(-8px) rotate(-3deg); }
-    30% { transform: translateX(8px) rotate(3deg); }
-    45% { transform: translateX(-6px) rotate(-2deg); }
-    60% { transform: translateX(6px) rotate(2deg); }
-    75% { transform: translateX(-3px) rotate(-1deg); }
-    90% { transform: translateX(3px) rotate(1deg); }
+  @keyframes pack-shake-intense {
+    0%, 100% { transform: translateX(0) rotate(0deg) scale(1); }
+    10% { transform: translateX(-12px) rotate(-4deg) scale(1.02); }
+    20% { transform: translateX(12px) rotate(4deg) scale(1.02); }
+    30% { transform: translateX(-10px) rotate(-3deg) scale(1.03); }
+    40% { transform: translateX(10px) rotate(3deg) scale(1.03); }
+    50% { transform: translateX(-8px) rotate(-2deg) scale(1.02); }
+    60% { transform: translateX(8px) rotate(2deg) scale(1.02); }
+    70% { transform: translateX(-5px) rotate(-1deg) scale(1.01); }
+    80% { transform: translateX(5px) rotate(1deg) scale(1.01); }
+    90% { transform: translateX(-2px) rotate(0deg) scale(1); }
   }
 
-  .animate-pack-shake {
-    animation: pack-shake 0.4s ease-in-out;
+  .animate-pack-shake-intense {
+    animation: pack-shake-intense 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
   }
 
   @keyframes pack-explode {
-    0% { transform: scale(1); opacity: 1; filter: brightness(1); }
-    30% { transform: scale(1.15); opacity: 1; filter: brightness(2); }
-    100% { transform: scale(2); opacity: 0; filter: brightness(3); }
+    0% { transform: scale(1) rotate(0deg); opacity: 1; }
+    20% { transform: scale(1.3) rotate(2deg); opacity: 1; }
+    50% { transform: scale(1.6) rotate(-1deg); opacity: 0.8; }
+    100% { transform: scale(2.5) rotate(5deg); opacity: 0; }
   }
 
   .animate-pack-explode {
-    animation: pack-explode 0.6s ease-out forwards;
+    animation: pack-explode 0.7s ease-out forwards;
   }
 
   @keyframes pack-float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-6px); }
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    25% { transform: translateY(-6px) rotate(0.5deg); }
+    75% { transform: translateY(-3px) rotate(-0.5deg); }
   }
 
   .animate-pack-float {
-    animation: pack-float 2.5s ease-in-out infinite;
+    animation: pack-float 3s ease-in-out infinite;
+  }
+
+  @keyframes pack-glow-pulse {
+    0%, 100% { transform: scale(1); opacity: 0.7; }
+    50% { transform: scale(1.15); opacity: 1; }
+  }
+
+  @keyframes pack-ray-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes pack-orbit {
+    from { transform: rotate(0deg) translateX(var(--orbit-radius, 100px)) rotate(0deg); }
+    to { transform: rotate(360deg) translateX(var(--orbit-radius, 100px)) rotate(-360deg); }
+  }
+
+  @keyframes pack-ring-pulse {
+    0%, 100% { transform: scale(1); opacity: 0.6; }
+    50% { transform: scale(1.05); opacity: 1; }
+  }
+
+  @keyframes pack-flash {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  @keyframes pack-text-pulse {
+    0%, 100% { opacity: 0.5; letter-spacing: 0.15em; }
+    50% { opacity: 0.9; letter-spacing: 0.25em; }
   }
 
   /* Particle burst animation */
