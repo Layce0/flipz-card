@@ -3,6 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 const ALLOWED_ORIGINS = [
   'https://daily-card-quest.lovable.app',
   'https://id-preview--292d3511-a5af-422b-bf8b-81ad9534130a.lovable.app',
+  'https://292d3511-a5af-422b-bf8b-81ad9534130a.lovableproject.com',
 ];
 
 const getCorsHeaders = (origin: string | null) => {
