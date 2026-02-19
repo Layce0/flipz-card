@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AdminRoute } from "@/components/AdminRoute";
+import { ParticlesBackground } from "@/components/ParticlesBackground";
 import { ActiveBoostsOverlay } from "@/components/ActiveBoostsOverlay";
 import Index from "./pages/Index";
 import Collection from "./pages/Collection";
@@ -24,6 +25,7 @@ const App = () => (
       <Sonner position="top-center" theme="dark" />
       <BrowserRouter>
         <AuthProvider>
+          <ParticlesBackground />
           <ActiveBoostsOverlay />
           <Routes>
             <Route path="/" element={<Index />} />
