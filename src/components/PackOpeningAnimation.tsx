@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import packSachetImg from '@/assets/pack-sachet.png';
 
@@ -7,45 +7,85 @@ interface PackOpeningAnimationProps {
   onComplete: () => void;
 }
 
+const SHAKE_CONFIGS = [
+  null, // index 0 unused
+  { displacement: 6, rotation: 2, duration: 400 },
+  { displacement: 12, rotation: 4, duration: 450 },
+  { displacement: 18, rotation: 6, duration: 500 },
+  { displacement: 24, rotation: 8, duration: 550 },
+  { displacement: 30, rotation: 10, duration: 600 },
+];
+
 export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimationProps) => {
   const [tapCount, setTapCount] = useState(0);
-  const [shakeKey, setShakeKey] = useState(0);
   const [isExploding, setIsExploding] = useState(false);
   const [locked, setLocked] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
 
   const MAX_TAPS = 5;
+
+  const triggerShake = useCallback((level: number) => {
+    const el = imgRef.current;
+    if (!el) return;
+
+    const config = SHAKE_CONFIGS[level];
+    if (!config) return;
+
+    const { displacement: d, rotation: r, duration } = config;
+    const steps = [
+      { transform: 'translateX(0) rotate(0deg)', offset: 0 },
+      { transform: `translateX(-${d}px) rotate(-${r}deg)`, offset: 0.1 },
+      { transform: `translateX(${d}px) rotate(${r}deg)`, offset: 0.2 },
+      { transform: `translateX(-${d * 0.85}px) rotate(-${r * 0.8}deg)`, offset: 0.3 },
+      { transform: `translateX(${d * 0.85}px) rotate(${r * 0.8}deg)`, offset: 0.4 },
+      { transform: `translateX(-${d * 0.6}px) rotate(-${r * 0.5}deg)`, offset: 0.55 },
+      { transform: `translateX(${d * 0.6}px) rotate(${r * 0.5}deg)`, offset: 0.7 },
+      { transform: `translateX(-${d * 0.3}px) rotate(-${r * 0.2}deg)`, offset: 0.85 },
+      { transform: 'translateX(0) rotate(0deg)', offset: 1 },
+    ];
+
+    el.animate(steps, { duration, easing: 'ease-in-out' });
+  }, []);
 
   const handleTap = useCallback(() => {
     if (isExploding || locked) return;
 
     const newCount = tapCount + 1;
     setTapCount(newCount);
-    setShakeKey(prev => prev + 1);
     setLocked(true);
 
     if (newCount >= MAX_TAPS) {
+      triggerShake(newCount);
       setTimeout(() => {
         setIsExploding(true);
+        // Animate the explode
+        const el = imgRef.current;
+        if (el) {
+          el.animate([
+            { transform: 'scale(1)', opacity: 1 },
+            { transform: 'scale(1.5)', opacity: 0.7 },
+            { transform: 'scale(2.5)', opacity: 0 },
+          ], { duration: 450, easing: 'ease-out', fill: 'forwards' });
+        }
         setTimeout(() => {
           setTapCount(0);
           setIsExploding(false);
           setLocked(false);
           onComplete();
-        }, 600);
-      }, 400);
+        }, 550);
+      }, 500);
     } else {
-      setTimeout(() => setLocked(false), 400);
+      triggerShake(newCount);
+      setTimeout(() => setLocked(false), 500);
     }
-  }, [tapCount, locked, isExploding, onComplete]);
+  }, [tapCount, locked, isExploding, onComplete, triggerShake]);
 
   if (!isOpen) return null;
-
-  const shakeLevel = Math.min(tapCount, MAX_TAPS);
 
   return (
     <div
       className="fixed inset-0 z-[70] flex flex-col items-center justify-center bg-background/95"
-      style={{ touchAction: 'none' }}
+      style={{ touchAction: 'none', cursor: 'pointer' }}
       onClick={handleTap}
     >
       {/* Explosion particles */}
@@ -87,23 +127,19 @@ export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimatio
       )}
 
       {/* Pack sachet */}
-      <div className="relative z-10">
+      <div className="relative z-10 pointer-events-none">
         <img
-          key={shakeKey}
+          ref={imgRef}
           src={packSachetImg}
           alt="Pack Flipz"
-          className={cn(
-            "w-72 h-auto select-none pointer-events-none drop-shadow-2xl",
-            tapCount > 0 && !isExploding && `animate-pack-shake-${shakeLevel}`,
-            isExploding && "animate-pack-explode-fast"
-          )}
+          className="w-72 h-auto select-none drop-shadow-2xl"
           draggable={false}
         />
       </div>
 
       {/* Tap instruction */}
       {!isExploding && (
-        <p className="text-muted-foreground/60 text-sm mt-8 z-10 tracking-widest uppercase">
+        <p className="text-muted-foreground/60 text-sm mt-8 z-10 tracking-widest uppercase pointer-events-none">
           Tapotez pour ouvrir
         </p>
       )}
