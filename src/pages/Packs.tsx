@@ -101,7 +101,7 @@ const Packs = () => {
   }
 
   return (
-    <div className="min-h-screen pb-24 flex flex-col relative">
+    <div className="min-h-screen flex flex-col relative">
       {/* Pack Opening Animation */}
       <PackOpeningAnimation
         isOpen={showPackAnimation}
