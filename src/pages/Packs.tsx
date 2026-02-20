@@ -119,7 +119,7 @@ const Packs = () => {
           />
 
           {/* Button overlay at bottom */}
-          <div className="absolute bottom-8 left-0 right-0 flex flex-col items-center z-10">
+          <div className="absolute bottom-24 left-0 right-0 flex flex-col items-center z-10">
           <Button 
             variant="gold" 
             size="xl" 
