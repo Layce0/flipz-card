@@ -101,7 +101,7 @@ const Packs = () => {
   }
 
   return (
-    <div className="min-h-screen pb-24 flex flex-col">
+    <div className="min-h-screen pb-24 flex flex-col relative">
       {/* Pack Opening Animation */}
       <PackOpeningAnimation
         isOpen={showPackAnimation}
@@ -109,16 +109,17 @@ const Packs = () => {
       />
 
       {!isRevealing ? (
-        <div className="flex-1 flex flex-col items-center justify-center px-4">
-          {/* Full page pack image */}
+        <div className="flex-1 flex flex-col items-center justify-center relative">
+          {/* Full bleed pack image */}
           <img
             src={packFlipzImg}
             alt="Pack Flipz"
-            className="w-72 h-auto mb-8 drop-shadow-[0_0_40px_hsl(270_70%_50%_/_0.5)]"
+            className="absolute inset-0 w-full h-full object-cover"
             draggable={false}
           />
 
-          {/* Watch ad button */}
+          {/* Button overlay at bottom */}
+          <div className="absolute bottom-8 left-0 right-0 flex flex-col items-center z-10">
           <Button 
             variant="gold" 
             size="xl" 
@@ -147,6 +148,7 @@ const Packs = () => {
               <p className="text-sm text-muted-foreground">{t('packs.pleaseWait')}</p>
             </div>
           )}
+          </div>
         </div>
       ) : (
           <div className="fixed inset-0 z-[60] bg-background flex flex-col items-center justify-center p-4"
