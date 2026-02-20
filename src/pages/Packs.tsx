@@ -5,7 +5,7 @@ import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { MysteryCard } from '@/components/MysteryCard';
 import { PackOpeningAnimation } from '@/components/PackOpeningAnimation';
-import { Package, Play, Loader2, X, ChevronRight } from 'lucide-react';
+import { Play, Loader2, X, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCollectCard } from '@/hooks/useCards';
 import { useAdMob } from '@/hooks/useAdMob';
@@ -13,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { GameCard } from '@/types/card';
 import { cn } from '@/lib/utils';
+import packFlipzImg from '@/assets/pack-flipz.jpeg';
 
 const Packs = () => {
   const { user, isLoading: authLoading } = useAuth();
@@ -100,75 +101,54 @@ const Packs = () => {
   }
 
   return (
-    <div className="min-h-screen pb-24">
-      {/* Header */}
-      <header className="pt-12 pb-6 px-4">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
-            <Package className="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <h1 className="font-display text-xl text-foreground">{t('packs.title')}</h1>
-            <p className="text-sm text-muted-foreground">
-              {t('packs.subtitle')}
-            </p>
-          </div>
-        </div>
-      </header>
-
+    <div className="min-h-screen pb-24 flex flex-col">
       {/* Pack Opening Animation */}
       <PackOpeningAnimation
         isOpen={showPackAnimation}
         onComplete={handlePackAnimationComplete}
       />
 
-      <main className="px-4 flex flex-col items-center">
-        {!isRevealing ? (
-          <>
-            {/* Pack display */}
-            <div className="relative mb-8">
-              <div className="absolute -inset-8 bg-gradient-radial from-primary/20 via-transparent to-transparent blur-2xl" />
-              <div className="relative w-64 h-80 rounded-2xl bg-gradient-to-br from-primary/30 via-card to-accent border-2 border-primary/40 card-shadow overflow-hidden flex flex-col items-center justify-center p-6">
-                <div className="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center mb-4 pulse-glow">
-                  <Package className="w-12 h-12 text-primary" />
-                </div>
-                <p className="font-display text-xl text-center text-primary mb-2">{t('packs.mystery')}</p>
-                <p className="text-sm text-muted-foreground text-center">3 {t('packs.randomCards')}</p>
-                <div className="shimmer absolute inset-0 pointer-events-none" />
-              </div>
-            </div>
+      {!isRevealing ? (
+        <div className="flex-1 flex flex-col items-center justify-center px-4">
+          {/* Full page pack image */}
+          <img
+            src={packFlipzImg}
+            alt="Pack Flipz"
+            className="w-72 h-auto mb-8 drop-shadow-[0_0_40px_hsl(270_70%_50%_/_0.5)]"
+            draggable={false}
+          />
 
-            {/* Watch ad button */}
-            <Button 
-              variant="gold" 
-              size="xl" 
-              onClick={handleWatchAd}
-              disabled={isWatchingAd}
-              className="gap-2"
-            >
-              {isWatchingAd ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  {t('packs.adInProgress')}
-                </>
-              ) : (
-                <>
-                  <Play className="w-5 h-5" />
-                  {user ? t('packs.watchAd') : t('nav.login')}
-                </>
-              )}
-            </Button>
-
-            {isWatchingAd && (
-              <div className="mt-4 text-center">
-                <div className="w-full max-w-xs bg-muted rounded-full h-2 mb-2">
-                  <div className="bg-primary h-2 rounded-full animate-pulse" style={{ width: '100%' }} />
-                </div>
-                <p className="text-sm text-muted-foreground">{t('packs.pleaseWait')}</p>
-              </div>
+          {/* Watch ad button */}
+          <Button 
+            variant="gold" 
+            size="xl" 
+            onClick={handleWatchAd}
+            disabled={isWatchingAd}
+            className="gap-2"
+          >
+            {isWatchingAd ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                {t('packs.adInProgress')}
+              </>
+            ) : (
+              <>
+                <Play className="w-5 h-5" />
+                {user ? t('packs.watchAd') : t('nav.login')}
+              </>
             )}
-          </>
-        ) : (
+          </Button>
+
+          {isWatchingAd && (
+            <div className="mt-4 text-center">
+              <div className="w-full max-w-xs bg-muted rounded-full h-2 mb-2">
+                <div className="bg-primary h-2 rounded-full animate-pulse" style={{ width: '100%' }} />
+              </div>
+              <p className="text-sm text-muted-foreground">{t('packs.pleaseWait')}</p>
+            </div>
+          )}
+        </div>
+      ) : (
           <div className="fixed inset-0 z-[60] bg-background flex flex-col items-center justify-center p-4"
             style={{ touchAction: 'none' }}
           >
@@ -233,7 +213,6 @@ const Packs = () => {
             )}
           </div>
         )}
-      </main>
 
       <Navigation />
     </div>
