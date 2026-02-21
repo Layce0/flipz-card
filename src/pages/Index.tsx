@@ -130,7 +130,7 @@ const Index = () => {
         className="fixed bottom-24 left-4 z-10 cursor-pointer"
         onClick={() => { if (!isRunning) setIsRunning(true); }}
       >
-        <Lottie animationData={catAnimation} loop className="w-20 h-20 sm:w-24 sm:h-24" />
+        <Lottie animationData={catAnimation} loop className="w-28 h-28 sm:w-32 sm:h-32" />
       </div>
 
       {/* Running cat animation */}
@@ -139,7 +139,7 @@ const Index = () => {
           className="fixed z-50 top-1/2 -translate-y-1/2 animate-[catRun_2s_ease-in-out_forwards] pointer-events-none"
           onAnimationEnd={() => setIsRunning(false)}
         >
-          <Lottie animationData={catRunAnimation} loop className="w-24 h-24 sm:w-32 sm:h-32" />
+          <Lottie animationData={catRunAnimation} loop className="w-32 h-32 sm:w-40 sm:h-40" />
         </div>
       )}
 
