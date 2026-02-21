@@ -81,12 +81,7 @@ const Index = () => {
             <WinstreakBadge streak={streakData.current_streak} />
           </div>
         )}
-        <div className="mb-2 relative flex items-center justify-center">
-          <Lottie 
-            animationData={catAnimation} 
-            loop 
-            className="w-24 h-24 sm:w-28 sm:h-28 absolute -left-2 sm:left-1/4 -translate-x-full top-1/2 -translate-y-1/2" 
-          />
+        <div className="mb-2">
           <img src={flipzLogo} alt="FLIPZ" className="h-28 sm:h-36 mx-auto" />
         </div>
         <p className="text-muted-foreground text-sm">{t('home.subtitle')}</p>
@@ -127,6 +122,11 @@ const Index = () => {
           </>
         )}
       </main>
+
+      {/* Lottie cat - bottom left */}
+      <div className="fixed bottom-24 left-4 z-10">
+        <Lottie animationData={catAnimation} loop className="w-20 h-20 sm:w-24 sm:h-24" />
+      </div>
 
       <Navigation />
     </div>
