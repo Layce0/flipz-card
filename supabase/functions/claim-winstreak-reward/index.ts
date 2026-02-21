@@ -1,11 +1,26 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-}
+const ALLOWED_ORIGINS = [
+  'https://daily-card-quest.lovable.app',
+  'https://id-preview--292d3511-a5af-422b-bf8b-81ad9534130a.lovable.app',
+  'https://292d3511-a5af-422b-bf8b-81ad9534130a.lovableproject.com',
+];
+
+const getCorsHeaders = (origin: string | null) => {
+  const allowedOrigin = origin && ALLOWED_ORIGINS.some(allowed => origin === allowed)
+    ? origin
+    : ALLOWED_ORIGINS[0];
+
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+  };
+};
 
 Deno.serve(async (req) => {
+  const origin = req.headers.get('origin');
+  const corsHeaders = getCorsHeaders(origin);
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -36,8 +51,18 @@ Deno.serve(async (req) => {
     const userId = claimsData.claims.sub as string
 
     const { rewardId, dayNumber } = await req.json()
-    if (!rewardId || !dayNumber) {
-      return new Response(JSON.stringify({ error: 'Paramètres manquants' }), {
+
+    // Validate rewardId is a UUID
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    if (!rewardId || typeof rewardId !== 'string' || !uuidRegex.test(rewardId)) {
+      return new Response(JSON.stringify({ error: 'ID de récompense invalide' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Validate dayNumber is a positive integer (1-100)
+    if (!dayNumber || typeof dayNumber !== 'number' || !Number.isInteger(dayNumber) || dayNumber < 1 || dayNumber > 100) {
+      return new Response(JSON.stringify({ error: 'Numéro de jour invalide (1-100)' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
