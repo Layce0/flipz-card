@@ -114,7 +114,7 @@ const Packs = () => {
           <img
             src={packBoosterImg}
             alt="Pack Flipz"
-            className="relative z-[1] w-56 h-auto drop-shadow-[0_0_30px_hsl(var(--primary)/0.5)]"
+            className="relative z-[1] w-56 h-auto mix-blend-lighten drop-shadow-[0_0_30px_hsl(var(--primary)/0.5)]"
             draggable={false}
           />
 
