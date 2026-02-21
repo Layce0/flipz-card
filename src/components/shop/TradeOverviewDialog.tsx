@@ -59,7 +59,8 @@ export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => 
       
       toast.success(`Échange réussi ! ${config.reward} nouvelles cartes ajoutées.`);
       
-      // Show reveal dialog with obtained cards
+      // Close trade dialog, then show reveal
+      setOpen(false);
       setRevealCards(newCards);
       setShowReveal(true);
     } catch (error) {
@@ -73,6 +74,7 @@ export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => 
   const handleRevealClose = () => {
     setShowReveal(false);
     setRevealCards([]);
+    setOpen(true);
   };
 
   const rarities: Rarity[] = ['legendary', 'epic', 'rare', 'common'];
