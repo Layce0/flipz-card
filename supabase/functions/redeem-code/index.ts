@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
 
   try {
     const authHeader = req.headers.get('Authorization')
-    if (!authHeader) {
+    if (!authHeader?.startsWith('Bearer ')) {
       return new Response(JSON.stringify({ error: 'Non autorisé' }), {
         status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
@@ -40,13 +40,15 @@ Deno.serve(async (req) => {
     })
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Get authenticated user
-    const { data: { user }, error: authError } = await supabaseAnon.auth.getUser()
-    if (authError || !user) {
+    const token = authHeader.replace('Bearer ', '')
+    const { data: claimsData, error: claimsError } = await supabaseAnon.auth.getClaims(token)
+    if (claimsError || !claimsData?.claims) {
       return new Response(JSON.stringify({ error: 'Non autorisé' }), {
         status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
+
+    const userId = claimsData.claims.sub as string
 
     const { code } = await req.json()
     if (!code || typeof code !== 'string') {
@@ -112,7 +114,7 @@ Deno.serve(async (req) => {
       .from('code_redemptions')
       .select('id')
       .eq('code_id', rewardCode.id)
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .single()
 
     if (existing) {
@@ -140,7 +142,7 @@ Deno.serve(async (req) => {
       if (cardId) {
         await supabaseAdmin
           .from('user_cards')
-          .insert({ user_id: user.id, card_id: cardId })
+          .insert({ user_id: userId, card_id: cardId })
         rewardDetails.card_id = cardId
       }
     } else if (rewardType === 'pack' || rewardType === 'pack_lucky' || rewardType === 'pack_ultra') {
@@ -160,7 +162,7 @@ Deno.serve(async (req) => {
       const { data: boosts } = await supabaseAdmin
         .from('code_redemptions')
         .select('code_id, boost_expires_at')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .gt('boost_expires_at', new Date().toISOString())
       if (boosts && boosts.length > 0) {
         const bCodeIds = boosts.map((b: any) => b.code_id)
@@ -226,7 +228,7 @@ Deno.serve(async (req) => {
       // Insert cards server-side
       await supabaseAdmin
         .from('user_cards')
-        .insert(selectedCards.map((c: any) => ({ user_id: user.id, card_id: c.id })))
+        .insert(selectedCards.map((c: any) => ({ user_id: userId, card_id: c.id })))
 
       rewardDetails.cards = selectedCards
       rewardDetails.card_count = cardCount
@@ -238,7 +240,7 @@ Deno.serve(async (req) => {
       .from('code_redemptions')
       .insert({
         code_id: rewardCode.id,
-        user_id: user.id,
+        user_id: userId,
         boost_expires_at: boostExpiresAt
       })
 
