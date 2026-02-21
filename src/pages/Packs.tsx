@@ -109,17 +109,17 @@ const Packs = () => {
       />
 
       {!isRevealing ? (
-        <div className="flex-1 flex flex-col items-center justify-center relative">
+        <div className="flex-1 flex flex-col items-center justify-center relative px-4">
           {/* Pack booster centered */}
           <img
             src={packBoosterImg}
             alt="Pack Flipz"
-            className="relative z-[1] w-56 h-auto mix-blend-lighten drop-shadow-[0_0_30px_hsl(var(--primary)/0.5)]"
+            className="relative z-[1] w-72 max-w-[80vw] h-auto mix-blend-lighten drop-shadow-[0_0_30px_hsl(var(--primary)/0.5)] mb-8"
             draggable={false}
           />
 
-          {/* Button overlay at bottom */}
-          <div className="absolute bottom-24 left-0 right-0 flex flex-col items-center z-10">
+          {/* Button directly below booster */}
+          <div className="flex flex-col items-center z-10">
           <Button 
             variant="gold" 
             size="xl" 
