@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
 import { GameCard, RARITY_CONFIG } from '@/types/card';
 import { cn } from '@/lib/utils';
 import { HelpCircle } from 'lucide-react';
@@ -21,21 +21,19 @@ interface MysteryCardProps {
   isNew?: boolean;
 }
 
-export const MysteryCard = ({ card, isRevealed = false, onReveal, size = 'md', isNew = false }: MysteryCardProps) => {
+export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'md', isNew = false }: MysteryCardProps) => {
   const [flipped, setFlipped] = useState(isRevealed);
-  const [particles, setParticles] = useState<Particle[]>([]);
   const [showParticles, setShowParticles] = useState(false);
+  const [particles, setParticles] = useState<Particle[]>([]);
 
   useEffect(() => {
-    if (isRevealed) {
-      setFlipped(true);
-    }
+    if (isRevealed) setFlipped(true);
   }, [isRevealed]);
 
   const rarityConfig = RARITY_CONFIG[card.rarity];
 
   const spawnParticles = useCallback(() => {
-    const count = size === 'sm' ? 28 : size === 'md' ? 40 : 50;
+    const count = size === 'sm' ? 20 : size === 'md' ? 30 : 40; // reduced counts
     const newParticles: Particle[] = Array.from({ length: count }, (_, i) => ({
       id: i,
       x: 50 + (Math.random() - 0.5) * 16,
@@ -69,7 +67,6 @@ export const MysteryCard = ({ card, isRevealed = false, onReveal, size = 'md', i
       className={cn("flip-card cursor-pointer relative", sizeClasses[size])}
       onClick={handleClick}
     >
-      {/* Particles */}
       {showParticles && (
         <div className="absolute inset-0 pointer-events-none z-50 overflow-visible">
           {particles.map((p) => {
@@ -87,9 +84,8 @@ export const MysteryCard = ({ card, isRevealed = false, onReveal, size = 'md', i
                   height: p.size,
                   backgroundColor: rarityConfig.color,
                   opacity: 0,
-                  boxShadow: `0 0 ${p.size * 3}px ${p.size}px ${rarityConfig.color}`,
+                  boxShadow: `0 0 ${p.size * 2}px ${rarityConfig.color}`,
                   animation: `particle-burst 0.8s ease-out forwards`,
-                  // @ts-ignore
                   '--tx': `${tx}px`,
                   '--ty': `${ty}px`,
                   '--start-opacity': p.opacity,
@@ -136,6 +132,7 @@ export const MysteryCard = ({ card, isRevealed = false, onReveal, size = 'md', i
                 src={card.image_url} 
                 alt={card.title}
                 className="w-full h-full object-cover"
+                loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
             </div>
@@ -166,7 +163,6 @@ export const MysteryCard = ({ card, isRevealed = false, onReveal, size = 'md', i
               <div className="shimmer absolute inset-0 pointer-events-none" />
             )}
 
-            {/* New badge */}
             {isNew && flipped && (
               <div className="absolute top-3 right-3 z-10 animate-scale-in">
                 <span className="px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold uppercase tracking-wider">
@@ -179,4 +175,6 @@ export const MysteryCard = ({ card, isRevealed = false, onReveal, size = 'md', i
       </div>
     </div>
   );
-};
+});
+
+MysteryCard.displayName = 'MysteryCard';

@@ -18,25 +18,39 @@ export const ParticlesBackground = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return;
 
     let animationId: number;
+    let isVisible = true;
     const particles: Particle[] = [];
-    const PARTICLE_COUNT = 60;
+    const PARTICLE_COUNT = 35; // reduced from 60
 
     const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      const dpr = Math.min(window.devicePixelRatio, 2);
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      canvas.style.width = `${window.innerWidth}px`;
+      canvas.style.height = `${window.innerHeight}px`;
+      ctx.scale(dpr, dpr);
     };
     resize();
     window.addEventListener('resize', resize);
 
-    // Create particles only in the bottom 35% of the screen
+    // Pause when tab is hidden
+    const handleVisibility = () => {
+      isVisible = !document.hidden;
+      if (isVisible) animate();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       particles.push({
-        x: Math.random() * canvas.width,
-        y: canvas.height * 0.65 + Math.random() * canvas.height * 0.35,
+        x: Math.random() * w,
+        y: h * 0.65 + Math.random() * h * 0.35,
         size: Math.random() * 2.5 + 0.5,
         speedX: (Math.random() - 0.5) * 0.3,
         speedY: (Math.random() - 0.5) * 0.2 - 0.1,
@@ -47,7 +61,11 @@ export const ParticlesBackground = () => {
     }
 
     const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (!isVisible) return;
+
+      const cw = window.innerWidth;
+      const ch = window.innerHeight;
+      ctx.clearRect(0, 0, cw, ch);
 
       for (const p of particles) {
         p.x += p.speedX;
@@ -56,38 +74,33 @@ export const ParticlesBackground = () => {
 
         const currentOpacity = p.opacity * (0.5 + 0.5 * Math.sin(p.pulse));
 
-        // Wrap horizontally
-        if (p.x < 0) p.x = canvas.width;
-        if (p.x > canvas.width) p.x = 0;
-
-        // Keep in bottom zone
-        if (p.y < canvas.height * 0.6) {
+        if (p.x < 0) p.x = cw;
+        if (p.x > cw) p.x = 0;
+        if (p.y < ch * 0.6) {
           p.speedY = Math.abs(p.speedY) * 0.5;
-          p.y = canvas.height * 0.6;
+          p.y = ch * 0.6;
         }
-        if (p.y > canvas.height) {
+        if (p.y > ch) {
           p.speedY = -Math.abs(p.speedY);
-          p.y = canvas.height;
+          p.y = ch;
         }
 
-        // Glow
-        const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 4);
-        gradient.addColorStop(0, `hsla(275, 85%, 75%, ${currentOpacity})`);
-        gradient.addColorStop(0.4, `hsla(270, 80%, 65%, ${currentOpacity * 0.4})`);
-        gradient.addColorStop(1, 'transparent');
-
+        // Single glow circle instead of gradient (much cheaper)
+        ctx.globalAlpha = currentOpacity * 0.3;
+        ctx.fillStyle = 'hsl(275, 85%, 75%)';
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * 4, 0, Math.PI * 2);
-        ctx.fillStyle = gradient;
+        ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
         ctx.fill();
 
-        // Core
+        // Core dot
+        ctx.globalAlpha = currentOpacity;
+        ctx.fillStyle = 'hsl(275, 90%, 85%)';
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(275, 90%, 85%, ${currentOpacity})`;
         ctx.fill();
       }
 
+      ctx.globalAlpha = 1;
       animationId = requestAnimationFrame(animate);
     };
 
@@ -96,6 +109,7 @@ export const ParticlesBackground = () => {
     return () => {
       cancelAnimationFrame(animationId);
       window.removeEventListener('resize', resize);
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, []);
 
@@ -103,7 +117,7 @@ export const ParticlesBackground = () => {
     <canvas
       ref={canvasRef}
       className="fixed inset-0 pointer-events-none"
-      style={{ zIndex: 0 }}
+      style={{ zIndex: 0, willChange: 'transform' }}
     />
   );
 };
