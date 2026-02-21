@@ -74,7 +74,7 @@ const Index = () => {
       {/* Header */}
       <header className="pt-12 pb-6 px-4 text-center relative">
         {/* Winstreak badge - top right */}
-        {streakData && streakData.current_streak > 0 && streakData.last_streak_date === new Date().toISOString().split('T')[0] && (
+        {streakData && streakData.current_streak > 0 && (
           <div className="absolute top-12 right-4">
             <WinstreakBadge streak={streakData.current_streak} />
           </div>
