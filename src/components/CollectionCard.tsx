@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { GameCard, RARITY_CONFIG } from '@/types/card';
 import { cn } from '@/lib/utils';
@@ -7,7 +8,7 @@ interface CollectionCardProps {
   onClick?: () => void;
 }
 
-export const CollectionCard = ({ card, onClick }: CollectionCardProps) => {
+export const CollectionCard = memo(({ card, onClick }: CollectionCardProps) => {
   const { t } = useTranslation();
   const rarityConfig = RARITY_CONFIG[card.rarity];
 
@@ -27,17 +28,16 @@ export const CollectionCard = ({ card, onClick }: CollectionCardProps) => {
       <div className="relative rounded-xl overflow-hidden bg-card border-2 card-shadow"
         style={{ borderColor: rarityConfig.color }}
       >
-        {/* Image */}
         <div className="aspect-[3/4] overflow-hidden">
           <img 
             src={card.image_url} 
             alt={card.title}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            loading="lazy"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
         </div>
 
-        {/* Info overlay */}
         <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-card to-transparent">
           <span 
             className={cn(
@@ -57,4 +57,6 @@ export const CollectionCard = ({ card, onClick }: CollectionCardProps) => {
       </div>
     </div>
   );
-};
+});
+
+CollectionCard.displayName = 'CollectionCard';
