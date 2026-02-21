@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, memo } from 'react';
 import { GameCard, RARITY_CONFIG } from '@/types/card';
 import { cn } from '@/lib/utils';
-import { HelpCircle } from 'lucide-react';
+import cardBackImage from '@/assets/card-back.png';
 
 interface Particle {
   id: number;
@@ -101,15 +101,8 @@ export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'm
         flipped && "flipped"
       )}>
         {/* Card Back */}
-        <div className="flip-card-front absolute inset-0 rounded-2xl bg-gradient-to-br from-secondary via-card to-accent border-2 border-primary/40 card-shadow overflow-hidden">
-          <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
-            <div className="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center mb-4 pulse-glow">
-              <HelpCircle className="w-14 h-14 text-primary" />
-            </div>
-            <p className="font-display text-lg text-center text-primary">Carte Mystère</p>
-            <p className="text-sm text-muted-foreground mt-2">Touchez pour révéler</p>
-          </div>
-          <div className="shimmer absolute inset-0 pointer-events-none" />
+        <div className="flip-card-front absolute inset-0 rounded-2xl overflow-hidden card-shadow">
+          <img src={cardBackImage} alt="Card back" className="w-full h-full object-cover rounded-2xl" />
         </div>
 
         {/* Card Front */}
