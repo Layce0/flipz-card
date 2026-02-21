@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
 
   try {
     const authHeader = req.headers.get('Authorization')
-    if (!authHeader) {
+    if (!authHeader?.startsWith('Bearer ')) {
       return new Response(JSON.stringify({ error: 'Non autorisé' }), {
         status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
@@ -25,12 +25,15 @@ Deno.serve(async (req) => {
     })
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
 
-    const { data: { user }, error: authError } = await supabaseAnon.auth.getUser()
-    if (authError || !user) {
+    const token = authHeader.replace('Bearer ', '')
+    const { data: claimsData, error: claimsError } = await supabaseAnon.auth.getClaims(token)
+    if (claimsError || !claimsData?.claims) {
       return new Response(JSON.stringify({ error: 'Non autorisé' }), {
         status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
+
+    const userId = claimsData.claims.sub as string
 
     const { rewardId, dayNumber } = await req.json()
     if (!rewardId || !dayNumber) {
@@ -43,7 +46,7 @@ Deno.serve(async (req) => {
     const { data: streak } = await supabaseAdmin
       .from('user_streaks')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .single()
 
     if (!streak || streak.current_streak < dayNumber) {
@@ -78,7 +81,7 @@ Deno.serve(async (req) => {
     const { data: existingClaim } = await supabaseAdmin
       .from('winstreak_claims')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .eq('day_number', dayNumber)
       .single()
 
@@ -103,7 +106,7 @@ Deno.serve(async (req) => {
       if (cardId) {
         await supabaseAdmin
           .from('user_cards')
-          .insert({ user_id: user.id, card_id: cardId })
+          .insert({ user_id: userId, card_id: cardId })
         rewardDetails.card_id = cardId
 
         // Fetch full card for reveal
@@ -131,7 +134,7 @@ Deno.serve(async (req) => {
       const { data: boosts } = await supabaseAdmin
         .from('code_redemptions')
         .select('code_id, boost_expires_at')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .gt('boost_expires_at', new Date().toISOString())
       if (boosts && boosts.length > 0) {
         const bCodeIds = boosts.map((b: any) => b.code_id)
@@ -194,7 +197,7 @@ Deno.serve(async (req) => {
 
       await supabaseAdmin
         .from('user_cards')
-        .insert(selectedCards.map((c: any) => ({ user_id: user.id, card_id: c.id })))
+        .insert(selectedCards.map((c: any) => ({ user_id: userId, card_id: c.id })))
 
       rewardDetails.cards = selectedCards
       rewardDetails.card_count = cardCount
@@ -205,7 +208,7 @@ Deno.serve(async (req) => {
     await supabaseAdmin
       .from('winstreak_claims')
       .insert({
-        user_id: user.id,
+        user_id: userId,
         reward_id: rewardId,
         day_number: dayNumber
       })

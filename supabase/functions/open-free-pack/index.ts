@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
 
   try {
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
+    if (!authHeader?.startsWith('Bearer ')) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -89,15 +89,18 @@ Deno.serve(async (req) => {
     });
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { data: { user }, error: authError } = await supabaseAnon.auth.getUser();
-    if (authError || !user) {
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await supabaseAnon.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
+    const userId = claimsData.claims.sub as string;
+
     // Rate limit
-    const rl = checkRateLimit(user.id);
+    const rl = checkRateLimit(userId);
     if (!rl.allowed) {
       return new Response(JSON.stringify({ error: 'Too many requests', retryAfter: rl.retryAfter }), {
         status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': String(rl.retryAfter) }
@@ -119,7 +122,7 @@ Deno.serve(async (req) => {
     const { data: activeRedemptions } = await supabaseAdmin
       .from('code_redemptions')
       .select('code_id, boost_expires_at')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .gt('boost_expires_at', now);
 
     if (activeRedemptions && activeRedemptions.length > 0) {
@@ -145,7 +148,7 @@ Deno.serve(async (req) => {
     // Insert cards server-side
     await supabaseAdmin
       .from('user_cards')
-      .insert(selectedCards.map((c: any) => ({ user_id: user.id, card_id: c.id })));
+      .insert(selectedCards.map((c: any) => ({ user_id: userId, card_id: c.id })));
 
     return new Response(JSON.stringify({ success: true, cards: selectedCards }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
