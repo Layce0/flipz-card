@@ -95,6 +95,10 @@ export default {
           "0%, 100%": { boxShadow: "0 0 20px hsl(45 90% 55% / 0.3)" },
           "50%": { boxShadow: "0 0 40px hsl(45 90% 55% / 0.6)" },
         },
+        "catRun": {
+          "0%": { left: "-120px" },
+          "100%": { left: "110vw" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",

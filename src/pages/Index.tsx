@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Lottie from 'lottie-react';
@@ -12,8 +12,10 @@ import { useUserStreak, useUpdateStreak } from '@/hooks/useWinstreak';
 import { toast } from 'sonner';
 import flipzLogo from '@/assets/flipz-logo-new.jpeg';
 import catAnimation from '@/assets/lottie-cat.json';
+import catRunAnimation from '@/assets/lottie-cat-run.json';
 
 const Index = () => {
+  const [isRunning, setIsRunning] = useState(false);
   const [timeLeft, setTimeLeft] = useState('');
   const { user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -124,9 +126,22 @@ const Index = () => {
       </main>
 
       {/* Lottie cat - bottom left */}
-      <div className="fixed bottom-24 left-4 z-10">
+      <div 
+        className="fixed bottom-24 left-4 z-10 cursor-pointer"
+        onClick={() => { if (!isRunning) setIsRunning(true); }}
+      >
         <Lottie animationData={catAnimation} loop className="w-20 h-20 sm:w-24 sm:h-24" />
       </div>
+
+      {/* Running cat animation */}
+      {isRunning && (
+        <div 
+          className="fixed z-50 top-1/2 -translate-y-1/2 animate-[catRun_2s_ease-in-out_forwards] pointer-events-none"
+          onAnimationEnd={() => setIsRunning(false)}
+        >
+          <Lottie animationData={catRunAnimation} loop className="w-24 h-24 sm:w-32 sm:h-32" />
+        </div>
+      )}
 
       <Navigation />
     </div>
