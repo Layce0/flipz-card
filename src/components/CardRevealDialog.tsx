@@ -85,18 +85,19 @@ export const CardRevealDialog = ({
      if (!cardRevealed || !isDragging) return;
      const dx = e.touches[0].clientX - startXRef.current;
      const dy = e.touches[0].clientY - startYRef.current;
-     if (!isSwipingRef.current && Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) {
+     const dist = Math.sqrt(dx * dx + dy * dy);
+     if (!isSwipingRef.current && dist > 10) {
        isSwipingRef.current = true;
      }
-     if (isSwipingRef.current && dx < 0) {
-       setDragX(dx);
+     if (isSwipingRef.current) {
+       setDragX(-Math.abs(dist));
      }
    }, [cardRevealed, isDragging]);
 
    const handleTouchEnd = useCallback(() => {
      if (!isDragging) return;
      setIsDragging(false);
-     if (dragX < -60) {
+     if (Math.abs(dragX) > 60) {
        goNext();
      } else {
        setDragX(0);
@@ -117,15 +118,15 @@ export const CardRevealDialog = ({
      if (!isSwipingRef.current && Math.abs(dx) > 10) {
        isSwipingRef.current = true;
      }
-     if (isSwipingRef.current && dx < 0) {
-       setDragX(dx);
+     if (isSwipingRef.current) {
+       setDragX(-Math.abs(dx));
      }
    }, [cardRevealed, isDragging]);
 
    const handleMouseUp = useCallback(() => {
      if (!isDragging) return;
      setIsDragging(false);
-     if (dragX < -60) {
+     if (Math.abs(dragX) > 60) {
        goNext();
      } else {
        setDragX(0);
