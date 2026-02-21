@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { GameCard } from '@/types/card';
 import { cn } from '@/lib/utils';
 import packFlipzImg from '@/assets/pack-flipz.jpeg';
+import packsBgImg from '@/assets/packs-bg.jpg';
 
 const Packs = () => {
   const { user, isLoading: authLoading } = useAuth();
@@ -110,11 +111,18 @@ const Packs = () => {
 
       {!isRevealing ? (
         <div className="flex-1 flex flex-col items-center justify-center relative">
-          {/* Full bleed pack image */}
+          {/* Background image */}
+          <img
+            src={packsBgImg}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+            draggable={false}
+          />
+          {/* Pack booster centered */}
           <img
             src={packFlipzImg}
             alt="Pack Flipz"
-            className="absolute inset-0 w-full h-full object-cover"
+            className="relative z-[1] w-56 h-auto drop-shadow-[0_0_30px_hsl(var(--primary)/0.5)]"
             draggable={false}
           />
 
