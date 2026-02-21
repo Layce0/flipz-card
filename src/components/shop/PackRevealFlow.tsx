@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { MysteryCard } from '@/components/MysteryCard';
+import { PackOpeningAnimation } from '@/components/PackOpeningAnimation';
 import { Button } from '@/components/ui/button';
 import { X, ChevronRight, Sparkles } from 'lucide-react';
 import { GameCard } from '@/types/card';
@@ -16,8 +17,13 @@ export const PackRevealFlow = ({ cards, isOpen, onClose }: PackRevealFlowProps) 
   const { t } = useTranslation();
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [cardRevealed, setCardRevealed] = useState(false);
+  const [showPackAnimation, setShowPackAnimation] = useState(true);
 
   if (!isOpen || cards.length === 0) return null;
+
+  const handlePackAnimationComplete = () => {
+    setShowPackAnimation(false);
+  };
 
   const handleRevealCard = () => {
     if (!cardRevealed) {
@@ -37,8 +43,19 @@ export const PackRevealFlow = ({ cards, isOpen, onClose }: PackRevealFlowProps) 
   const handleClose = () => {
     setCurrentCardIndex(0);
     setCardRevealed(false);
+    setShowPackAnimation(true);
     onClose();
   };
+
+  // Show pack opening animation first
+  if (showPackAnimation) {
+    return (
+      <PackOpeningAnimation
+        isOpen={true}
+        onComplete={handlePackAnimationComplete}
+      />
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-[60] bg-background flex flex-col items-center justify-center p-4"

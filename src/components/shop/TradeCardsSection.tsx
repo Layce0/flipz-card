@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ArrowRightLeft, Loader2, Package, Sparkles } from 'lucide-react';
+import { ArrowRightLeft, Loader2, Package } from 'lucide-react';
 import { Rarity, RARITY_CONFIG } from '@/types/card';
 import { TRADE_CONFIG } from '@/types/pack';
-import { MysteryCard } from '@/components/MysteryCard';
 import { UserCardWithCount } from '@/hooks/useCards';
 import { cn } from '@/lib/utils';
+import { PackRevealFlow } from '@/components/shop/PackRevealFlow';
 
 interface TradeCardsSectionProps {
   userCards: UserCardWithCount[];
@@ -22,7 +22,6 @@ export const TradeCardsSection = ({ userCards, onTrade, isTrading }: TradeCardsS
   const [selectedCard, setSelectedCard] = useState<UserCardWithCount | null>(null);
   const [rewardCards, setRewardCards] = useState<any[]>([]);
   const [showReward, setShowReward] = useState(false);
-  const [revealedCards, setRevealedCards] = useState<Set<number>>(new Set());
   const [localTrading, setLocalTrading] = useState(false);
 
   const getEligibleCardsByRarity = (rarity: Rarity) => {
@@ -39,7 +38,6 @@ export const TradeCardsSection = ({ userCards, onTrade, isTrading }: TradeCardsS
     try {
       const cards = await onTrade(selectedCard);
       setRewardCards(cards);
-      setRevealedCards(new Set());
       setShowReward(true);
       setSelectedCard(null);
     } finally {
@@ -47,8 +45,9 @@ export const TradeCardsSection = ({ userCards, onTrade, isTrading }: TradeCardsS
     }
   };
 
-  const handleRevealCard = (index: number) => {
-    setRevealedCards(prev => new Set([...prev, index]));
+  const handleCloseReveal = () => {
+    setShowReward(false);
+    setRewardCards([]);
   };
 
   const rarities: Rarity[] = ['legendary', 'epic', 'rare', 'common'];
@@ -199,43 +198,12 @@ export const TradeCardsSection = ({ userCards, onTrade, isTrading }: TradeCardsS
         </DialogContent>
       </Dialog>
 
-      {/* Reward Dialog */}
-      <Dialog open={showReward} onOpenChange={setShowReward}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="text-center flex items-center justify-center gap-2">
-              <Sparkles className="w-5 h-5 text-primary" />
-              {t('shop.newCards')}
-            </DialogTitle>
-            <DialogDescription className="text-center">
-              {t('shop.clickToReveal')}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="grid grid-cols-3 gap-3 py-4 max-h-[60vh] overflow-y-auto">
-            {rewardCards.map((card, index) => (
-              <div key={index} className="flex justify-center">
-                <MysteryCard
-                  card={card}
-                  isRevealed={revealedCards.has(index)}
-                  onReveal={() => handleRevealCard(index)}
-                  size="sm"
-                />
-              </div>
-            ))}
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant="gold"
-              onClick={() => setShowReward(false)}
-              className="w-full"
-            >
-              {t('common.close')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Reward Reveal with Pack Animation */}
+      <PackRevealFlow
+        cards={rewardCards}
+        isOpen={showReward}
+        onClose={handleCloseReveal}
+      />
     </>
   );
 };

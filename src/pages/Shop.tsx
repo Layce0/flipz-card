@@ -4,16 +4,15 @@ import { useTranslation } from 'react-i18next';
 import { Navigation } from '@/components/Navigation';
 import { PackSection } from '@/components/shop/PackSection';
 import { TradeOverviewDialog } from '@/components/shop/TradeOverviewDialog';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { PackRevealFlow } from '@/components/shop/PackRevealFlow';
 import { Button } from '@/components/ui/button';
-import { Store, Loader2, Sparkles } from 'lucide-react';
+import { Store, Loader2 } from 'lucide-react';
 import { getPacksByType, TRADE_CONFIG } from '@/types/pack';
 import { Rarity } from '@/types/card';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserCards, useDeleteUserCards, useRandomCards, useCollectCard, UserCardWithCount } from '@/hooks/useCards';
 import { supabase } from '@/integrations/supabase/client';
-import { MysteryCard } from '@/components/MysteryCard';
 import { RedeemCodeSection } from '@/components/shop/RedeemCodeSection';
 
 const Shop = () => {
@@ -29,19 +28,16 @@ const Shop = () => {
   const [isTrading, setIsTrading] = useState(false);
   const [purchasedCards, setPurchasedCards] = useState<any[]>([]);
   const [showPurchaseReward, setShowPurchaseReward] = useState(false);
-  const [revealedCards, setRevealedCards] = useState<Set<number>>(new Set());
   const [verifyingPurchase, setVerifyingPurchase] = useState(false);
 
   // Handle successful purchase return
   useEffect(() => {
     const success = searchParams.get('success');
     const sessionId = searchParams.get('session_id');
-    const packId = searchParams.get('pack');
 
     if (success === 'true' && sessionId && !verifyingPurchase) {
       setVerifyingPurchase(true);
       verifyPurchase(sessionId);
-      // Clear URL params
       setSearchParams({});
     }
 
@@ -61,7 +57,6 @@ const Shop = () => {
 
       if (data.cards && data.cards.length > 0) {
         setPurchasedCards(data.cards);
-        setRevealedCards(new Set());
         setShowPurchaseReward(true);
         toast.success(t('shop.cardsReceived', { count: data.cardCount }));
         refetchCards();
@@ -89,7 +84,6 @@ const Shop = () => {
       if (error) throw error;
 
       if (data.url) {
-        // Open in new tab to avoid iframe restrictions
         window.open(data.url, '_blank');
       }
     } catch (error: any) {
@@ -114,7 +108,6 @@ const Shop = () => {
     setIsTrading(true);
 
     try {
-      // Delete required cards (minus what they keep)
       const cardsToDelete = config.required - config.keep;
       await deleteCards.mutateAsync({
         userId: user.id,
@@ -122,10 +115,8 @@ const Shop = () => {
         count: cardsToDelete,
       });
 
-      // Get random reward cards
       const newCards = await getRandomCards.mutateAsync({ count: config.reward, userId: user.id, packType: 'standard' });
 
-      // Collect all new cards
       for (const newCard of newCards) {
         await collectCard.mutateAsync({ userId: user.id, cardId: newCard.id });
       }
@@ -140,8 +131,9 @@ const Shop = () => {
     }
   };
 
-  const handleRevealCard = (index: number) => {
-    setRevealedCards(prev => new Set([...prev, index]));
+  const handleClosePurchaseReveal = () => {
+    setShowPurchaseReward(false);
+    setPurchasedCards([]);
   };
 
   const standardPacks = getPacksByType('standard');
@@ -198,7 +190,6 @@ const Shop = () => {
           </div>
         ) : (
           <>
-            {/* Standard Packs */}
             <PackSection
               title={t('shop.standardPacks')}
               description={t('shop.standardPacksDesc')}
@@ -207,8 +198,6 @@ const Shop = () => {
               isLoading={!!loadingPackId}
               loadingPackId={loadingPackId}
             />
-
-            {/* Lucky Packs */}
             <PackSection
               title={t('shop.luckyPacks')}
               description={t('shop.luckyPacksDesc')}
@@ -217,8 +206,6 @@ const Shop = () => {
               isLoading={!!loadingPackId}
               loadingPackId={loadingPackId}
             />
-
-            {/* Ultra Lucky Packs */}
             <PackSection
               title={t('shop.ultraPacks')}
               description={t('shop.ultraPacksDesc')}
@@ -230,53 +217,15 @@ const Shop = () => {
           </>
         )}
 
-        {/* Redeem Code Section */}
         <RedeemCodeSection />
       </main>
 
-      {/* Purchase Reward Dialog */}
-      <Dialog open={showPurchaseReward} onOpenChange={setShowPurchaseReward}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="text-center flex items-center justify-center gap-2">
-              <Sparkles className="w-5 h-5 text-primary" />
-              {t('shop.newCards')}
-            </DialogTitle>
-            <DialogDescription className="text-center">
-              {t('shop.clickToReveal')}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="grid grid-cols-3 gap-3 py-4 max-h-[60vh] overflow-y-auto">
-            {purchasedCards.map((card, index) => {
-              const alreadyOwned = userCards.some(uc => uc.id === card.id);
-              const discoveredEarlierInPack = purchasedCards.slice(0, index).some(c => c.id === card.id);
-              const isNew = !alreadyOwned && !discoveredEarlierInPack;
-              return (
-                <div key={index} className="flex justify-center">
-                  <MysteryCard
-                    card={card}
-                    isRevealed={revealedCards.has(index)}
-                    onReveal={() => handleRevealCard(index)}
-                    size="sm"
-                    isNew={isNew}
-                  />
-                </div>
-              );
-            })}
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant="gold"
-              onClick={() => setShowPurchaseReward(false)}
-              className="w-full"
-            >
-              {t('common.close')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Purchase Reward - now uses PackRevealFlow with sachet animation */}
+      <PackRevealFlow
+        cards={purchasedCards}
+        isOpen={showPurchaseReward}
+        onClose={handleClosePurchaseReveal}
+      />
 
       <Navigation />
     </div>
