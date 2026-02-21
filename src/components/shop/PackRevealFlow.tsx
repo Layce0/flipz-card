@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MysteryCard } from '@/components/MysteryCard';
 import { PackOpeningAnimation } from '@/components/PackOpeningAnimation';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,15 @@ export const PackRevealFlow = ({ cards, isOpen, onClose }: PackRevealFlowProps) 
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [cardRevealed, setCardRevealed] = useState(false);
   const [showPackAnimation, setShowPackAnimation] = useState(true);
+
+  // Reset pack animation whenever the flow opens
+  useEffect(() => {
+    if (isOpen) {
+      setShowPackAnimation(true);
+      setCurrentCardIndex(0);
+      setCardRevealed(false);
+    }
+  }, [isOpen]);
 
   if (!isOpen || cards.length === 0) return null;
 
