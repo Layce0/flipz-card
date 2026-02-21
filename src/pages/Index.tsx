@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import Lottie from 'lottie-react';
 import { MysteryCard } from '@/components/MysteryCard';
 import { Navigation } from '@/components/Navigation';
 import { WinstreakBadge } from '@/components/WinstreakBadge';
@@ -10,6 +11,7 @@ import { useTodayCard, useHasCollectedToday, useCollectCard, useUserCards } from
 import { useUserStreak, useUpdateStreak } from '@/hooks/useWinstreak';
 import { toast } from 'sonner';
 import flipzLogo from '@/assets/flipz-logo-new.jpeg';
+import catAnimation from '@/assets/lottie-cat.json';
 
 const Index = () => {
   const [timeLeft, setTimeLeft] = useState('');
@@ -79,7 +81,12 @@ const Index = () => {
             <WinstreakBadge streak={streakData.current_streak} />
           </div>
         )}
-        <div className="mb-2">
+        <div className="mb-2 relative flex items-center justify-center">
+          <Lottie 
+            animationData={catAnimation} 
+            loop 
+            className="w-24 h-24 sm:w-28 sm:h-28 absolute -left-2 sm:left-1/4 -translate-x-full top-1/2 -translate-y-1/2" 
+          />
           <img src={flipzLogo} alt="FLIPZ" className="h-28 sm:h-36 mx-auto" />
         </div>
         <p className="text-muted-foreground text-sm">{t('home.subtitle')}</p>
