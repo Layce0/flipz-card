@@ -18,8 +18,9 @@ export const PackRevealFlow = ({ cards, isOpen, onClose }: PackRevealFlowProps) 
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [cardRevealed, setCardRevealed] = useState(false);
   const [showPackAnimation, setShowPackAnimation] = useState(true);
-  const [slideDir, setSlideDir] = useState<'none' | 'left'>('none');
+  const [slideDir, setSlideDir] = useState<{ x: number; y: number } | null>(null);
   const [dragX, setDragX] = useState(0);
+  const [dragY, setDragY] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
 
   const startXRef = useRef(0);
@@ -32,13 +33,19 @@ export const PackRevealFlow = ({ cards, isOpen, onClose }: PackRevealFlowProps) 
       setShowPackAnimation(true);
       setCurrentCardIndex(0);
       setCardRevealed(false);
-      setSlideDir('none');
+      setSlideDir(null);
       setDragX(0);
+      setDragY(0);
     }
   }, [isOpen]);
 
   const goNext = useCallback(() => {
-    setSlideDir('left');
+    const dirX = dragX !== 0 ? dragX : 0;
+    const dirY = dragY !== 0 ? dragY : 0;
+    const mag = Math.sqrt(dirX * dirX + dirY * dirY);
+    const normX = mag > 0 ? (dirX / mag) * 400 : -300;
+    const normY = mag > 0 ? (dirY / mag) * 400 : 0;
+    setSlideDir({ x: normX, y: normY });
     setTimeout(() => {
       if (currentCardIndex < cards.length - 1) {
         setCurrentCardIndex(prev => prev + 1);
@@ -46,10 +53,11 @@ export const PackRevealFlow = ({ cards, isOpen, onClose }: PackRevealFlowProps) 
       } else {
         handleClose();
       }
-      setSlideDir('none');
+      setSlideDir(null);
       setDragX(0);
+      setDragY(0);
     }, 250);
-  }, [currentCardIndex, cards.length]);
+  }, [currentCardIndex, cards.length, dragX, dragY]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (!cardRevealed) return;
@@ -68,19 +76,22 @@ export const PackRevealFlow = ({ cards, isOpen, onClose }: PackRevealFlowProps) 
       isSwipingRef.current = true;
     }
     if (isSwipingRef.current) {
-      setDragX(-Math.abs(dist));
+      setDragX(dx);
+      setDragY(dy);
     }
   }, [cardRevealed, isDragging]);
 
   const handleTouchEnd = useCallback(() => {
     if (!isDragging) return;
     setIsDragging(false);
-    if (Math.abs(dragX) > 60) {
+    const dist = Math.sqrt(dragX * dragX + dragY * dragY);
+    if (dist > 60) {
       goNext();
     } else {
       setDragX(0);
+      setDragY(0);
     }
-  }, [isDragging, dragX, goNext]);
+  }, [isDragging, dragX, dragY, goNext]);
 
   // Mouse fallback for desktop
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -97,7 +108,7 @@ export const PackRevealFlow = ({ cards, isOpen, onClose }: PackRevealFlowProps) 
       isSwipingRef.current = true;
     }
     if (isSwipingRef.current) {
-      setDragX(-Math.abs(dx));
+      setDragX(dx);
     }
   }, [cardRevealed, isDragging]);
 
@@ -108,6 +119,7 @@ export const PackRevealFlow = ({ cards, isOpen, onClose }: PackRevealFlowProps) 
       goNext();
     } else {
       setDragX(0);
+      setDragY(0);
     }
   }, [isDragging, dragX, goNext]);
 
@@ -127,8 +139,9 @@ export const PackRevealFlow = ({ cards, isOpen, onClose }: PackRevealFlowProps) 
     setCurrentCardIndex(0);
     setCardRevealed(false);
     setShowPackAnimation(true);
-    setSlideDir('none');
+    setSlideDir(null);
     setDragX(0);
+    setDragY(0);
     onClose();
   };
 
@@ -141,8 +154,6 @@ export const PackRevealFlow = ({ cards, isOpen, onClose }: PackRevealFlowProps) 
     );
   }
 
-  const translateX = slideDir === 'left' ? -300 : dragX;
-  const opacity = slideDir === 'left' ? 0 : 1 - Math.min(Math.abs(dragX) / 300, 0.5);
   const isLast = currentCardIndex >= cards.length - 1;
 
   return (
@@ -182,8 +193,10 @@ export const PackRevealFlow = ({ cards, isOpen, onClose }: PackRevealFlowProps) 
         <div className="absolute -inset-8 bg-gradient-radial from-primary/20 via-transparent to-transparent blur-2xl" />
         <div
           style={{
-            transform: `translateX(${translateX}px) rotate(${translateX * 0.05}deg)`,
-            opacity,
+            transform: slideDir
+              ? `translate(${slideDir.x}px, ${slideDir.y}px) rotate(${slideDir.x * 0.05}deg)`
+              : `translate(${dragX}px, ${dragY}px) rotate(${dragX * 0.05}deg)`,
+            opacity: slideDir ? 0 : 1 - Math.min(Math.sqrt(dragX * dragX + dragY * dragY) / 300, 0.5),
             transition: isDragging ? 'none' : 'transform 0.25s ease-out, opacity 0.25s ease-out',
           }}
         >

@@ -63,8 +63,9 @@ const Packs = () => {
   const startYRef = useRef(0);
   const isSwipingRef = useRef(false);
   const [dragX, setDragX] = useState(0);
+  const [dragY, setDragY] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const [slideDir, setSlideDir] = useState<'none' | 'left'>('none');
+  const [slideDir, setSlideDir] = useState<{ x: number; y: number } | null>(null);
 
   const handleRevealCard = async () => {
     if (!user || currentCardIndex >= revealedCards.length) return;
@@ -74,7 +75,12 @@ const Packs = () => {
   };
 
   const goNext = useCallback(() => {
-    setSlideDir('left');
+    const dirX = dragX !== 0 ? dragX : 0;
+    const dirY = dragY !== 0 ? dragY : 0;
+    const mag = Math.sqrt(dirX * dirX + dirY * dirY);
+    const normX = mag > 0 ? (dirX / mag) * 400 : -300;
+    const normY = mag > 0 ? (dirY / mag) * 400 : 0;
+    setSlideDir({ x: normX, y: normY });
     setTimeout(() => {
       if (currentCardIndex < revealedCards.length - 1) {
         setCurrentCardIndex(prev => prev + 1);
@@ -83,10 +89,11 @@ const Packs = () => {
         toast.success(t('packs.cardsAdded', { count: revealedCards.length }));
         handleClose();
       }
-      setSlideDir('none');
+      setSlideDir(null);
       setDragX(0);
+      setDragY(0);
     }, 250);
-  }, [currentCardIndex, revealedCards.length]);
+  }, [currentCardIndex, revealedCards.length, dragX, dragY]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (!cardRevealed) return;
@@ -105,19 +112,22 @@ const Packs = () => {
       isSwipingRef.current = true;
     }
     if (isSwipingRef.current) {
-      setDragX(-Math.abs(dist)); // always treat as left for visual
+      setDragX(dx);
+      setDragY(dy);
     }
   }, [cardRevealed, isDragging]);
 
   const handleTouchEnd = useCallback(() => {
     if (!isDragging) return;
     setIsDragging(false);
-    if (Math.abs(dragX) > 60) {
+    const dist = Math.sqrt(dragX * dragX + dragY * dragY);
+    if (dist > 60) {
       goNext();
     } else {
       setDragX(0);
+      setDragY(0);
     }
-  }, [isDragging, dragX, goNext]);
+  }, [isDragging, dragX, dragY, goNext]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (!cardRevealed) return;
@@ -133,7 +143,7 @@ const Packs = () => {
       isSwipingRef.current = true;
     }
     if (isSwipingRef.current) {
-      setDragX(-Math.abs(dx));
+      setDragX(dx);
     }
   }, [cardRevealed, isDragging]);
 
@@ -144,6 +154,7 @@ const Packs = () => {
       goNext();
     } else {
       setDragX(0);
+      setDragY(0);
     }
   }, [isDragging, dragX, goNext]);
 
@@ -153,8 +164,9 @@ const Packs = () => {
     setIsRevealing(false);
     setCardRevealed(false);
     setShowPackAnimation(false);
-    setSlideDir('none');
+    setSlideDir(null);
     setDragX(0);
+    setDragY(0);
   };
 
   const handlePackAnimationComplete = () => {
@@ -246,8 +258,10 @@ const Packs = () => {
               <div className="absolute -inset-8 bg-gradient-radial from-primary/20 via-transparent to-transparent blur-2xl" />
               <div
                 style={{
-                  transform: `translateX(${slideDir === 'left' ? -300 : dragX}px) rotate(${(slideDir === 'left' ? -300 : dragX) * 0.05}deg)`,
-                  opacity: slideDir === 'left' ? 0 : 1 - Math.min(Math.abs(dragX) / 300, 0.5),
+                  transform: slideDir 
+                    ? `translate(${slideDir.x}px, ${slideDir.y}px) rotate(${slideDir.x * 0.05}deg)` 
+                    : `translate(${dragX}px, ${dragY}px) rotate(${dragX * 0.05}deg)`,
+                  opacity: slideDir ? 0 : 1 - Math.min(Math.sqrt(dragX * dragX + dragY * dragY) / 300, 0.5),
                   transition: isDragging ? 'none' : 'transform 0.25s ease-out, opacity 0.25s ease-out',
                 }}
               >
