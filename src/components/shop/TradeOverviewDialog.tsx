@@ -9,7 +9,7 @@ import { UserCardWithCount, useDeleteUserCards, useRandomCards, useCollectCard }
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import { CardRevealDialog } from '@/components/CardRevealDialog';
+import { PackRevealFlow } from '@/components/shop/PackRevealFlow';
 
 interface TradeOverviewDialogProps {
   userCards: UserCardWithCount[];
@@ -208,14 +208,11 @@ export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => 
         </div>
       </DialogContent>
       
-      {/* Card reveal dialog */}
-      <CardRevealDialog
+      {/* Pack reveal with sachet animation */}
+      <PackRevealFlow
         cards={revealCards}
-        open={showReveal}
+        isOpen={showReveal}
         onClose={handleRevealClose}
-        autoCollect={false}
-        title="Cartes obtenues !"
-        ownedCardIds={ownedIdsSnapshot}
       />
     </Dialog>
   );
