@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { MysteryCard } from '@/components/MysteryCard';
 import { PackOpeningAnimation } from '@/components/PackOpeningAnimation';
-import { Play, Loader2, X, ChevronRight } from 'lucide-react';
+import { Play, Loader2, X, ChevronLeft } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCollectCard } from '@/hooks/useCards';
 import { useAdMob } from '@/hooks/useAdMob';
@@ -59,25 +59,92 @@ const Packs = () => {
     }
   };
 
+  const startXRef = useRef(0);
+  const startYRef = useRef(0);
+  const isSwipingRef = useRef(false);
+  const [dragX, setDragX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [slideDir, setSlideDir] = useState<'none' | 'left'>('none');
+
   const handleRevealCard = async () => {
     if (!user || currentCardIndex >= revealedCards.length) return;
-    
     if (!cardRevealed) {
       setCardRevealed(true);
-      // Cards already collected server-side, no need to collect again
-      return;
     }
   };
 
-  const handleNextCard = () => {
-    if (currentCardIndex < revealedCards.length - 1) {
-      setCurrentCardIndex(prev => prev + 1);
-      setCardRevealed(false);
-    } else {
-      toast.success(t('packs.cardsAdded', { count: revealedCards.length }));
-      handleClose();
+  const goNext = useCallback(() => {
+    setSlideDir('left');
+    setTimeout(() => {
+      if (currentCardIndex < revealedCards.length - 1) {
+        setCurrentCardIndex(prev => prev + 1);
+        setCardRevealed(false);
+      } else {
+        toast.success(t('packs.cardsAdded', { count: revealedCards.length }));
+        handleClose();
+      }
+      setSlideDir('none');
+      setDragX(0);
+    }, 250);
+  }, [currentCardIndex, revealedCards.length]);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (!cardRevealed) return;
+    startXRef.current = e.touches[0].clientX;
+    startYRef.current = e.touches[0].clientY;
+    isSwipingRef.current = false;
+    setIsDragging(true);
+  }, [cardRevealed]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!cardRevealed || !isDragging) return;
+    const dx = e.touches[0].clientX - startXRef.current;
+    const dy = e.touches[0].clientY - startYRef.current;
+    if (!isSwipingRef.current && Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) {
+      isSwipingRef.current = true;
     }
-  };
+    if (isSwipingRef.current && dx < 0) {
+      setDragX(dx);
+    }
+  }, [cardRevealed, isDragging]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    if (dragX < -60) {
+      goNext();
+    } else {
+      setDragX(0);
+    }
+  }, [isDragging, dragX, goNext]);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (!cardRevealed) return;
+    startXRef.current = e.clientX;
+    isSwipingRef.current = false;
+    setIsDragging(true);
+  }, [cardRevealed]);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!cardRevealed || !isDragging) return;
+    const dx = e.clientX - startXRef.current;
+    if (!isSwipingRef.current && Math.abs(dx) > 10) {
+      isSwipingRef.current = true;
+    }
+    if (isSwipingRef.current && dx < 0) {
+      setDragX(dx);
+    }
+  }, [cardRevealed, isDragging]);
+
+  const handleMouseUp = useCallback(() => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    if (dragX < -60) {
+      goNext();
+    } else {
+      setDragX(0);
+    }
+  }, [isDragging, dragX, goNext]);
 
   const handleClose = () => {
     setRevealedCards([]);
@@ -85,6 +152,8 @@ const Packs = () => {
     setIsRevealing(false);
     setCardRevealed(false);
     setShowPackAnimation(false);
+    setSlideDir('none');
+    setDragX(0);
   };
 
   const handlePackAnimationComplete = () => {
@@ -151,8 +220,11 @@ const Packs = () => {
           </div>
         </div>
       ) : (
-          <div className="fixed inset-0 z-[60] bg-background flex flex-col items-center justify-center p-4"
-            style={{ touchAction: 'none' }}
+          <div className="fixed inset-0 z-[60] bg-background flex flex-col items-center justify-center p-4 select-none"
+            style={{ touchAction: 'pan-y' }}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
           >
             <Button
               variant="ghost"
@@ -163,17 +235,31 @@ const Packs = () => {
               <X className="w-5 h-5" />
             </Button>
 
-            <div className="relative mb-6">
+            <div
+              className="relative mb-6 cursor-grab active:cursor-grabbing"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              onMouseDown={handleMouseDown}
+            >
               <div className="absolute -inset-8 bg-gradient-radial from-primary/20 via-transparent to-transparent blur-2xl" />
-              {revealedCards[currentCardIndex] && (
-                <MysteryCard
-                  key={currentCardIndex}
-                  card={revealedCards[currentCardIndex]}
-                  isRevealed={cardRevealed}
-                  onReveal={handleRevealCard}
-                  size="lg"
-                />
-              )}
+              <div
+                style={{
+                  transform: `translateX(${slideDir === 'left' ? -300 : dragX}px) rotate(${(slideDir === 'left' ? -300 : dragX) * 0.05}deg)`,
+                  opacity: slideDir === 'left' ? 0 : 1 - Math.min(Math.abs(dragX) / 300, 0.5),
+                  transition: isDragging ? 'none' : 'transform 0.25s ease-out, opacity 0.25s ease-out',
+                }}
+              >
+                {revealedCards[currentCardIndex] && (
+                  <MysteryCard
+                    key={currentCardIndex}
+                    card={revealedCards[currentCardIndex]}
+                    isRevealed={cardRevealed}
+                    onReveal={handleRevealCard}
+                    size="lg"
+                  />
+                )}
+              </div>
             </div>
 
             <div className="flex gap-2 mb-4">
@@ -197,21 +283,10 @@ const Packs = () => {
             </p>
 
             {cardRevealed && (
-              <Button 
-                variant="gold" 
-                size="lg"
-                onClick={handleNextCard}
-                className="mt-4 gap-2"
-              >
-                {currentCardIndex < revealedCards.length - 1 ? (
-                  <>
-                    {t('packs.nextCard')}
-                    <ChevronRight className="w-5 h-5" />
-                  </>
-                ) : (
-                  t('common.finish')
-                )}
-              </Button>
+              <div className="mt-4 flex items-center gap-1 text-muted-foreground text-sm animate-fade-in">
+                <ChevronLeft className="w-4 h-4 animate-[pulse_1.5s_ease-in-out_infinite]" />
+                <span>{currentCardIndex >= revealedCards.length - 1 ? t('common.finish') : t('packs.swipeHint', 'Swipez pour continuer')}</span>
+              </div>
             )}
           </div>
         )}
