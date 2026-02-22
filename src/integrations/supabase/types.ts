@@ -260,6 +260,42 @@ export type Database = {
         }
         Relationships: []
       }
+      global_gifs: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          height: number
+          id: string
+          url: string
+          visible: boolean
+          width: number
+          x: number
+          y: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          height?: number
+          id?: string
+          url: string
+          visible?: boolean
+          width?: number
+          x?: number
+          y?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          height?: number
+          id?: string
+          url?: string
+          visible?: boolean
+          width?: number
+          x?: number
+          y?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
