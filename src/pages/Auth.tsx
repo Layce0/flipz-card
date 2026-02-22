@@ -202,7 +202,7 @@ const Auth = () => {
           <button
             type="button"
             onClick={() => setIsLogin(!isLogin)}
-            className="text-sm text-muted-foreground hover:text-primary transition-colors"
+            className="text-sm text-primary/80 hover:text-primary font-medium underline underline-offset-4 transition-colors"
           >
             {isLogin ? t('auth.noAccount') : t('auth.hasAccount')}
           </button>
