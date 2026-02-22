@@ -101,12 +101,12 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         {/* Header with logo */}
-        <div className="flex items-center justify-center gap-4 mb-8">
-          <div className="relative">
+        <div className="flex flex-col items-center mb-6">
+          <div className="relative w-full">
             <div className="absolute -inset-4 bg-gradient-radial from-primary/30 via-primary/10 to-transparent blur-xl rounded-full pulse-glow" />
-            <img src={flipzLogo} alt="FLIPZ" className="h-36 sm:h-44 mx-auto rounded-2xl relative z-10" />
+            <img src={flipzLogo} alt="FLIPZ" className="w-full rounded-2xl relative z-10" />
           </div>
-          <div className="w-24 h-24 sm:w-28 sm:h-28">
+          <div className="w-20 h-20 sm:w-24 sm:h-24 mt-2">
             <Lottie animationData={catAnimation} loop />
           </div>
         </div>
