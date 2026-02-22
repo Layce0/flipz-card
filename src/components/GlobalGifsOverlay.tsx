@@ -46,21 +46,40 @@ export const GlobalGifsOverlay = () => {
 
   return (
     <>
-      {visibleGifs.map((gif) => (
-        <img
-          key={gif.id}
-          src={gif.url}
-          alt=""
-          onClick={() => gif.click_target_id && handleClick(gif)}
-          className={`absolute z-40 object-contain ${gif.click_target_id ? 'cursor-pointer' : 'pointer-events-none'}`}
-          style={{
-            left: gif.x,
-            top: gif.y,
-            width: gif.width,
-            height: gif.height,
-          }}
-        />
-      ))}
+      {visibleGifs.map((gif) =>
+        gif.url.match(/\.(mp4|webm|mov|avi)(\?|$)/i) ? (
+          <video
+            key={gif.id}
+            src={gif.url}
+            autoPlay
+            loop
+            muted
+            playsInline
+            onClick={() => gif.click_target_id && handleClick(gif)}
+            className={`absolute z-40 object-contain ${gif.click_target_id ? 'cursor-pointer' : 'pointer-events-none'}`}
+            style={{
+              left: gif.x,
+              top: gif.y,
+              width: gif.width,
+              height: gif.height,
+            }}
+          />
+        ) : (
+          <img
+            key={gif.id}
+            src={gif.url}
+            alt=""
+            onClick={() => gif.click_target_id && handleClick(gif)}
+            className={`absolute z-40 object-contain ${gif.click_target_id ? 'cursor-pointer' : 'pointer-events-none'}`}
+            style={{
+              left: gif.x,
+              top: gif.y,
+              width: gif.width,
+              height: gif.height,
+            }}
+          />
+        )
+      )}
     </>
   );
 };
