@@ -1,12 +1,16 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useGlobalGifs } from '@/hooks/useGlobalGifs';
+
+// Persists across navigations within the same session
+const playedVideoIds = new Set<string>();
 
 export const GlobalGifsOverlay = () => {
   const { data: gifs = [] } = useGlobalGifs();
   const { pathname } = useLocation();
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
   const [triggeredIds, setTriggeredIds] = useState<Set<string>>(new Set());
+  const [playedIds, setPlayedIds] = useState<Set<string>>(() => new Set(playedVideoIds));
 
   const pageGifs = gifs.filter(g => g.page === pathname);
 
@@ -46,14 +50,20 @@ export const GlobalGifsOverlay = () => {
 
   return (
     <>
-      {visibleGifs.map((gif) =>
-        gif.url.match(/\.(mp4|webm|mov|avi)(\?|$)/i) ? (
+      {visibleGifs.map((gif) => {
+        const isVideo = gif.url.match(/\.(mp4|webm|mov|avi)(\?|$)/i);
+        if (isVideo && playedIds.has(gif.id)) return null;
+        return isVideo ? (
           <video
             key={gif.id}
             src={gif.url}
             autoPlay
             muted
             playsInline
+            onEnded={() => {
+              playedVideoIds.add(gif.id);
+              setPlayedIds(prev => new Set(prev).add(gif.id));
+            }}
             onClick={() => gif.click_target_id && handleClick(gif)}
             className={`absolute z-40 object-contain ${gif.click_target_id ? 'cursor-pointer' : 'pointer-events-none'}`}
             style={{
@@ -77,8 +87,8 @@ export const GlobalGifsOverlay = () => {
               height: gif.height,
             }}
           />
-        )
-      )}
+        );
+      })}
     </>
   );
 };
