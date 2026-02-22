@@ -23,6 +23,7 @@ export const GlobalGifsManager = () => {
   const deleteGif = useDeleteGif();
   const uploadGif = useUploadGif();
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewPage, setPreviewPage] = useState('/');
   const [dragOver, setDragOver] = useState(false);
   const [selectedPage, setSelectedPage] = useState('/');
 
@@ -194,43 +195,64 @@ export const GlobalGifsManager = () => {
 
       {/* Positioning dialog */}
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-        <DialogContent className="max-w-[95vw] w-[95vw] h-[80vh] p-0 overflow-hidden">
-          <DialogHeader className="p-4 pb-0">
-            <DialogTitle>Positionner les GIFs (drag & resize)</DialogTitle>
+        <DialogContent className="max-w-[95vw] w-[95vw] h-[85vh] p-0 overflow-hidden flex flex-col">
+          <DialogHeader className="p-4 pb-2 flex flex-row items-center gap-4 shrink-0">
+            <DialogTitle className="whitespace-nowrap">Positionner les GIFs</DialogTitle>
+            <Select value={previewPage} onValueChange={setPreviewPage}>
+              <SelectTrigger className="w-40 h-8 text-xs bg-card border-border">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PAGES.map(p => (
+                  <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </DialogHeader>
-          <div className="relative flex-1 h-full bg-background/50" style={{ minHeight: '60vh' }}>
-            {gifs.map((gif) => (
-              <Rnd
-                key={gif.id}
-                default={{
-                  x: gif.x,
-                  y: gif.y,
-                  width: gif.width,
-                  height: gif.height,
-                }}
-                bounds="parent"
-                onDragStop={(_e, d) => {
-                  updateGif.mutate({ id: gif.id, x: Math.round(d.x), y: Math.round(d.y) });
-                }}
-                onResizeStop={(_e, _dir, ref, _delta, pos) => {
-                  updateGif.mutate({
-                    id: gif.id,
-                    width: parseInt(ref.style.width),
-                    height: parseInt(ref.style.height),
-                    x: Math.round(pos.x),
-                    y: Math.round(pos.y),
-                  });
-                }}
-                className="border border-dashed border-primary/50 rounded"
-              >
-                <div className="relative w-full h-full">
+          <div className="relative flex-1 overflow-hidden">
+            {/* Page preview as background */}
+            <iframe
+              src={`${window.location.origin}${previewPage}`}
+              className="absolute inset-0 w-full h-full border-0 pointer-events-none opacity-40"
+              title="Aperçu de la page"
+            />
+            {/* Draggable GIFs for the selected page */}
+            <div className="absolute inset-0 z-10">
+              {gifs.filter(g => g.page === previewPage).map((gif) => (
+                <Rnd
+                  key={gif.id}
+                  default={{
+                    x: gif.x,
+                    y: gif.y,
+                    width: gif.width,
+                    height: gif.height,
+                  }}
+                  bounds="parent"
+                  onDragStop={(_e, d) => {
+                    updateGif.mutate({ id: gif.id, x: Math.round(d.x), y: Math.round(d.y) });
+                  }}
+                  onResizeStop={(_e, _dir, ref, _delta, pos) => {
+                    updateGif.mutate({
+                      id: gif.id,
+                      width: parseInt(ref.style.width),
+                      height: parseInt(ref.style.height),
+                      x: Math.round(pos.x),
+                      y: Math.round(pos.y),
+                    });
+                  }}
+                  className="border-2 border-dashed border-primary/60 rounded bg-black/10"
+                >
                   <img src={gif.url} alt="" className="w-full h-full object-contain pointer-events-none" />
-                  <span className="absolute bottom-0 left-0 bg-background/80 text-[10px] px-1 rounded-tr text-foreground">
-                    {getPageLabel(gif.page)}
-                  </span>
+                </Rnd>
+              ))}
+              {gifs.filter(g => g.page === previewPage).length === 0 && (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-muted-foreground text-sm bg-background/80 px-4 py-2 rounded-lg">
+                    Aucun GIF sur la page {getPageLabel(previewPage)}
+                  </p>
                 </div>
-              </Rnd>
-            ))}
+              )}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
