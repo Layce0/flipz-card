@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { Rnd } from 'react-rnd';
 import { useGlobalGifs, useCreateGif, useUpdateGif, useDeleteGif, useUploadGif, GlobalGif } from '@/hooks/useGlobalGifs';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,92 @@ const PAGES = [
   { value: '/shop', label: 'Boutique' },
   { value: '/profile', label: 'Profil' },
 ];
+
+const PositioningArea = ({
+  gifs,
+  previewPage,
+  getPageLabel,
+  onUpdate,
+}: {
+  gifs: GlobalGif[];
+  previewPage: string;
+  getPageLabel: (path: string) => string;
+  onUpdate: (id: string, data: { x?: number; y?: number; width?: number; height?: number }) => void;
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+  const vw = typeof window !== 'undefined' ? window.innerWidth : 1920;
+  const vh = typeof window !== 'undefined' ? window.innerHeight : 1080;
+
+  useEffect(() => {
+    const updateScale = () => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const scaleX = rect.width / vw;
+      const scaleY = rect.height / vh;
+      setScale(Math.min(scaleX, scaleY));
+    };
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, [vw, vh]);
+
+  return (
+    <div ref={containerRef} className="relative flex-1 overflow-hidden">
+      <div
+        style={{
+          width: vw,
+          height: vh,
+          transform: `scale(${scale})`,
+          transformOrigin: 'top left',
+        }}
+        className="absolute top-0 left-0"
+      >
+        <iframe
+          src={`${window.location.origin}${previewPage}`}
+          className="absolute inset-0 w-full h-full border-0 pointer-events-none opacity-40"
+          title="Aperçu de la page"
+        />
+        <div className="absolute inset-0 z-10">
+          {gifs.map((gif) => (
+            <Rnd
+              key={gif.id}
+              default={{
+                x: gif.x,
+                y: gif.y,
+                width: gif.width,
+                height: gif.height,
+              }}
+              bounds="parent"
+              scale={scale}
+              onDragStop={(_e, d) => {
+                onUpdate(gif.id, { x: Math.round(d.x), y: Math.round(d.y) });
+              }}
+              onResizeStop={(_e, _dir, ref, _delta, pos) => {
+                onUpdate(gif.id, {
+                  width: parseInt(ref.style.width),
+                  height: parseInt(ref.style.height),
+                  x: Math.round(pos.x),
+                  y: Math.round(pos.y),
+                });
+              }}
+              className="border-2 border-dashed border-primary/60 rounded bg-black/10"
+            >
+              <img src={gif.url} alt="" className="w-full h-full object-contain pointer-events-none" />
+            </Rnd>
+          ))}
+          {gifs.length === 0 && (
+            <div className="flex items-center justify-center h-full">
+              <p className="text-muted-foreground text-sm bg-background/80 px-4 py-2 rounded-lg">
+                Aucun GIF sur la page {getPageLabel(previewPage)}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const GlobalGifsManager = () => {
   const { data: gifs = [], isLoading } = useGlobalGifs(true);
@@ -209,51 +295,12 @@ export const GlobalGifsManager = () => {
               </SelectContent>
             </Select>
           </DialogHeader>
-          <div className="relative flex-1 overflow-hidden">
-            {/* Page preview as background */}
-            <iframe
-              src={`${window.location.origin}${previewPage}`}
-              className="absolute inset-0 w-full h-full border-0 pointer-events-none opacity-40"
-              title="Aperçu de la page"
-            />
-            {/* Draggable GIFs for the selected page */}
-            <div className="absolute inset-0 z-10">
-              {gifs.filter(g => g.page === previewPage).map((gif) => (
-                <Rnd
-                  key={gif.id}
-                  default={{
-                    x: gif.x,
-                    y: gif.y,
-                    width: gif.width,
-                    height: gif.height,
-                  }}
-                  bounds="parent"
-                  onDragStop={(_e, d) => {
-                    updateGif.mutate({ id: gif.id, x: Math.round(d.x), y: Math.round(d.y) });
-                  }}
-                  onResizeStop={(_e, _dir, ref, _delta, pos) => {
-                    updateGif.mutate({
-                      id: gif.id,
-                      width: parseInt(ref.style.width),
-                      height: parseInt(ref.style.height),
-                      x: Math.round(pos.x),
-                      y: Math.round(pos.y),
-                    });
-                  }}
-                  className="border-2 border-dashed border-primary/60 rounded bg-black/10"
-                >
-                  <img src={gif.url} alt="" className="w-full h-full object-contain pointer-events-none" />
-                </Rnd>
-              ))}
-              {gifs.filter(g => g.page === previewPage).length === 0 && (
-                <div className="flex items-center justify-center h-full">
-                  <p className="text-muted-foreground text-sm bg-background/80 px-4 py-2 rounded-lg">
-                    Aucun GIF sur la page {getPageLabel(previewPage)}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
+          <PositioningArea
+            gifs={gifs.filter(g => g.page === previewPage)}
+            previewPage={previewPage}
+            getPageLabel={getPageLabel}
+            onUpdate={(id, data) => updateGif.mutate({ id, ...data })}
+          />
         </DialogContent>
       </Dialog>
     </section>
