@@ -52,7 +52,6 @@ export const GlobalGifsOverlay = () => {
             key={gif.id}
             src={gif.url}
             autoPlay
-            loop
             muted
             playsInline
             onClick={() => gif.click_target_id && handleClick(gif)}
