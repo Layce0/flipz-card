@@ -116,9 +116,9 @@ export const GlobalGifsManager = () => {
   const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
-    const files = Array.from(e.dataTransfer.files).filter(f => f.type === 'image/gif');
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
     if (files.length === 0) {
-      toast.error('Seuls les fichiers GIF sont acceptés');
+      toast.error('Seuls les fichiers image sont acceptés');
       return;
     }
     for (const file of files) {
@@ -133,9 +133,9 @@ export const GlobalGifsManager = () => {
   }, [uploadGif, createGif, selectedPage]);
 
   const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []).filter(f => f.type === 'image/gif');
+    const files = Array.from(e.target.files || []).filter(f => f.type.startsWith('image/'));
     if (files.length === 0) {
-      toast.error('Seuls les fichiers GIF sont acceptés');
+      toast.error('Seuls les fichiers image sont acceptés');
       return;
     }
     for (const file of files) {
@@ -182,7 +182,7 @@ export const GlobalGifsManager = () => {
     <section>
       <h2 className="font-display text-lg mb-4 text-foreground flex items-center gap-2">
         <Image className="w-5 h-5 text-primary" />
-        GIFs Globaux ({gifs.length})
+        GIFs / Images ({gifs.length})
       </h2>
 
       {/* Page selector for new uploads */}
@@ -215,7 +215,7 @@ export const GlobalGifsManager = () => {
           <>
             <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
             <p className="text-sm text-muted-foreground mb-2">
-              Glissez des GIF ici ou
+              Glissez des GIF ou images ici ou
             </p>
             <label className="cursor-pointer">
               <Button variant="outline" size="sm" asChild>
@@ -223,7 +223,7 @@ export const GlobalGifsManager = () => {
               </Button>
               <input
                 type="file"
-                accept="image/gif"
+                accept="image/*"
                 multiple
                 onChange={handleFileInput}
                 className="hidden"
