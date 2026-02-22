@@ -1,5 +1,6 @@
 import { Rarity, RARITY_CONFIG } from '@/types/card';
 import { cn } from '@/lib/utils';
+import { Sparkles, Star, Crown, Gem, Layers } from 'lucide-react';
 
 interface RarityTabsProps {
   activeRarity: Rarity | 'all';
@@ -7,6 +8,14 @@ interface RarityTabsProps {
   counts: Record<Rarity | 'all', number>;
   collectedCounts?: Record<Rarity | 'all', number>;
 }
+
+const rarityIcons: Record<Rarity | 'all', React.ElementType> = {
+  all: Layers,
+  common: Star,
+  rare: Gem,
+  epic: Sparkles,
+  legendary: Crown,
+};
 
 const rarities: (Rarity | 'all')[] = ['all', 'common', 'rare', 'epic', 'legendary'];
 
@@ -18,30 +27,42 @@ export const RarityTabs = ({ activeRarity, onRarityChange, counts, collectedCoun
         const config = rarity === 'all' ? null : RARITY_CONFIG[rarity];
         const count = counts[rarity];
         const collected = collectedCounts?.[rarity];
-        
+        const Icon = rarityIcons[rarity];
+        const activeColor = config?.color ?? 'hsl(45, 90%, 55%)';
+
         return (
           <button
             key={rarity}
             onClick={() => onRarityChange(rarity)}
             className={cn(
-              "flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 border",
+              "flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-display font-semibold transition-all duration-300 border",
               isActive
-                ? "border-primary bg-primary/20 text-primary"
-                : "border-border bg-card/50 text-muted-foreground hover:border-primary/50"
+                ? "shadow-lg scale-[1.02]"
+                : "border-border/50 bg-card/30 text-muted-foreground hover:bg-card/60 hover:border-border"
             )}
             style={
-              isActive && config
-                ? { 
-                    borderColor: config.color, 
-                    backgroundColor: `${config.color}20`,
-                    color: config.color 
+              isActive
+                ? {
+                    borderColor: activeColor,
+                    backgroundColor: `${activeColor}15`,
+                    color: activeColor,
+                    boxShadow: `0 0 20px ${activeColor}30`,
                   }
                 : undefined
             }
           >
-            {rarity === 'all' ? 'Toutes' : config?.label}
-            <span className="ml-2 text-xs opacity-70">
-              {collectedCounts ? `(${collected}/${count})` : `(${count})`}
+            <Icon
+              className="w-4 h-4"
+              style={isActive ? { color: activeColor } : undefined}
+            />
+            <span>{rarity === 'all' ? 'Toutes' : config?.label}</span>
+            <span
+              className={cn(
+                "text-[10px] px-1.5 py-0.5 rounded-full font-medium",
+                isActive ? "bg-white/10" : "bg-muted/50"
+              )}
+            >
+              {collectedCounts ? `${collected}/${count}` : count}
             </span>
           </button>
         );
