@@ -8,7 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Mail, Lock, LogIn, UserPlus, Eye, EyeOff, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import Lottie from 'lottie-react';
 import flipzLogo from '@/assets/flipz-logo-new.jpeg';
+import catAnimation from '@/assets/lottie-cat.json';
 
 const passwordRules = [
   { key: 'minLength', test: (p: string) => p.length >= 8, label: '8 caractères minimum' },
@@ -99,8 +101,16 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         {/* Header with logo */}
-        <div className="text-center mb-8">
-          <img src={flipzLogo} alt="FLIPZ" className="h-36 sm:h-44 mx-auto mb-4 rounded-2xl" />
+        <div className="flex items-center justify-center gap-4 mb-8">
+          <div className="relative">
+            <div className="absolute -inset-4 bg-gradient-radial from-primary/30 via-primary/10 to-transparent blur-xl rounded-full pulse-glow" />
+            <img src={flipzLogo} alt="FLIPZ" className="h-36 sm:h-44 mx-auto rounded-2xl relative z-10" />
+          </div>
+          <div className="w-24 h-24 sm:w-28 sm:h-28">
+            <Lottie animationData={catAnimation} loop />
+          </div>
+        </div>
+        <div className="text-center mb-6">
           <p className="text-muted-foreground text-sm">
             {isLogin ? t('auth.loginSubtitle') : t('auth.signupSubtitle')}
           </p>
