@@ -25,6 +25,7 @@ const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
@@ -60,6 +61,12 @@ const Auth = () => {
 
     if (!isLogin && !allPasswordValid) {
       toast.error('Le mot de passe ne respecte pas tous les critères de sécurité.');
+      setIsLoading(false);
+      return;
+    }
+
+    if (!isLogin && password !== confirmPassword) {
+      toast.error('Les mots de passe ne correspondent pas.');
       setIsLoading(false);
       return;
     }
@@ -154,7 +161,31 @@ const Auth = () => {
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
+          </div>
+
+          {/* Confirm password - signup only */}
+          {!isLogin && (
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  id="confirmPassword"
+                  type={showPassword ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="bg-card border-border pl-10"
+                  required
+                />
+              </div>
+              {confirmPassword.length > 0 && password !== confirmPassword && (
+                <p className="text-xs text-destructive flex items-center gap-1">
+                  <X className="w-3.5 h-3.5" /> Les mots de passe ne correspondent pas
+                </p>
+              )}
             </div>
+          )}
           </div>
 
           {/* Password strength indicator - signup only */}
@@ -179,7 +210,7 @@ const Auth = () => {
             type="submit"
             variant="gold"
             className="w-full"
-            disabled={isLoading || (!isLogin && !allPasswordValid && password.length > 0)}
+            disabled={isLoading || (!isLogin && (!allPasswordValid || password !== confirmPassword) && password.length > 0)}
           >
             {isLoading ? (
               <span className="animate-pulse">{t('common.loading')}</span>
