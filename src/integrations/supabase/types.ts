@@ -266,6 +266,7 @@ export type Database = {
           created_by: string | null
           height: number
           id: string
+          page: string
           url: string
           visible: boolean
           width: number
@@ -277,6 +278,7 @@ export type Database = {
           created_by?: string | null
           height?: number
           id?: string
+          page?: string
           url: string
           visible?: boolean
           width?: number
@@ -288,6 +290,7 @@ export type Database = {
           created_by?: string | null
           height?: number
           id?: string
+          page?: string
           url?: string
           visible?: boolean
           width?: number

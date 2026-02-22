@@ -1,13 +1,17 @@
+import { useLocation } from 'react-router-dom';
 import { useGlobalGifs } from '@/hooks/useGlobalGifs';
 
 export const GlobalGifsOverlay = () => {
   const { data: gifs = [] } = useGlobalGifs();
+  const { pathname } = useLocation();
 
-  if (gifs.length === 0) return null;
+  const visibleGifs = gifs.filter(g => g.visible && g.page === pathname);
+
+  if (visibleGifs.length === 0) return null;
 
   return (
     <>
-      {gifs.filter(g => g.visible).map((gif) => (
+      {visibleGifs.map((gif) => (
         <img
           key={gif.id}
           src={gif.url}
