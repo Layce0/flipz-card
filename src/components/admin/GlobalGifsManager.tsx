@@ -87,7 +87,11 @@ const PositioningArea = ({
               className="border-2 border-dashed border-primary/60 rounded bg-black/10"
             >
               <div className="relative w-full h-full">
-                <img src={gif.url} alt="" className="w-full h-full object-contain pointer-events-none" />
+                {gif.url.match(/\.(mp4|webm|mov|avi)(\?|$)/i) ? (
+                  <video src={gif.url} className="w-full h-full object-contain pointer-events-none" muted />
+                ) : (
+                  <img src={gif.url} alt="" className="w-full h-full object-contain pointer-events-none" />
+                )}
                 <span className="absolute top-0 left-0 bg-primary text-primary-foreground text-xs font-bold px-1.5 py-0.5 rounded-br">
                   #{index + 1}
                 </span>
@@ -121,9 +125,9 @@ export const GlobalGifsManager = () => {
   const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
-    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/') || f.type.startsWith('video/'));
     if (files.length === 0) {
-      toast.error('Seuls les fichiers image sont acceptés');
+      toast.error('Seuls les fichiers image ou vidéo sont acceptés');
       return;
     }
     for (const file of files) {
@@ -138,9 +142,9 @@ export const GlobalGifsManager = () => {
   }, [uploadGif, createGif, selectedPage]);
 
   const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []).filter(f => f.type.startsWith('image/'));
+    const files = Array.from(e.target.files || []).filter(f => f.type.startsWith('image/') || f.type.startsWith('video/'));
     if (files.length === 0) {
-      toast.error('Seuls les fichiers image sont acceptés');
+      toast.error('Seuls les fichiers image ou vidéo sont acceptés');
       return;
     }
     for (const file of files) {
@@ -187,7 +191,7 @@ export const GlobalGifsManager = () => {
     <section>
       <h2 className="font-display text-lg mb-4 text-foreground flex items-center gap-2">
         <Image className="w-5 h-5 text-primary" />
-        GIFs / Images ({gifs.length})
+        GIFs / Images / Vidéos ({gifs.length})
       </h2>
 
       {/* Page selector for new uploads */}
@@ -220,7 +224,7 @@ export const GlobalGifsManager = () => {
           <>
             <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
             <p className="text-sm text-muted-foreground mb-2">
-              Glissez des GIF ou images ici ou
+              Glissez des GIF, images ou vidéos ici ou
             </p>
             <label className="cursor-pointer">
               <Button variant="outline" size="sm" asChild>
@@ -228,7 +232,7 @@ export const GlobalGifsManager = () => {
               </Button>
               <input
                 type="file"
-                accept="image/*"
+                accept="image/*,video/*"
                 multiple
                 onChange={handleFileInput}
                 className="hidden"
@@ -255,7 +259,11 @@ export const GlobalGifsManager = () => {
           {gifs.map((gif, index) => (
             <div key={gif.id} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
               <span className="text-xs font-bold text-primary min-w-[24px]">#{index + 1}</span>
-              <img src={gif.url} alt="" className="w-12 h-12 object-cover rounded" />
+              {gif.url.match(/\.(mp4|webm|mov|avi)(\?|$)/i) ? (
+                <video src={gif.url} className="w-12 h-12 object-cover rounded" muted />
+              ) : (
+                <img src={gif.url} alt="" className="w-12 h-12 object-cover rounded" />
+              )}
               <div className="flex-1 min-w-0 space-y-1">
                 <p className="text-xs text-muted-foreground truncate">
                   {gif.width}×{gif.height} — ({gif.x}, {gif.y})
