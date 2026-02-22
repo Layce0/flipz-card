@@ -9,6 +9,7 @@ export interface GlobalGif {
   width: number;
   height: number;
   visible: boolean;
+  page: string;
   created_by: string | null;
   created_at: string;
 }
@@ -30,7 +31,7 @@ export const useGlobalGifs = (adminMode = false) => {
 export const useCreateGif = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (gif: { url: string; x?: number; y?: number; width?: number; height?: number }) => {
+    mutationFn: async (gif: { url: string; x?: number; y?: number; width?: number; height?: number; page?: string }) => {
       const { data: { user } } = await supabase.auth.getUser();
       const { error } = await supabase.from('global_gifs' as any).insert({
         url: gif.url,
@@ -39,6 +40,7 @@ export const useCreateGif = () => {
         width: gif.width ?? 150,
         height: gif.height ?? 150,
         created_by: user?.id,
+        page: gif.page ?? '/',
       } as any);
       if (error) throw error;
     },
@@ -49,7 +51,7 @@ export const useCreateGif = () => {
 export const useUpdateGif = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (gif: { id: string; x?: number; y?: number; width?: number; height?: number; visible?: boolean }) => {
+    mutationFn: async (gif: { id: string; x?: number; y?: number; width?: number; height?: number; visible?: boolean; page?: string }) => {
       const { id, ...updates } = gif;
       const { error } = await supabase.from('global_gifs' as any).update(updates as any).eq('id', id);
       if (error) throw error;

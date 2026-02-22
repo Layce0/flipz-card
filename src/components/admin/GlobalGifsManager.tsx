@@ -2,11 +2,19 @@ import { useState, useCallback } from 'react';
 import { Rnd } from 'react-rnd';
 import { useGlobalGifs, useCreateGif, useUpdateGif, useDeleteGif, useUploadGif, GlobalGif } from '@/hooks/useGlobalGifs';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, Trash2, Upload, Image, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+
+const PAGES = [
+  { value: '/', label: 'Accueil' },
+  { value: '/collection', label: 'Collection' },
+  { value: '/packs', label: 'Packs' },
+  { value: '/shop', label: 'Boutique' },
+  { value: '/profile', label: 'Profil' },
+];
 
 export const GlobalGifsManager = () => {
   const { data: gifs = [], isLoading } = useGlobalGifs(true);
@@ -16,6 +24,7 @@ export const GlobalGifsManager = () => {
   const uploadGif = useUploadGif();
   const [previewOpen, setPreviewOpen] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [selectedPage, setSelectedPage] = useState('/');
 
   const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
@@ -28,13 +37,13 @@ export const GlobalGifsManager = () => {
     for (const file of files) {
       try {
         const url = await uploadGif.mutateAsync(file);
-        await createGif.mutateAsync({ url });
+        await createGif.mutateAsync({ url, page: selectedPage });
         toast.success('GIF ajouté !');
       } catch {
         toast.error("Erreur lors de l'upload");
       }
     }
-  }, [uploadGif, createGif]);
+  }, [uploadGif, createGif, selectedPage]);
 
   const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []).filter(f => f.type === 'image/gif');
@@ -45,7 +54,7 @@ export const GlobalGifsManager = () => {
     for (const file of files) {
       try {
         const url = await uploadGif.mutateAsync(file);
-        await createGif.mutateAsync({ url });
+        await createGif.mutateAsync({ url, page: selectedPage });
         toast.success('GIF ajouté !');
       } catch {
         toast.error("Erreur lors de l'upload");
@@ -72,12 +81,37 @@ export const GlobalGifsManager = () => {
     }
   };
 
+  const handlePageChange = async (gif: GlobalGif, page: string) => {
+    try {
+      await updateGif.mutateAsync({ id: gif.id, page });
+    } catch {
+      toast.error('Erreur');
+    }
+  };
+
+  const getPageLabel = (path: string) => PAGES.find(p => p.value === path)?.label ?? path;
+
   return (
     <section>
       <h2 className="font-display text-lg mb-4 text-foreground flex items-center gap-2">
         <Image className="w-5 h-5 text-primary" />
         GIFs Globaux ({gifs.length})
       </h2>
+
+      {/* Page selector for new uploads */}
+      <div className="mb-3">
+        <Label className="text-sm mb-1 block">Page cible pour les nouveaux GIFs</Label>
+        <Select value={selectedPage} onValueChange={setSelectedPage}>
+          <SelectTrigger className="bg-card border-border w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {PAGES.map(p => (
+              <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
       {/* Drop zone */}
       <div
@@ -129,20 +163,27 @@ export const GlobalGifsManager = () => {
           {gifs.map((gif) => (
             <div key={gif.id} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
               <img src={gif.url} alt="" className="w-12 h-12 object-cover rounded" />
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 space-y-1">
                 <p className="text-xs text-muted-foreground truncate">
                   {gif.width}×{gif.height} — ({gif.x}, {gif.y})
                 </p>
+                <Select value={gif.page} onValueChange={(v) => handlePageChange(gif, v)}>
+                  <SelectTrigger className="h-7 text-xs w-32 bg-background border-border">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PAGES.map(p => (
+                      <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="flex items-center gap-1">
-                <Label htmlFor={`vis-${gif.id}`} className="sr-only">Visible</Label>
-                <button
-                  onClick={() => handleToggleVisibility(gif)}
-                  className="p-2 rounded-md hover:bg-muted transition-colors"
-                >
-                  {gif.visible ? <Eye className="w-4 h-4 text-primary" /> : <EyeOff className="w-4 h-4 text-muted-foreground" />}
-                </button>
-              </div>
+              <button
+                onClick={() => handleToggleVisibility(gif)}
+                className="p-2 rounded-md hover:bg-muted transition-colors"
+              >
+                {gif.visible ? <Eye className="w-4 h-4 text-primary" /> : <EyeOff className="w-4 h-4 text-muted-foreground" />}
+              </button>
               <Button variant="ghost" size="icon" onClick={() => handleDelete(gif.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
                 <Trash2 className="w-4 h-4" />
               </Button>
@@ -182,7 +223,12 @@ export const GlobalGifsManager = () => {
                 }}
                 className="border border-dashed border-primary/50 rounded"
               >
-                <img src={gif.url} alt="" className="w-full h-full object-contain pointer-events-none" />
+                <div className="relative w-full h-full">
+                  <img src={gif.url} alt="" className="w-full h-full object-contain pointer-events-none" />
+                  <span className="absolute bottom-0 left-0 bg-background/80 text-[10px] px-1 rounded-tr text-foreground">
+                    {getPageLabel(gif.page)}
+                  </span>
+                </div>
               </Rnd>
             ))}
           </div>
