@@ -83,19 +83,36 @@ const Collection = () => {
     return null;
   }
 
+  const progressPercent = allCards.length > 0 ? Math.round((userCards.length / allCards.length) * 100) : 0;
+
   return (
     <div className="min-h-screen pb-24">
       {/* Header */}
-      <header className="pt-12 pb-6 px-4">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+      <header className="pt-12 pb-4 px-4">
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center glow-gold">
             <BookOpen className="w-5 h-5 text-primary" />
           </div>
-          <div>
-            <h1 className="font-display text-xl text-foreground">{t('collection.title')}</h1>
-            <p className="text-sm text-muted-foreground">
+          <h1 className="font-display text-2xl text-gradient-gold">{t('collection.title')}</h1>
+        </div>
+
+        {/* Progress bar */}
+        <div className="mt-3 mb-5">
+          <div className="flex justify-between items-center mb-1.5">
+            <p className="text-xs text-muted-foreground font-medium">
               {t('collection.uniqueCards', { collected: userCards.length, total: allCards.length, totalCount: totalCardsCollected })}
             </p>
+            <span className="text-xs font-display text-primary">{progressPercent}%</span>
+          </div>
+          <div className="h-2 rounded-full bg-muted/50 overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-700 ease-out"
+              style={{
+                width: `${progressPercent}%`,
+                background: 'linear-gradient(90deg, hsl(45 90% 55%), hsl(35 90% 50%))',
+                boxShadow: '0 0 12px hsl(45 90% 55% / 0.5)',
+              }}
+            />
           </div>
         </div>
 
