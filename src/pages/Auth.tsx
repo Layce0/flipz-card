@@ -100,7 +100,7 @@ const Auth = () => {
       <div className="w-full max-w-sm">
         {/* Header with logo */}
         <div className="text-center mb-8">
-          <img src={flipzLogo} alt="FLIPZ" className="h-24 sm:h-28 mx-auto mb-4 rounded-2xl" />
+          <img src={flipzLogo} alt="FLIPZ" className="h-36 sm:h-44 mx-auto mb-4 rounded-2xl" />
           <p className="text-muted-foreground text-sm">
             {isLogin ? t('auth.loginSubtitle') : t('auth.signupSubtitle')}
           </p>
