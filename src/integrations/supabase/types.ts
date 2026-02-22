@@ -262,10 +262,13 @@ export type Database = {
       }
       global_gifs: {
         Row: {
+          auto_hide_after_ms: number | null
+          click_target_id: string | null
           created_at: string
           created_by: string | null
           height: number
           id: string
+          initially_hidden: boolean
           page: string
           url: string
           visible: boolean
@@ -274,10 +277,13 @@ export type Database = {
           y: number
         }
         Insert: {
+          auto_hide_after_ms?: number | null
+          click_target_id?: string | null
           created_at?: string
           created_by?: string | null
           height?: number
           id?: string
+          initially_hidden?: boolean
           page?: string
           url: string
           visible?: boolean
@@ -286,10 +292,13 @@ export type Database = {
           y?: number
         }
         Update: {
+          auto_hide_after_ms?: number | null
+          click_target_id?: string | null
           created_at?: string
           created_by?: string | null
           height?: number
           id?: string
+          initially_hidden?: boolean
           page?: string
           url?: string
           visible?: boolean
@@ -297,7 +306,15 @@ export type Database = {
           x?: number
           y?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "global_gifs_click_target_id_fkey"
+            columns: ["click_target_id"]
+            isOneToOne: false
+            referencedRelation: "global_gifs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

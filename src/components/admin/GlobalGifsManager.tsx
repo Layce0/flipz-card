@@ -259,17 +259,51 @@ export const GlobalGifsManager = () => {
               <div className="flex-1 min-w-0 space-y-1">
                 <p className="text-xs text-muted-foreground truncate">
                   {gif.width}×{gif.height} — ({gif.x}, {gif.y})
+                  {gif.initially_hidden && ' · Caché par défaut'}
+                  {gif.auto_hide_after_ms && ` · Disparaît après ${gif.auto_hide_after_ms}ms`}
                 </p>
-                <Select value={gif.page} onValueChange={(v) => handlePageChange(gif, v)}>
-                  <SelectTrigger className="h-7 text-xs w-32 bg-background border-border">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PAGES.map(p => (
-                      <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Select value={gif.page} onValueChange={(v) => handlePageChange(gif, v)}>
+                    <SelectTrigger className="h-7 text-xs w-32 bg-background border-border">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PAGES.map(p => (
+                        <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    value={gif.click_target_id ?? '_none'}
+                    onValueChange={(v) => updateGif.mutate({ id: gif.id, click_target_id: v === '_none' ? null : v } as any)}
+                  >
+                    <SelectTrigger className="h-7 text-xs w-36 bg-background border-border">
+                      <SelectValue placeholder="Cible clic" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="_none">Aucune cible</SelectItem>
+                      {gifs.filter(g => g.id !== gif.id && g.page === gif.page).map((g, gi) => (
+                        <SelectItem key={g.id} value={g.id}>→ #{gifs.indexOf(g) + 1}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <label className="flex items-center gap-1 text-xs text-muted-foreground cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={gif.initially_hidden}
+                      onChange={(e) => updateGif.mutate({ id: gif.id, initially_hidden: e.target.checked } as any)}
+                      className="w-3 h-3"
+                    />
+                    Caché
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="ms"
+                    value={gif.auto_hide_after_ms ?? ''}
+                    onChange={(e) => updateGif.mutate({ id: gif.id, auto_hide_after_ms: e.target.value ? parseInt(e.target.value) : null } as any)}
+                    className="h-7 text-xs w-20 bg-background border border-border rounded px-1"
+                  />
+                </div>
               </div>
               <button
                 onClick={() => handleToggleVisibility(gif)}

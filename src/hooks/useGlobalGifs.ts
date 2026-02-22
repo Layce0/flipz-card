@@ -12,6 +12,9 @@ export interface GlobalGif {
   page: string;
   created_by: string | null;
   created_at: string;
+  click_target_id: string | null;
+  initially_hidden: boolean;
+  auto_hide_after_ms: number | null;
 }
 
 export const useGlobalGifs = (adminMode = false) => {
@@ -51,7 +54,7 @@ export const useCreateGif = () => {
 export const useUpdateGif = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (gif: { id: string; x?: number; y?: number; width?: number; height?: number; visible?: boolean; page?: string }) => {
+    mutationFn: async (gif: { id: string; x?: number; y?: number; width?: number; height?: number; visible?: boolean; page?: string; click_target_id?: string | null; initially_hidden?: boolean; auto_hide_after_ms?: number | null }) => {
       const { id, ...updates } = gif;
       const { error } = await supabase.from('global_gifs' as any).update(updates as any).eq('id', id);
       if (error) throw error;
