@@ -16,7 +16,7 @@ export const GlobalGifsOverlay = () => {
           key={gif.id}
           src={gif.url}
           alt=""
-          className="fixed pointer-events-none z-40 object-contain"
+          className="absolute pointer-events-none z-40 object-contain"
           style={{
             left: gif.x,
             top: gif.y,
