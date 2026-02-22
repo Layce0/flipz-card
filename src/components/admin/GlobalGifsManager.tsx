@@ -62,7 +62,7 @@ const PositioningArea = ({
           title="Aperçu de la page"
         />
         <div className="absolute inset-0 z-10">
-          {gifs.map((gif) => (
+          {gifs.map((gif, index) => (
             <Rnd
               key={gif.id}
               default={{
@@ -86,7 +86,12 @@ const PositioningArea = ({
               }}
               className="border-2 border-dashed border-primary/60 rounded bg-black/10"
             >
-              <img src={gif.url} alt="" className="w-full h-full object-contain pointer-events-none" />
+              <div className="relative w-full h-full">
+                <img src={gif.url} alt="" className="w-full h-full object-contain pointer-events-none" />
+                <span className="absolute top-0 left-0 bg-primary text-primary-foreground text-xs font-bold px-1.5 py-0.5 rounded-br">
+                  #{index + 1}
+                </span>
+              </div>
             </Rnd>
           ))}
           {gifs.length === 0 && (
@@ -247,8 +252,9 @@ export const GlobalGifsManager = () => {
         <p className="text-muted-foreground text-sm text-center">Aucun GIF</p>
       ) : (
         <div className="space-y-2">
-          {gifs.map((gif) => (
+          {gifs.map((gif, index) => (
             <div key={gif.id} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
+              <span className="text-xs font-bold text-primary min-w-[24px]">#{index + 1}</span>
               <img src={gif.url} alt="" className="w-12 h-12 object-cover rounded" />
               <div className="flex-1 min-w-0 space-y-1">
                 <p className="text-xs text-muted-foreground truncate">
