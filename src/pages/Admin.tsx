@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Shield, Plus, Trash2, Upload, Loader2, Gift, Save, Pencil } from 'lucide-react';
 import { RewardCodesManager } from '@/components/admin/RewardCodesManager';
 import { WinstreakRewardsManager } from '@/components/admin/WinstreakRewardsManager';
+import { GlobalGifsManager } from '@/components/admin/GlobalGifsManager';
 import { Rarity, RARITY_CONFIG, GameCard } from '@/types/card';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
@@ -484,6 +485,9 @@ const Admin = () => {
 
         {/* Winstreak Rewards Manager */}
         <WinstreakRewardsManager />
+
+        {/* Global GIFs Manager */}
+        <GlobalGifsManager />
 
 
         <section>

@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { AdminRoute } from "@/components/AdminRoute";
 import { ParticlesBackground } from "@/components/ParticlesBackground";
 import { ActiveBoostsOverlay } from "@/components/ActiveBoostsOverlay";
+import { GlobalGifsOverlay } from "@/components/GlobalGifsOverlay";
 import { Loader2 } from "lucide-react";
 import Index from "./pages/Index";
 
@@ -37,6 +38,7 @@ const App = () => (
         <AuthProvider>
           <ParticlesBackground />
           <ActiveBoostsOverlay />
+          <GlobalGifsOverlay />
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<Index />} />
