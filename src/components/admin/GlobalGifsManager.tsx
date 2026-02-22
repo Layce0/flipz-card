@@ -88,7 +88,7 @@ const PositioningArea = ({
             >
               <div className="relative w-full h-full">
                 {gif.url.match(/\.(mp4|webm|mov|avi)(\?|$)/i) ? (
-                  <video src={gif.url} className="w-full h-full object-contain pointer-events-none" muted />
+                  <video src={gif.url} className="w-full h-full object-contain pointer-events-none" muted autoPlay />
                 ) : (
                   <img src={gif.url} alt="" className="w-full h-full object-contain pointer-events-none" />
                 )}
