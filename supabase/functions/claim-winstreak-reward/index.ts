@@ -121,10 +121,12 @@ Deno.serve(async (req) => {
     let rewardDetails: Record<string, any> = { type: rewardType }
 
     // Process reward — same logic as redeem-code
+    let boostExpiresAt: string | null = null
     if (rewardType === 'boost_luck' || rewardType === 'boost_pack') {
-      // Store boost as a code_redemption with a synthetic code_id approach
-      // For winstreak boosts we record in winstreak_claims and the boost config is read from there
+      const durationHours = config.duration_hours || 24
+      boostExpiresAt = new Date(Date.now() + durationHours * 3600000).toISOString()
       rewardDetails.config = config
+      rewardDetails.boost_expires_at = boostExpiresAt
       rewardDetails.message = 'Boost activé !'
     } else if (rewardType === 'card') {
       const cardId = config.card_id
@@ -235,7 +237,8 @@ Deno.serve(async (req) => {
       .insert({
         user_id: userId,
         reward_id: rewardId,
-        day_number: dayNumber
+        day_number: dayNumber,
+        boost_expires_at: boostExpiresAt
       })
 
     return new Response(JSON.stringify({

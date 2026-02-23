@@ -488,6 +488,7 @@ export type Database = {
       }
       winstreak_claims: {
         Row: {
+          boost_expires_at: string | null
           claimed_at: string
           day_number: number
           id: string
@@ -495,6 +496,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          boost_expires_at?: string | null
           claimed_at?: string
           day_number: number
           id?: string
@@ -502,6 +504,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          boost_expires_at?: string | null
           claimed_at?: string
           day_number?: number
           id?: string
