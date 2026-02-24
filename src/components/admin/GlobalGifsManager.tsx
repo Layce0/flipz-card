@@ -16,6 +16,9 @@ const PAGES = [
   { value: '/profile', label: 'Profil' },
 ];
 
+const PAGE_WIDTH = 430; // mobile width reference
+const PAGE_HEIGHT = 4000; // tall enough to cover full scrollable page
+
 const PositioningArea = ({
   gifs,
   previewPage,
@@ -29,39 +32,60 @@ const PositioningArea = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
-  const vw = typeof window !== 'undefined' ? window.innerWidth : 1920;
-  const vh = typeof window !== 'undefined' ? window.innerHeight : 1080;
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [pageHeight, setPageHeight] = useState(PAGE_HEIGHT);
 
   useEffect(() => {
     const updateScale = () => {
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
-      const scaleX = rect.width / vw;
-      const scaleY = rect.height / vh;
-      setScale(Math.min(scaleX, scaleY));
+      setScale(rect.width / PAGE_WIDTH);
     };
     updateScale();
     window.addEventListener('resize', updateScale);
     return () => window.removeEventListener('resize', updateScale);
-  }, [vw, vh]);
+  }, []);
+
+  // Try to read actual page height from iframe
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+    const handleLoad = () => {
+      try {
+        const doc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (doc) {
+          const h = doc.documentElement.scrollHeight;
+          if (h > 500) setPageHeight(h);
+        }
+      } catch {
+        // cross-origin, keep default
+      }
+    };
+    iframe.addEventListener('load', handleLoad);
+    return () => iframe.removeEventListener('load', handleLoad);
+  }, [previewPage]);
 
   return (
-    <div ref={containerRef} className="relative flex-1 overflow-hidden">
+    <div ref={containerRef} className="relative flex-1 overflow-y-auto overflow-x-hidden">
       <div
         style={{
-          width: vw,
-          height: vh,
+          width: PAGE_WIDTH,
+          height: pageHeight,
           transform: `scale(${scale})`,
           transformOrigin: 'top left',
+          // Reserve scaled space so parent scrolls correctly
+          marginBottom: pageHeight * scale - pageHeight,
         }}
-        className="absolute top-0 left-0"
+        className="relative"
       >
         <iframe
+          ref={iframeRef}
           src={`${window.location.origin}${previewPage}`}
-          className="absolute inset-0 w-full h-full border-0 pointer-events-none opacity-40"
+          style={{ width: PAGE_WIDTH, height: pageHeight }}
+          className="absolute inset-0 border-0 pointer-events-none opacity-40"
           title="Aperçu de la page"
         />
-        <div className="absolute inset-0 z-10">
+        <div className="absolute inset-0 z-10" style={{ width: PAGE_WIDTH, height: pageHeight }}>
           {gifs.map((gif, index) => (
             <Rnd
               key={gif.id}
