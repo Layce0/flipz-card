@@ -65,7 +65,7 @@ export const GlobalGifsOverlay = () => {
               setPlayedIds(prev => new Set(prev).add(gif.id));
             }}
             onClick={() => gif.click_target_id && handleClick(gif)}
-            className={`absolute z-40 object-contain ${gif.click_target_id ? 'cursor-pointer' : 'pointer-events-none'}`}
+            className={`absolute z-30 object-contain ${gif.click_target_id ? 'cursor-pointer' : 'pointer-events-none'}`}
             style={{
               left: gif.x,
               top: gif.y,
@@ -79,7 +79,7 @@ export const GlobalGifsOverlay = () => {
             src={gif.url}
             alt=""
             onClick={() => gif.click_target_id && handleClick(gif)}
-            className={`absolute z-40 object-contain ${gif.click_target_id ? 'cursor-pointer' : 'pointer-events-none'}`}
+            className={`absolute z-30 object-contain ${gif.click_target_id ? 'cursor-pointer' : 'pointer-events-none'}`}
             style={{
               left: gif.x,
               top: gif.y,
