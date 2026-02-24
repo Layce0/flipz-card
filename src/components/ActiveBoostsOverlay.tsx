@@ -65,11 +65,25 @@ export const ActiveBoostsOverlay = () => {
 
   if (activeBoosts.length === 0) return null;
 
+  const luckBoosts = activeBoosts.filter((b) => b.reward_type === 'boost_luck');
+  const otherBoosts = activeBoosts.filter((b) => b.reward_type !== 'boost_luck');
+
   return (
-    <div className="fixed top-3 left-3 z-40 flex flex-col gap-1 pointer-events-none">
-      {activeBoosts.map((boost) => (
-        <BoostIndicator key={boost.id} boost={boost} />
-      ))}
-    </div>
+    <>
+      {otherBoosts.length > 0 && (
+        <div className="fixed top-3 left-3 z-40 flex flex-col gap-1 pointer-events-none">
+          {otherBoosts.map((boost) => (
+            <BoostIndicator key={boost.id} boost={boost} />
+          ))}
+        </div>
+      )}
+      {luckBoosts.length > 0 && (
+        <div className="fixed top-3 left-3 z-[60] flex flex-col gap-1 pointer-events-none" style={{ marginTop: otherBoosts.length * 32 }}>
+          {luckBoosts.map((boost) => (
+            <BoostIndicator key={boost.id} boost={boost} />
+          ))}
+        </div>
+      )}
+    </>
   );
 };
