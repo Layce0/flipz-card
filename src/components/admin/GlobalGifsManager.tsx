@@ -48,6 +48,16 @@ const PositioningArea = ({
     setPendingChanges(prev => ({ ...prev, [id]: { ...prev[id], ...data } }));
   };
 
+  const getEffective = (gif: GlobalGif) => {
+    const p = pendingChanges[gif.id];
+    return {
+      x: p?.x ?? gif.x,
+      y: p?.y ?? gif.y,
+      width: p?.width ?? gif.width,
+      height: p?.height ?? gif.height,
+    };
+  };
+
   const hasPending = Object.keys(pendingChanges).length > 0;
 
   return (
@@ -73,44 +83,49 @@ const PositioningArea = ({
               title="Aperçu de la page"
             />
             <div className="absolute inset-0 z-10" style={{ width: containerWidth, height: PAGE_HEIGHT }}>
-              {gifs.map((gif, index) => (
-                <Rnd
-                  key={gif.id}
-                  default={{
-                    x: (gif.x / 100) * containerWidth,
-                    y: gif.y,
-                    width: (gif.width / 100) * containerWidth,
-                    height: (gif.height / 100) * containerWidth,
-                  }}
-                  bounds="parent"
-                  onDragStop={(_e, d) => {
-                    trackChange(gif.id, {
-                      x: parseFloat(((d.x / containerWidth) * 100).toFixed(2)),
-                      y: Math.round(d.y),
-                    });
-                  }}
-                  onResizeStop={(_e, _dir, ref, _delta, pos) => {
-                    trackChange(gif.id, {
-                      width: parseFloat(((parseInt(ref.style.width) / containerWidth) * 100).toFixed(2)),
-                      height: parseFloat(((parseInt(ref.style.height) / containerWidth) * 100).toFixed(2)),
-                      x: parseFloat(((pos.x / containerWidth) * 100).toFixed(2)),
-                      y: Math.round(pos.y),
-                    });
-                  }}
-                  className={`border-2 border-dashed rounded bg-black/10 ${pendingChanges[gif.id] ? 'border-yellow-400' : 'border-primary/60'}`}
-                >
-                  <div className="relative w-full h-full">
-                    {gif.url.match(/\.(mp4|webm|mov|avi)(\?|$)/i) ? (
-                      <video src={gif.url} className="w-full h-full object-contain pointer-events-none" muted autoPlay />
-                    ) : (
-                      <img src={gif.url} alt="" className="w-full h-full object-contain pointer-events-none" />
-                    )}
-                    <span className="absolute top-0 left-0 bg-primary text-primary-foreground text-xs font-bold px-1.5 py-0.5 rounded-br">
-                      #{index + 1}
-                    </span>
-                  </div>
-                </Rnd>
-              ))}
+              {gifs.map((gif, index) => {
+                const eff = getEffective(gif);
+                return (
+                  <Rnd
+                    key={gif.id}
+                    position={{
+                      x: (eff.x / 100) * containerWidth,
+                      y: eff.y,
+                    }}
+                    size={{
+                      width: (eff.width / 100) * containerWidth,
+                      height: (eff.height / 100) * containerWidth,
+                    }}
+                    bounds="parent"
+                    onDragStop={(_e, d) => {
+                      trackChange(gif.id, {
+                        x: parseFloat(((d.x / containerWidth) * 100).toFixed(2)),
+                        y: Math.round(d.y),
+                      });
+                    }}
+                    onResizeStop={(_e, _dir, ref, _delta, pos) => {
+                      trackChange(gif.id, {
+                        width: parseFloat(((parseInt(ref.style.width) / containerWidth) * 100).toFixed(2)),
+                        height: parseFloat(((parseInt(ref.style.height) / containerWidth) * 100).toFixed(2)),
+                        x: parseFloat(((pos.x / containerWidth) * 100).toFixed(2)),
+                        y: Math.round(pos.y),
+                      });
+                    }}
+                    className={`border-2 border-dashed rounded bg-black/10 ${pendingChanges[gif.id] ? 'border-yellow-400' : 'border-primary/60'}`}
+                  >
+                    <div className="relative w-full h-full">
+                      {gif.url.match(/\.(mp4|webm|mov|avi)(\?|$)/i) ? (
+                        <video src={gif.url} className="w-full h-full object-contain pointer-events-none" muted autoPlay />
+                      ) : (
+                        <img src={gif.url} alt="" className="w-full h-full object-contain pointer-events-none" />
+                      )}
+                      <span className="absolute top-0 left-0 bg-primary text-primary-foreground text-xs font-bold px-1.5 py-0.5 rounded-br">
+                        #{index + 1}
+                      </span>
+                    </div>
+                  </Rnd>
+                );
+              })}
               {gifs.length === 0 && (
                 <div className="flex items-center justify-center h-full">
                   <p className="text-muted-foreground text-sm bg-background/80 px-4 py-2 rounded-lg">
