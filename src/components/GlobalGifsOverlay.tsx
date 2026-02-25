@@ -67,10 +67,10 @@ export const GlobalGifsOverlay = () => {
             onClick={() => gif.click_target_id && handleClick(gif)}
             className={`absolute z-30 object-contain ${gif.click_target_id ? 'cursor-pointer' : 'pointer-events-none'}`}
             style={{
-              left: gif.x,
+              left: `${gif.x}vw`,
               top: gif.y,
-              width: gif.width,
-              height: gif.height,
+              width: `${gif.width}vw`,
+              height: `${gif.height}vw`,
             }}
           />
         ) : (
@@ -81,10 +81,10 @@ export const GlobalGifsOverlay = () => {
             onClick={() => gif.click_target_id && handleClick(gif)}
             className={`absolute z-30 object-contain ${gif.click_target_id ? 'cursor-pointer' : 'pointer-events-none'}`}
             style={{
-              left: gif.x,
+              left: `${gif.x}vw`,
               top: gif.y,
-              width: gif.width,
-              height: gif.height,
+              width: `${gif.width}vw`,
+              height: `${gif.height}vw`,
             }}
           />
         );

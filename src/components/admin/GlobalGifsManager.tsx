@@ -58,20 +58,23 @@ const PositioningArea = ({
               <Rnd
                 key={gif.id}
                 default={{
-                  x: gif.x,
+                  x: (gif.x / 100) * containerWidth,
                   y: gif.y,
-                  width: gif.width,
-                  height: gif.height,
+                  width: (gif.width / 100) * containerWidth,
+                  height: (gif.height / 100) * containerWidth,
                 }}
                 bounds="parent"
                 onDragStop={(_e, d) => {
-                  onUpdate(gif.id, { x: Math.round(d.x), y: Math.round(d.y) });
+                  onUpdate(gif.id, {
+                    x: parseFloat(((d.x / containerWidth) * 100).toFixed(2)),
+                    y: Math.round(d.y),
+                  });
                 }}
                 onResizeStop={(_e, _dir, ref, _delta, pos) => {
                   onUpdate(gif.id, {
-                    width: parseInt(ref.style.width),
-                    height: parseInt(ref.style.height),
-                    x: Math.round(pos.x),
+                    width: parseFloat(((parseInt(ref.style.width) / containerWidth) * 100).toFixed(2)),
+                    height: parseFloat(((parseInt(ref.style.height) / containerWidth) * 100).toFixed(2)),
+                    x: parseFloat(((pos.x / containerWidth) * 100).toFixed(2)),
                     y: Math.round(pos.y),
                   });
                 }}

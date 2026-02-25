@@ -38,10 +38,10 @@ export const useCreateGif = () => {
       const { data: { user } } = await supabase.auth.getUser();
       const { error } = await supabase.from('global_gifs' as any).insert({
         url: gif.url,
-        x: gif.x ?? 100,
+        x: gif.x ?? 10,
         y: gif.y ?? 100,
-        width: gif.width ?? 150,
-        height: gif.height ?? 150,
+        width: gif.width ?? 20,
+        height: gif.height ?? 20,
         created_by: user?.id,
         page: gif.page ?? '/',
       } as any);
