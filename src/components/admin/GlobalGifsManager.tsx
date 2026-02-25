@@ -16,9 +16,6 @@ const PAGES = [
   { value: '/profile', label: 'Profil' },
 ];
 
-const PAGE_WIDTH = 430; // mobile width reference
-const PAGE_HEIGHT = 4000; // tall enough to cover full scrollable page
-
 const PositioningArea = ({
   gifs,
   previewPage,
@@ -31,106 +28,82 @@ const PositioningArea = ({
   onUpdate: (id: string, data: { x?: number; y?: number; width?: number; height?: number }) => void;
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [pageHeight, setPageHeight] = useState(PAGE_HEIGHT);
+  const [iframeSize, setIframeSize] = useState({ width: 0, height: 0 });
 
+  // Measure the available container size — the iframe will fill it exactly
   useEffect(() => {
-    const updateScale = () => {
+    const update = () => {
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
-      setScale(rect.width / PAGE_WIDTH);
+      setIframeSize({ width: Math.round(rect.width), height: Math.round(rect.height) });
     };
-    updateScale();
-    window.addEventListener('resize', updateScale);
-    return () => window.removeEventListener('resize', updateScale);
+    update();
+    const ro = new ResizeObserver(update);
+    if (containerRef.current) ro.observe(containerRef.current);
+    return () => ro.disconnect();
   }, []);
 
-  // Try to read actual page height from iframe
-  useEffect(() => {
-    const iframe = iframeRef.current;
-    if (!iframe) return;
-    const handleLoad = () => {
-      try {
-        const doc = iframe.contentDocument || iframe.contentWindow?.document;
-        if (doc) {
-          const h = doc.documentElement.scrollHeight;
-          if (h > 500) setPageHeight(h);
-        }
-      } catch {
-        // cross-origin, keep default
-      }
-    };
-    iframe.addEventListener('load', handleLoad);
-    return () => iframe.removeEventListener('load', handleLoad);
-  }, [previewPage]);
+  const w = iframeSize.width;
+  const h = iframeSize.height;
 
   return (
-    <div ref={containerRef} className="relative flex-1 overflow-y-auto overflow-x-hidden">
-      <div
-        style={{
-          width: PAGE_WIDTH,
-          height: pageHeight,
-          transform: `scale(${scale})`,
-          transformOrigin: 'top left',
-          // Reserve scaled space so parent scrolls correctly
-          marginBottom: pageHeight * scale - pageHeight,
-        }}
-        className="relative"
-      >
-        <iframe
-          ref={iframeRef}
-          src={`${window.location.origin}${previewPage}`}
-          style={{ width: PAGE_WIDTH, height: pageHeight }}
-          className="absolute inset-0 border-0 pointer-events-none opacity-40"
-          title="Aperçu de la page"
-        />
-        <div className="absolute inset-0 z-10" style={{ width: PAGE_WIDTH, height: pageHeight }}>
-          {gifs.map((gif, index) => (
-            <Rnd
-              key={gif.id}
-              default={{
-                x: gif.x,
-                y: gif.y,
-                width: gif.width,
-                height: gif.height,
-              }}
-              bounds="parent"
-              scale={scale}
-              onDragStop={(_e, d) => {
-                onUpdate(gif.id, { x: Math.round(d.x), y: Math.round(d.y) });
-              }}
-              onResizeStop={(_e, _dir, ref, _delta, pos) => {
-                onUpdate(gif.id, {
-                  width: parseInt(ref.style.width),
-                  height: parseInt(ref.style.height),
-                  x: Math.round(pos.x),
-                  y: Math.round(pos.y),
-                });
-              }}
-              className="border-2 border-dashed border-primary/60 rounded bg-black/10"
-            >
-              <div className="relative w-full h-full">
-                {gif.url.match(/\.(mp4|webm|mov|avi)(\?|$)/i) ? (
-                  <video src={gif.url} className="w-full h-full object-contain pointer-events-none" muted autoPlay />
-                ) : (
-                  <img src={gif.url} alt="" className="w-full h-full object-contain pointer-events-none" />
-                )}
-                <span className="absolute top-0 left-0 bg-primary text-primary-foreground text-xs font-bold px-1.5 py-0.5 rounded-br">
-                  #{index + 1}
-                </span>
+    <div ref={containerRef} className="relative flex-1 overflow-hidden">
+      {w > 0 && h > 0 && (
+        <div style={{ width: w, height: h }} className="relative">
+          <iframe
+            ref={iframeRef}
+            src={`${window.location.origin}${previewPage}`}
+            style={{ width: w, height: h }}
+            className="absolute inset-0 border-0 pointer-events-none opacity-40"
+            title="Aperçu de la page"
+          />
+          <div className="absolute inset-0 z-10" style={{ width: w, height: h }}>
+            {gifs.map((gif, index) => (
+              <Rnd
+                key={gif.id}
+                default={{
+                  x: gif.x,
+                  y: gif.y,
+                  width: gif.width,
+                  height: gif.height,
+                }}
+                bounds="parent"
+                onDragStop={(_e, d) => {
+                  onUpdate(gif.id, { x: Math.round(d.x), y: Math.round(d.y) });
+                }}
+                onResizeStop={(_e, _dir, ref, _delta, pos) => {
+                  onUpdate(gif.id, {
+                    width: parseInt(ref.style.width),
+                    height: parseInt(ref.style.height),
+                    x: Math.round(pos.x),
+                    y: Math.round(pos.y),
+                  });
+                }}
+                className="border-2 border-dashed border-primary/60 rounded bg-black/10"
+              >
+                <div className="relative w-full h-full">
+                  {gif.url.match(/\.(mp4|webm|mov|avi)(\?|$)/i) ? (
+                    <video src={gif.url} className="w-full h-full object-contain pointer-events-none" muted autoPlay />
+                  ) : (
+                    <img src={gif.url} alt="" className="w-full h-full object-contain pointer-events-none" />
+                  )}
+                  <span className="absolute top-0 left-0 bg-primary text-primary-foreground text-xs font-bold px-1.5 py-0.5 rounded-br">
+                    #{index + 1}
+                  </span>
+                </div>
+              </Rnd>
+            ))}
+            {gifs.length === 0 && (
+              <div className="flex items-center justify-center h-full">
+                <p className="text-muted-foreground text-sm bg-background/80 px-4 py-2 rounded-lg">
+                  Aucun GIF sur la page {getPageLabel(previewPage)}
+                </p>
               </div>
-            </Rnd>
-          ))}
-          {gifs.length === 0 && (
-            <div className="flex items-center justify-center h-full">
-              <p className="text-muted-foreground text-sm bg-background/80 px-4 py-2 rounded-lg">
-                Aucun GIF sur la page {getPageLabel(previewPage)}
-              </p>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
