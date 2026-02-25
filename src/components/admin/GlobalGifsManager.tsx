@@ -16,7 +16,7 @@ const PAGES = [
   { value: '/profile', label: 'Profil' },
 ];
 
-const PAGE_HEIGHT = 3000; // Tall enough to cover full page content
+const PAGE_HEIGHT = 800; // in vw%, translated to px based on container width
 
 const PositioningArea = ({
   gifs,
@@ -85,14 +85,14 @@ const PositioningArea = ({
       )}
       <div ref={containerRef} className="flex-1 overflow-y-auto overflow-x-hidden">
         {containerWidth > 0 && (
-          <div style={{ width: containerWidth, height: PAGE_HEIGHT }} className="relative">
+          <div style={{ width: containerWidth, height: PAGE_HEIGHT / 100 * containerWidth }} className="relative">
             <iframe
               src={`${window.location.origin}${previewPage}`}
-              style={{ width: containerWidth, height: PAGE_HEIGHT }}
+              style={{ width: containerWidth, height: PAGE_HEIGHT / 100 * containerWidth }}
               className="absolute inset-0 border-0 pointer-events-none opacity-40"
               title="Aperçu de la page"
             />
-            <div className="absolute inset-0 z-10" style={{ width: containerWidth, height: PAGE_HEIGHT }}>
+            <div className="absolute inset-0 z-10" style={{ width: containerWidth, height: PAGE_HEIGHT / 100 * containerWidth }}>
               {gifs.map((gif, index) => {
                 const eff = getEffective(gif);
                 return (
@@ -100,7 +100,7 @@ const PositioningArea = ({
                     key={gif.id}
                     position={{
                       x: (eff.x / 100) * containerWidth,
-                      y: eff.y,
+                      y: (eff.y / 100) * containerWidth,
                     }}
                     size={{
                       width: (eff.width / 100) * containerWidth,
@@ -110,7 +110,7 @@ const PositioningArea = ({
                     onDragStop={(_e, d) => {
                       trackChange(gif.id, {
                         x: Math.round((d.x / containerWidth) * 100),
-                        y: Math.round(d.y),
+                        y: Math.round((d.y / containerWidth) * 100),
                       });
                     }}
                     onResizeStop={(_e, _dir, ref, _delta, pos) => {
@@ -118,7 +118,7 @@ const PositioningArea = ({
                         width: Math.round((parseInt(ref.style.width) / containerWidth) * 100),
                         height: Math.round((parseInt(ref.style.height) / containerWidth) * 100),
                         x: Math.round((pos.x / containerWidth) * 100),
-                        y: Math.round(pos.y),
+                        y: Math.round((pos.y / containerWidth) * 100),
                       });
                     }}
                     className={`border-2 border-dashed rounded bg-black/10 ${pendingChanges[gif.id] ? 'border-yellow-400' : 'border-primary/60'}`}

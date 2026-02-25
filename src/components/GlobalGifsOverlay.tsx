@@ -68,7 +68,7 @@ export const GlobalGifsOverlay = () => {
             className={`absolute z-30 object-contain ${gif.click_target_id ? 'cursor-pointer' : 'pointer-events-none'}`}
             style={{
               left: `${gif.x}vw`,
-              top: gif.y,
+              top: `${gif.y}vw`,
               width: `${gif.width}vw`,
               height: `${gif.height}vw`,
             }}
@@ -82,7 +82,7 @@ export const GlobalGifsOverlay = () => {
             className={`absolute z-30 object-contain ${gif.click_target_id ? 'cursor-pointer' : 'pointer-events-none'}`}
             style={{
               left: `${gif.x}vw`,
-              top: gif.y,
+              top: `${gif.y}vw`,
               width: `${gif.width}vw`,
               height: `${gif.height}vw`,
             }}
