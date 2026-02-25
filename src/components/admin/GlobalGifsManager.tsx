@@ -101,7 +101,7 @@ const PositioningArea = ({
   const canvasHeight = Math.max(pageHeightPx || 0, fallbackHeight);
 
   const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
-  const round2 = (value: number) => Math.round(value * 100) / 100;
+  const toIntPercent = (value: number) => Math.round(value);
   const normalizeLegacyY = (y: number) => {
     if (y <= 100) return clamp(y, 0, 100);
     if (containerWidth <= 0 || canvasHeight <= 0) return y;
@@ -161,16 +161,16 @@ const PositioningArea = ({
                     bounds="parent"
                     onDragStop={(_e, d) => {
                       trackChange(gif.id, {
-                        x: round2((d.x / containerWidth) * 100),
-                        y: round2((d.y / canvasHeight) * 100),
+                        x: toIntPercent((d.x / containerWidth) * 100),
+                        y: toIntPercent((d.y / canvasHeight) * 100),
                       });
                     }}
                     onResizeStop={(_e, _dir, ref, _delta, pos) => {
                       trackChange(gif.id, {
-                        width: round2((parseInt(ref.style.width) / containerWidth) * 100),
-                        height: round2((parseInt(ref.style.height) / containerWidth) * 100),
-                        x: round2((pos.x / containerWidth) * 100),
-                        y: round2((pos.y / canvasHeight) * 100),
+                        width: toIntPercent((parseInt(ref.style.width) / containerWidth) * 100),
+                        height: toIntPercent((parseInt(ref.style.height) / containerWidth) * 100),
+                        x: toIntPercent((pos.x / containerWidth) * 100),
+                        y: toIntPercent((pos.y / canvasHeight) * 100),
                       });
                     }}
                     className={`border-2 border-dashed rounded bg-black/10 ${pendingChanges[gif.id] ? 'border-yellow-400' : 'border-primary/60'}`}
