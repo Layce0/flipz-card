@@ -27,12 +27,12 @@ const PositioningArea = ({
   gifs: GlobalGif[];
   previewPage: string;
   getPageLabel: (path: string) => string;
-  onSave: (changes: Record<string, { x?: number; y?: number; width?: number; height?: number }>) => void;
+  onSave: (changes: Record<string, { x?: number; y?: number; width?: number; height?: number }>) => Promise<void>;
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
   const [pendingChanges, setPendingChanges] = useState<Record<string, { x?: number; y?: number; width?: number; height?: number }>>({});
-
+  const [saving, setSaving] = useState(false);
   useEffect(() => {
     const update = () => {
       if (!containerRef.current) return;
@@ -66,9 +66,17 @@ const PositioningArea = ({
         <div className="shrink-0 p-3 border-b border-border bg-card flex items-center justify-between">
           <span className="text-sm text-muted-foreground">{Object.keys(pendingChanges).length} élément(s) modifié(s)</span>
           <div className="flex gap-2">
-            <Button variant="ghost" size="sm" onClick={() => setPendingChanges({})}>Annuler</Button>
-            <Button variant="default" size="sm" onClick={() => { onSave(pendingChanges); setPendingChanges({}); }}>
-              Enregistrer
+            <Button variant="ghost" size="sm" onClick={() => setPendingChanges({})} disabled={saving}>Annuler</Button>
+            <Button variant="default" size="sm" disabled={saving} onClick={async () => {
+              setSaving(true);
+              try {
+                await onSave(pendingChanges);
+                setPendingChanges({});
+              } finally {
+                setSaving(false);
+              }
+            }}>
+              {saving ? 'Enregistrement…' : 'Enregistrer'}
             </Button>
           </div>
         </div>
@@ -377,8 +385,10 @@ export const GlobalGifsManager = () => {
             gifs={gifs.filter(g => g.page === previewPage)}
             previewPage={previewPage}
             getPageLabel={getPageLabel}
-            onSave={(changes) => {
-              Object.entries(changes).forEach(([id, data]) => updateGif.mutate({ id, ...data }));
+            onSave={async (changes) => {
+              await Promise.all(
+                Object.entries(changes).map(([id, data]) => updateGif.mutateAsync({ id, ...data }))
+              );
               toast.success('Positions enregistrées !');
             }}
           />
