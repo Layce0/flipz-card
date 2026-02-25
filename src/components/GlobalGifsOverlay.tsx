@@ -1,6 +1,6 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useGlobalGifs } from '@/hooks/useGlobalGifs';
+import { useGlobalGifs, GlobalGif } from '@/hooks/useGlobalGifs';
 
 // Persists across navigations within the same session
 const playedVideoIds = new Set<string>();
@@ -39,6 +39,13 @@ export const GlobalGifsOverlay = () => {
     }
   }, [pageGifs]);
 
+  const getResponsiveStyle = (gif: GlobalGif) => ({
+    left: `${gif.x}vw`,
+    top: `${gif.y}vw`,
+    width: `${gif.width}vw`,
+    height: `${gif.height}vw`,
+  });
+
   const visibleGifs = pageGifs.filter(g => {
     if (hiddenIds.has(g.id)) return false;
     if (g.initially_hidden && !triggeredIds.has(g.id)) return false;
@@ -66,12 +73,7 @@ export const GlobalGifsOverlay = () => {
             }}
             onClick={() => gif.click_target_id && handleClick(gif)}
             className={`absolute z-30 object-contain ${gif.click_target_id ? 'cursor-pointer' : 'pointer-events-none'}`}
-            style={{
-              left: `${gif.x}vw`,
-              top: `${gif.y}vw`,
-              width: `${gif.width}vw`,
-              height: `${gif.height}vw`,
-            }}
+            style={getResponsiveStyle(gif)}
           />
         ) : (
           <img
@@ -80,12 +82,7 @@ export const GlobalGifsOverlay = () => {
             alt=""
             onClick={() => gif.click_target_id && handleClick(gif)}
             className={`absolute z-30 object-contain ${gif.click_target_id ? 'cursor-pointer' : 'pointer-events-none'}`}
-            style={{
-              left: `${gif.x}vw`,
-              top: `${gif.y}vw`,
-              width: `${gif.width}vw`,
-              height: `${gif.height}vw`,
-            }}
+            style={getResponsiveStyle(gif)}
           />
         );
       })}

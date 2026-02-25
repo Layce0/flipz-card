@@ -34,14 +34,21 @@ export const useGlobalGifs = (adminMode = false) => {
 export const useCreateGif = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (gif: { url: string; x?: number; y?: number; width?: number; height?: number; page?: string }) => {
+    mutationFn: async (gif: { url: string; x?: number; y?: number; width?: number; height?: number; page?: string; aspectRatio?: number | null }) => {
       const { data: { user } } = await supabase.auth.getUser();
+
+      const safeWidth = Math.max(8, Math.min(45, Math.round(gif.width ?? 32)));
+      const computedHeight = gif.height ?? (gif.aspectRatio && gif.aspectRatio > 0
+        ? Math.round(safeWidth / gif.aspectRatio)
+        : safeWidth);
+      const safeHeight = Math.max(8, Math.min(70, Math.round(computedHeight)));
+
       const { error } = await supabase.from('global_gifs' as any).insert({
         url: gif.url,
         x: gif.x ?? 10,
         y: gif.y ?? 100,
-        width: gif.width ?? 20,
-        height: gif.height ?? 20,
+        width: safeWidth,
+        height: safeHeight,
         created_by: user?.id,
         page: gif.page ?? '/',
       } as any);

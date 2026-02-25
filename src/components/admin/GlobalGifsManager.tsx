@@ -16,7 +16,7 @@ const PAGES = [
   { value: '/profile', label: 'Profil' },
 ];
 
-const PAGE_HEIGHT = 800; // in vw%, translated to px based on container width
+const PAGE_HEIGHT = 800; // fallback in vw% before measuring real page height
 
 const PositioningArea = ({
   gifs,
@@ -30,19 +30,57 @@ const PositioningArea = ({
   onSave: (changes: Record<string, { x?: number; y?: number; width?: number; height?: number }>) => Promise<void>;
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
+  const [pageHeightPx, setPageHeightPx] = useState(0);
   const [pendingChanges, setPendingChanges] = useState<Record<string, { x?: number; y?: number; width?: number; height?: number }>>({});
   const [saving, setSaving] = useState(false);
+
+  const syncPageHeight = useCallback(() => {
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+
+    try {
+      const doc = iframe.contentDocument || iframe.contentWindow?.document;
+      if (!doc) return;
+
+      const body = doc.body;
+      const html = doc.documentElement;
+      const next = Math.max(
+        body?.scrollHeight ?? 0,
+        body?.offsetHeight ?? 0,
+        html?.scrollHeight ?? 0,
+        html?.offsetHeight ?? 0,
+        iframe.clientHeight
+      );
+
+      if (next > 0) setPageHeightPx(next);
+    } catch {
+      // Cross-document access can fail transiently during load, ignore silently
+    }
+  }, []);
+
   useEffect(() => {
     const update = () => {
       if (!containerRef.current) return;
       setContainerWidth(Math.round(containerRef.current.getBoundingClientRect().width));
     };
+
     update();
     const ro = new ResizeObserver(update);
     if (containerRef.current) ro.observe(containerRef.current);
-    return () => ro.disconnect();
-  }, []);
+
+    const t1 = window.setTimeout(syncPageHeight, 120);
+    const t2 = window.setTimeout(syncPageHeight, 600);
+    const interval = window.setInterval(syncPageHeight, 1500);
+
+    return () => {
+      ro.disconnect();
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+      window.clearInterval(interval);
+    };
+  }, [previewPage, gifs.length, syncPageHeight]);
 
   const trackChange = (id: string, data: { x?: number; y?: number; width?: number; height?: number }) => {
     setPendingChanges(prev => ({ ...prev, [id]: { ...prev[id], ...data } }));
@@ -59,6 +97,8 @@ const PositioningArea = ({
   };
 
   const hasPending = Object.keys(pendingChanges).length > 0;
+  const fallbackHeight = (PAGE_HEIGHT / 100) * containerWidth;
+  const canvasHeight = Math.max(pageHeightPx || 0, fallbackHeight);
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -85,14 +125,16 @@ const PositioningArea = ({
       )}
       <div ref={containerRef} className="flex-1 overflow-y-auto overflow-x-hidden">
         {containerWidth > 0 && (
-          <div style={{ width: containerWidth, height: PAGE_HEIGHT / 100 * containerWidth }} className="relative">
+          <div style={{ width: containerWidth, height: canvasHeight }} className="relative">
             <iframe
+              ref={iframeRef}
               src={`${window.location.origin}${previewPage}`}
-              style={{ width: containerWidth, height: PAGE_HEIGHT / 100 * containerWidth }}
+              onLoad={syncPageHeight}
+              style={{ width: containerWidth, height: canvasHeight }}
               className="absolute inset-0 border-0 pointer-events-none opacity-40"
               title="Aperçu de la page"
             />
-            <div className="absolute inset-0 z-10" style={{ width: containerWidth, height: PAGE_HEIGHT / 100 * containerWidth }}>
+            <div className="absolute inset-0 z-10" style={{ width: containerWidth, height: canvasHeight }}>
               {gifs.map((gif, index) => {
                 const eff = getEffective(gif);
                 return (
@@ -162,6 +204,38 @@ export const GlobalGifsManager = () => {
   const [dragOver, setDragOver] = useState(false);
   const [selectedPage, setSelectedPage] = useState('/');
 
+  const getMediaAspectRatio = (file: File) => new Promise<number>((resolve) => {
+    if (file.type.startsWith('video/')) {
+      const url = URL.createObjectURL(file);
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.onloadedmetadata = () => {
+        const ratio = video.videoWidth > 0 && video.videoHeight > 0 ? video.videoWidth / video.videoHeight : 1;
+        URL.revokeObjectURL(url);
+        resolve(ratio);
+      };
+      video.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve(1);
+      };
+      video.src = url;
+      return;
+    }
+
+    const url = URL.createObjectURL(file);
+    const img = new window.Image();
+    img.onload = () => {
+      const ratio = img.naturalWidth > 0 && img.naturalHeight > 0 ? img.naturalWidth / img.naturalHeight : 1;
+      URL.revokeObjectURL(url);
+      resolve(ratio);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(1);
+    };
+    img.src = url;
+  });
+
   const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
@@ -172,14 +246,17 @@ export const GlobalGifsManager = () => {
     }
     for (const file of files) {
       try {
+        const aspectRatio = await getMediaAspectRatio(file);
+        const width = file.type.startsWith('video/') ? 36 : 32;
+        const height = Math.round(width / (aspectRatio || 1));
         const url = await uploadGif.mutateAsync(file);
-        await createGif.mutateAsync({ url, page: selectedPage });
+        await createGif.mutateAsync({ url, page: selectedPage, width, height, aspectRatio });
         toast.success('GIF ajouté !');
       } catch {
         toast.error("Erreur lors de l'upload");
       }
     }
-  }, [uploadGif, createGif, selectedPage]);
+  }, [uploadGif, createGif, selectedPage, getMediaAspectRatio]);
 
   const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []).filter(f => f.type.startsWith('image/') || f.type.startsWith('video/'));
@@ -189,8 +266,11 @@ export const GlobalGifsManager = () => {
     }
     for (const file of files) {
       try {
+        const aspectRatio = await getMediaAspectRatio(file);
+        const width = file.type.startsWith('video/') ? 36 : 32;
+        const height = Math.round(width / (aspectRatio || 1));
         const url = await uploadGif.mutateAsync(file);
-        await createGif.mutateAsync({ url, page: selectedPage });
+        await createGif.mutateAsync({ url, page: selectedPage, width, height, aspectRatio });
         toast.success('GIF ajouté !');
       } catch {
         toast.error("Erreur lors de l'upload");
