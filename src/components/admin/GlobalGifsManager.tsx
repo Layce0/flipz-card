@@ -16,6 +16,8 @@ const PAGES = [
   { value: '/profile', label: 'Profil' },
 ];
 
+const PAGE_HEIGHT = 3000; // Tall enough to cover full page content
+
 const PositioningArea = ({
   gifs,
   previewPage,
@@ -28,15 +30,12 @@ const PositioningArea = ({
   onUpdate: (id: string, data: { x?: number; y?: number; width?: number; height?: number }) => void;
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [iframeSize, setIframeSize] = useState({ width: 0, height: 0 });
+  const [containerWidth, setContainerWidth] = useState(0);
 
-  // Measure the available container size — the iframe will fill it exactly
   useEffect(() => {
     const update = () => {
       if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      setIframeSize({ width: Math.round(rect.width), height: Math.round(rect.height) });
+      setContainerWidth(Math.round(containerRef.current.getBoundingClientRect().width));
     };
     update();
     const ro = new ResizeObserver(update);
@@ -44,21 +43,17 @@ const PositioningArea = ({
     return () => ro.disconnect();
   }, []);
 
-  const w = iframeSize.width;
-  const h = iframeSize.height;
-
   return (
-    <div ref={containerRef} className="relative flex-1 overflow-hidden">
-      {w > 0 && h > 0 && (
-        <div style={{ width: w, height: h }} className="relative">
+    <div ref={containerRef} className="flex-1 overflow-y-auto overflow-x-hidden">
+      {containerWidth > 0 && (
+        <div style={{ width: containerWidth, height: PAGE_HEIGHT }} className="relative">
           <iframe
-            ref={iframeRef}
             src={`${window.location.origin}${previewPage}`}
-            style={{ width: w, height: h }}
+            style={{ width: containerWidth, height: PAGE_HEIGHT }}
             className="absolute inset-0 border-0 pointer-events-none opacity-40"
             title="Aperçu de la page"
           />
-          <div className="absolute inset-0 z-10" style={{ width: w, height: h }}>
+          <div className="absolute inset-0 z-10" style={{ width: containerWidth, height: PAGE_HEIGHT }}>
             {gifs.map((gif, index) => (
               <Rnd
                 key={gif.id}
