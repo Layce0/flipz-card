@@ -72,6 +72,8 @@ const PositioningArea = ({
               try {
                 await onSave(pendingChanges);
                 setPendingChanges({});
+              } catch {
+                toast.error("Erreur lors de l'enregistrement des positions");
               } finally {
                 setSaving(false);
               }
@@ -107,15 +109,15 @@ const PositioningArea = ({
                     bounds="parent"
                     onDragStop={(_e, d) => {
                       trackChange(gif.id, {
-                        x: parseFloat(((d.x / containerWidth) * 100).toFixed(2)),
+                        x: Math.round((d.x / containerWidth) * 100),
                         y: Math.round(d.y),
                       });
                     }}
                     onResizeStop={(_e, _dir, ref, _delta, pos) => {
                       trackChange(gif.id, {
-                        width: parseFloat(((parseInt(ref.style.width) / containerWidth) * 100).toFixed(2)),
-                        height: parseFloat(((parseInt(ref.style.height) / containerWidth) * 100).toFixed(2)),
-                        x: parseFloat(((pos.x / containerWidth) * 100).toFixed(2)),
+                        width: Math.round((parseInt(ref.style.width) / containerWidth) * 100),
+                        height: Math.round((parseInt(ref.style.height) / containerWidth) * 100),
+                        x: Math.round((pos.x / containerWidth) * 100),
                         y: Math.round(pos.y),
                       });
                     }}
