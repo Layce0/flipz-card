@@ -46,7 +46,7 @@ export const useCreateGif = () => {
       const { error } = await supabase.from('global_gifs' as any).insert({
         url: gif.url,
         x: gif.x ?? 10,
-        y: gif.y ?? 100,
+        y: gif.y ?? 12,
         width: safeWidth,
         height: safeHeight,
         created_by: user?.id,

@@ -100,6 +100,15 @@ const PositioningArea = ({
   const fallbackHeight = (PAGE_HEIGHT / 100) * containerWidth;
   const canvasHeight = Math.max(pageHeightPx || 0, fallbackHeight);
 
+  const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+  const round2 = (value: number) => Math.round(value * 100) / 100;
+  const normalizeLegacyY = (y: number) => {
+    if (y <= 100) return clamp(y, 0, 100);
+    if (containerWidth <= 0 || canvasHeight <= 0) return y;
+    // Legacy compatibility: old y stored in vw scale
+    return clamp((y * containerWidth) / canvasHeight, 0, 100);
+  };
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {hasPending && (
@@ -137,12 +146,13 @@ const PositioningArea = ({
             <div className="absolute inset-0 z-10" style={{ width: containerWidth, height: canvasHeight }}>
               {gifs.map((gif, index) => {
                 const eff = getEffective(gif);
+                const normalizedY = normalizeLegacyY(eff.y);
                 return (
                   <Rnd
                     key={gif.id}
                     position={{
                       x: (eff.x / 100) * containerWidth,
-                      y: (eff.y / 100) * containerWidth,
+                      y: (normalizedY / 100) * canvasHeight,
                     }}
                     size={{
                       width: (eff.width / 100) * containerWidth,
@@ -151,16 +161,16 @@ const PositioningArea = ({
                     bounds="parent"
                     onDragStop={(_e, d) => {
                       trackChange(gif.id, {
-                        x: Math.round((d.x / containerWidth) * 100),
-                        y: Math.round((d.y / containerWidth) * 100),
+                        x: round2((d.x / containerWidth) * 100),
+                        y: round2((d.y / canvasHeight) * 100),
                       });
                     }}
                     onResizeStop={(_e, _dir, ref, _delta, pos) => {
                       trackChange(gif.id, {
-                        width: Math.round((parseInt(ref.style.width) / containerWidth) * 100),
-                        height: Math.round((parseInt(ref.style.height) / containerWidth) * 100),
-                        x: Math.round((pos.x / containerWidth) * 100),
-                        y: Math.round((pos.y / containerWidth) * 100),
+                        width: round2((parseInt(ref.style.width) / containerWidth) * 100),
+                        height: round2((parseInt(ref.style.height) / containerWidth) * 100),
+                        x: round2((pos.x / containerWidth) * 100),
+                        y: round2((pos.y / canvasHeight) * 100),
                       });
                     }}
                     className={`border-2 border-dashed rounded bg-black/10 ${pendingChanges[gif.id] ? 'border-yellow-400' : 'border-primary/60'}`}
