@@ -1,9 +1,6 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useGlobalGifs, GlobalGif } from '@/hooks/useGlobalGifs';
-
-// Reference width used for all coordinate calculations (mobile-first)
-const REFERENCE_WIDTH = 390;
 
 // Persists across navigations within the same session
 const playedVideoIds = new Set<string>();
@@ -14,25 +11,6 @@ export const GlobalGifsOverlay = () => {
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
   const [triggeredIds, setTriggeredIds] = useState<Set<string>>(new Set());
   const [playedIds, setPlayedIds] = useState<Set<string>>(() => new Set(playedVideoIds));
-  const [scale, setScale] = useState(1);
-  const rafRef = useRef<number>();
-
-  // Compute scale factor: current viewport width / reference width
-  useEffect(() => {
-    const update = () => {
-      setScale(window.innerWidth / REFERENCE_WIDTH);
-    };
-    update();
-    const onResize = () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      rafRef.current = requestAnimationFrame(update);
-    };
-    window.addEventListener('resize', onResize);
-    return () => {
-      window.removeEventListener('resize', onResize);
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
-  }, []);
 
   const pageGifs = gifs.filter(g => g.page === pathname);
 
@@ -54,17 +32,16 @@ export const GlobalGifsOverlay = () => {
     }
   }, [pageGifs]);
 
-  // Convert stored values (percentage of reference width) to px scaled to current viewport
-  const getResponsiveStyle = (gif: GlobalGif): React.CSSProperties => {
-    const toPixels = (val: number) => (val / 100) * REFERENCE_WIDTH * scale;
-    return {
-      position: 'absolute',
-      left: toPixels(gif.x),
-      top: toPixels(gif.y),
-      width: toPixels(gif.width),
-      height: toPixels(gif.height),
-    };
-  };
+  // All values stored as % of viewport width → use vw directly
+  // The browser handles all scaling natively, no JS needed
+  const getStyle = (gif: GlobalGif): React.CSSProperties => ({
+    position: 'absolute' as const,
+    left: `${gif.x}vw`,
+    top: `${gif.y}vw`,
+    width: `${gif.width}vw`,
+    height: `${gif.height}vw`,
+    zIndex: 30,
+  });
 
   const visibleGifs = pageGifs.filter(g => {
     if (hiddenIds.has(g.id)) return false;
@@ -80,7 +57,9 @@ export const GlobalGifsOverlay = () => {
       {visibleGifs.map((gif) => {
         const isVideo = gif.url.match(/\.(mp4|webm|mov|avi)(\?|$)/i);
         if (isVideo && playedIds.has(gif.id)) return null;
-        const style = getResponsiveStyle(gif);
+        const style = getStyle(gif);
+        const interactiveClass = gif.click_target_id ? 'cursor-pointer' : 'pointer-events-none';
+
         return isVideo ? (
           <video
             key={gif.id}
@@ -93,7 +72,7 @@ export const GlobalGifsOverlay = () => {
               setPlayedIds(prev => new Set(prev).add(gif.id));
             }}
             onClick={() => gif.click_target_id && handleClick(gif)}
-            className={`z-30 object-contain ${gif.click_target_id ? 'cursor-pointer' : 'pointer-events-none'}`}
+            className={`object-contain ${interactiveClass}`}
             style={style}
           />
         ) : (
@@ -102,7 +81,7 @@ export const GlobalGifsOverlay = () => {
             src={gif.url}
             alt=""
             onClick={() => gif.click_target_id && handleClick(gif)}
-            className={`z-30 object-contain ${gif.click_target_id ? 'cursor-pointer' : 'pointer-events-none'}`}
+            className={`object-contain ${interactiveClass}`}
             style={style}
           />
         );
