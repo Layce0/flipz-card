@@ -20,6 +20,9 @@ const passwordRules = [
   { key: 'special', test: (p: string) => /[^A-Za-z0-9]/.test(p), label: '1 caractère spécial' },
 ];
 
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_SECONDS = 120;
+
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
@@ -27,6 +30,9 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [lockoutUntil, setLockoutUntil] = useState<number | null>(null);
+  const [lockoutRemaining, setLockoutRemaining] = useState(0);
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -48,8 +54,33 @@ const Auth = () => {
     }
   }, [user, navigate]);
 
+  // Lockout countdown timer
+  useEffect(() => {
+    if (!lockoutUntil) return;
+    const interval = setInterval(() => {
+      const remaining = Math.ceil((lockoutUntil - Date.now()) / 1000);
+      if (remaining <= 0) {
+        setLockoutUntil(null);
+        setFailedAttempts(0);
+        setLockoutRemaining(0);
+        clearInterval(interval);
+      } else {
+        setLockoutRemaining(remaining);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [lockoutUntil]);
+
+  const isLockedOut = lockoutUntil !== null && Date.now() < lockoutUntil;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (isLockedOut) {
+      toast.error(`Trop de tentatives. Réessayez dans ${lockoutRemaining}s.`);
+      return;
+    }
+
     setIsLoading(true);
 
     const validation = authSchema.safeParse({ email, password });
@@ -75,12 +106,23 @@ const Auth = () => {
       if (isLogin) {
         const { error } = await signIn(email, password);
         if (error) {
-          if (error.message.includes('Invalid login credentials')) {
-            toast.error(t('auth.invalidCredentials'));
+          const newAttempts = failedAttempts + 1;
+          setFailedAttempts(newAttempts);
+          
+          if (newAttempts >= MAX_ATTEMPTS) {
+            setLockoutUntil(Date.now() + LOCKOUT_SECONDS * 1000);
+            setLockoutRemaining(LOCKOUT_SECONDS);
+            toast.error(`Compte temporairement bloqué après ${MAX_ATTEMPTS} tentatives échouées. Réessayez dans ${LOCKOUT_SECONDS}s.`);
           } else {
-            toast.error(error.message);
+            const remaining = MAX_ATTEMPTS - newAttempts;
+            if (error.message.includes('Invalid login credentials')) {
+              toast.error(`${t('auth.invalidCredentials')} (${remaining} essai${remaining > 1 ? 's' : ''} restant${remaining > 1 ? 's' : ''})`);
+            } else {
+              toast.error(`${error.message} (${remaining} essai${remaining > 1 ? 's' : ''} restant${remaining > 1 ? 's' : ''})`);
+            }
           }
         } else {
+          setFailedAttempts(0);
           toast.success(t('auth.loginSuccess'));
           navigate('/');
         }
@@ -206,11 +248,27 @@ const Auth = () => {
             </div>
           )}
 
+          {/* Lockout warning */}
+          {isLockedOut && (
+            <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-center">
+              <p className="text-sm text-destructive font-medium">
+                🔒 Compte bloqué — réessayez dans {lockoutRemaining}s
+              </p>
+            </div>
+          )}
+
+          {/* Remaining attempts warning */}
+          {!isLockedOut && isLogin && failedAttempts > 0 && failedAttempts < MAX_ATTEMPTS && (
+            <p className="text-xs text-destructive text-center">
+              ⚠️ {MAX_ATTEMPTS - failedAttempts} essai{MAX_ATTEMPTS - failedAttempts > 1 ? 's' : ''} restant{MAX_ATTEMPTS - failedAttempts > 1 ? 's' : ''}
+            </p>
+          )}
+
           <Button
             type="submit"
             variant="gold"
             className="w-full"
-            disabled={isLoading || (!isLogin && (!allPasswordValid || password !== confirmPassword) && password.length > 0)}
+            disabled={isLoading || isLockedOut || (!isLogin && (!allPasswordValid || password !== confirmPassword) && password.length > 0)}
           >
             {isLoading ? (
               <span className="animate-pulse">{t('common.loading')}</span>
