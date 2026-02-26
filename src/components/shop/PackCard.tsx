@@ -86,7 +86,7 @@ export const PackCard = ({ pack, onPurchase, isLoading, disabled }: PackCardProp
       </div>
 
       {/* Central icon / image */}
-      <div className="absolute inset-0 flex items-center justify-center">
+      <div className="absolute inset-0 flex items-start justify-center pt-2">
         {pack.id === 'standard_5' ? (
           <img src={packStandard5Img} alt="Pack Standard 5" className="w-80 h-auto object-contain drop-shadow-[0_0_12px_rgba(168,85,247,0.4)]" draggable={false} />
         ) : pack.id === 'standard_10' ? (
