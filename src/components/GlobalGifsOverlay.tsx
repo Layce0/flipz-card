@@ -5,44 +5,12 @@ import { useGlobalGifs, GlobalGif } from '@/hooks/useGlobalGifs';
 // Persists across navigations within the same session
 const playedVideoIds = new Set<string>();
 
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
-
 export const GlobalGifsOverlay = () => {
   const { data: mediaItems = [] } = useGlobalGifs();
   const { pathname } = useLocation();
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
   const [triggeredIds, setTriggeredIds] = useState<Set<string>>(new Set());
   const [playedIds, setPlayedIds] = useState<Set<string>>(() => new Set(playedVideoIds));
-  const [pageHeight, setPageHeight] = useState<number>(window.innerHeight || 800);
-  const [viewportWidth, setViewportWidth] = useState<number>(window.innerWidth || 390);
-
-  useEffect(() => {
-    const updateMetrics = () => {
-      const doc = document.documentElement;
-      const body = document.body;
-      const nextHeight = Math.max(
-        doc?.scrollHeight ?? 0,
-        doc?.offsetHeight ?? 0,
-        body?.scrollHeight ?? 0,
-        body?.offsetHeight ?? 0,
-        window.innerHeight
-      );
-
-      setPageHeight(nextHeight > 0 ? nextHeight : window.innerHeight || 800);
-      setViewportWidth(window.innerWidth || 390);
-    };
-
-    updateMetrics();
-    window.addEventListener('resize', updateMetrics);
-    window.addEventListener('orientationchange', updateMetrics);
-    const interval = window.setInterval(updateMetrics, 1200);
-
-    return () => {
-      window.removeEventListener('resize', updateMetrics);
-      window.removeEventListener('orientationchange', updateMetrics);
-      window.clearInterval(interval);
-    };
-  }, [pathname]);
 
   const pageItems = mediaItems.filter(item => item.page === pathname);
 
@@ -68,27 +36,13 @@ export const GlobalGifsOverlay = () => {
     }
   }, [pageItems]);
 
-  const normalizeYPercent = (rawY: number) => {
-    // New system: y is already % of page height
-    if (rawY <= 100) return clamp(rawY, 0, 100);
-
-    // Legacy compatibility: old y was stored in vw (% of viewport width)
-    const converted = viewportWidth > 0 && pageHeight > 0
-      ? (rawY * viewportWidth / pageHeight)
-      : rawY;
-
-    return clamp(converted, 0, 100);
-  };
-
   const getMediaStyle = (item: GlobalGif): React.CSSProperties => {
-    const yPercent = normalizeYPercent(item.y);
-
     return {
       position: 'absolute',
-      left: `${item.x}vw`,
-      top: `${(yPercent / 100) * pageHeight}px`,
-      width: `${item.width}vw`,
-      height: `${item.height}vw`,
+      left: `${item.x}px`,
+      top: `${item.y}px`,
+      width: `${item.width}px`,
+      height: `${item.height}px`,
       zIndex: 30,
     };
   };
