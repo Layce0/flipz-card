@@ -14,6 +14,7 @@ import packLucky20Img from '@/assets/pack-lucky-20.png';
 import packLucky50Img from '@/assets/pack-lucky-50.png';
 import packUltra5Img from '@/assets/pack-ultra-5.png';
 import packUltra10Img from '@/assets/pack-ultra-10.png';
+import packUltra20Img from '@/assets/pack-ultra-20.png';
 
 interface PackCardProps {
   pack: PackConfig;
@@ -113,6 +114,8 @@ export const PackCard = ({ pack, onPurchase, isLoading, disabled }: PackCardProp
           <img src={packUltra5Img} alt="Pack Ultra 5" className="w-80 h-auto object-contain drop-shadow-[0_0_12px_rgba(234,179,8,0.6)]" draggable={false} />
         ) : pack.id === 'ultra_10' ? (
           <img src={packUltra10Img} alt="Pack Ultra 10" className="w-80 h-auto object-contain drop-shadow-[0_0_12px_rgba(234,179,8,0.6)]" draggable={false} />
+        ) : pack.id === 'ultra_20' ? (
+          <img src={packUltra20Img} alt="Pack Ultra 20" className="w-80 h-auto object-contain drop-shadow-[0_0_12px_rgba(234,179,8,0.6)]" draggable={false} />
         ) : (
           <div className={cn(
             "w-16 h-16 rounded-full flex items-center justify-center",
