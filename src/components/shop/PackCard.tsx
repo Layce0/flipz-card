@@ -117,8 +117,8 @@ export const PackCard = ({ pack, onPurchase, isLoading, disabled }: PackCardProp
       {/* Bottom content */}
       <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
         <div className="text-center mb-2">
-          <h3 className="font-display text-sm text-foreground truncate">{getPackName()}</h3>
-          <p className="text-xs text-muted-foreground">{pack.cardCount} {t('common.cards')}</p>
+          <h3 className="font-display text-sm truncate bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 bg-clip-text text-transparent">{getPackName()}</h3>
+          <p className="text-xs bg-gradient-to-r from-yellow-200/80 to-amber-300/80 bg-clip-text text-transparent">{pack.cardCount} {t('common.cards')}</p>
         </div>
         
         <Button
