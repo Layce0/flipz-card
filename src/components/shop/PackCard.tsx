@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { PackConfig, formatPrice } from '@/types/pack';
 import { cn } from '@/lib/utils';
 import { Loader2, Sparkles, Zap, Crown } from 'lucide-react';
+import packStandard5Img from '@/assets/pack-standard-5.png';
 
 interface PackCardProps {
   pack: PackConfig;
@@ -81,14 +82,18 @@ export const PackCard = ({ pack, onPurchase, isLoading, disabled }: PackCardProp
         <div className="absolute bottom-4 right-4 w-8 h-8 border border-primary/20 rounded-full" />
       </div>
 
-      {/* Central icon */}
+      {/* Central icon / image */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className={cn(
-          "w-16 h-16 rounded-full flex items-center justify-center",
-          pack.type === 'ultra' && "bg-gradient-to-br from-primary/30 to-transparent"
-        )}>
-          <Icon className={cn("w-10 h-10 text-primary", styles.iconGlow)} />
-        </div>
+        {pack.id === 'standard_5' ? (
+          <img src={packStandard5Img} alt="Pack Standard 5" className="w-28 h-auto object-contain drop-shadow-[0_0_12px_rgba(168,85,247,0.4)]" draggable={false} />
+        ) : (
+          <div className={cn(
+            "w-16 h-16 rounded-full flex items-center justify-center",
+            pack.type === 'ultra' && "bg-gradient-to-br from-primary/30 to-transparent"
+          )}>
+            <Icon className={cn("w-10 h-10 text-primary", styles.iconGlow)} />
+          </div>
+        )}
       </div>
 
       {/* Multiplier Badge */}
