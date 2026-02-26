@@ -7,6 +7,7 @@ import { Loader2, Sparkles, Zap, Crown } from 'lucide-react';
 import packStandard5Img from '@/assets/pack-standard-5.png';
 import packStandard10Img from '@/assets/pack-standard-10.png';
 import packStandard20Img from '@/assets/pack-standard-20.png';
+import packStandard50Img from '@/assets/pack-standard-50.png';
 
 interface PackCardProps {
   pack: PackConfig;
@@ -92,6 +93,8 @@ export const PackCard = ({ pack, onPurchase, isLoading, disabled }: PackCardProp
           <img src={packStandard10Img} alt="Pack Standard 10" className="w-80 h-auto object-contain drop-shadow-[0_0_12px_rgba(168,85,247,0.4)]" draggable={false} />
         ) : pack.id === 'standard_20' ? (
           <img src={packStandard20Img} alt="Pack Standard 20" className="w-80 h-auto object-contain drop-shadow-[0_0_12px_rgba(168,85,247,0.4)]" draggable={false} />
+        ) : pack.id === 'standard_50' ? (
+          <img src={packStandard50Img} alt="Pack Standard 50" className="w-80 h-auto object-contain drop-shadow-[0_0_12px_rgba(168,85,247,0.4)]" draggable={false} />
         ) : (
           <div className={cn(
             "w-16 h-16 rounded-full flex items-center justify-center",
