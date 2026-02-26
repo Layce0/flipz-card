@@ -37,16 +37,16 @@ export const useCreateGif = () => {
     mutationFn: async (gif: { url: string; x?: number; y?: number; width?: number; height?: number; page?: string; aspectRatio?: number | null }) => {
       const { data: { user } } = await supabase.auth.getUser();
 
-      const safeWidth = Math.max(8, Math.min(45, Math.round(gif.width ?? 32)));
+      const safeWidth = Math.max(30, Math.round(gif.width ?? 120));
       const computedHeight = gif.height ?? (gif.aspectRatio && gif.aspectRatio > 0
         ? Math.round(safeWidth / gif.aspectRatio)
         : safeWidth);
-      const safeHeight = Math.max(8, Math.min(70, Math.round(computedHeight)));
+      const safeHeight = Math.max(30, Math.round(computedHeight));
 
       const { error } = await supabase.from('global_gifs' as any).insert({
         url: gif.url,
-        x: gif.x ?? 10,
-        y: gif.y ?? 12,
+        x: gif.x ?? 40,
+        y: gif.y ?? 100,
         width: safeWidth,
         height: safeHeight,
         created_by: user?.id,

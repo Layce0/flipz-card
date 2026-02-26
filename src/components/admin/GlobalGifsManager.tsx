@@ -16,8 +16,6 @@ const PAGES = [
   { value: '/profile', label: 'Profil' },
 ];
 
-const PAGE_HEIGHT = 800; // fallback in vw% before measuring real page height
-
 const PositioningArea = ({
   gifs,
   previewPage,
@@ -97,17 +95,10 @@ const PositioningArea = ({
   };
 
   const hasPending = Object.keys(pendingChanges).length > 0;
-  const fallbackHeight = (PAGE_HEIGHT / 100) * containerWidth;
-  const canvasHeight = Math.max(pageHeightPx || 0, fallbackHeight);
+  const canvasHeight = Math.max(pageHeightPx || 800, 800);
 
-  const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
-  const toIntPercent = (value: number) => Math.round(value);
-  const normalizeLegacyY = (y: number) => {
-    if (y <= 100) return clamp(y, 0, 100);
-    if (containerWidth <= 0 || canvasHeight <= 0) return y;
-    // Legacy compatibility: old y stored in vw scale
-    return clamp((y * containerWidth) / canvasHeight, 0, 100);
-  };
+  // The preview iframe width matches containerWidth. We use a 1:1 scale factor.
+  // Positions are stored in px and rendered in px — no conversion needed.
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -146,31 +137,30 @@ const PositioningArea = ({
             <div className="absolute inset-0 z-10" style={{ width: containerWidth, height: canvasHeight }}>
               {gifs.map((gif, index) => {
                 const eff = getEffective(gif);
-                const normalizedY = normalizeLegacyY(eff.y);
                 return (
                   <Rnd
                     key={gif.id}
                     position={{
-                      x: (eff.x / 100) * containerWidth,
-                      y: (normalizedY / 100) * canvasHeight,
+                      x: eff.x,
+                      y: eff.y,
                     }}
                     size={{
-                      width: (eff.width / 100) * containerWidth,
-                      height: (eff.height / 100) * containerWidth,
+                      width: eff.width,
+                      height: eff.height,
                     }}
                     bounds="parent"
                     onDragStop={(_e, d) => {
                       trackChange(gif.id, {
-                        x: toIntPercent((d.x / containerWidth) * 100),
-                        y: toIntPercent((d.y / canvasHeight) * 100),
+                        x: Math.round(d.x),
+                        y: Math.round(d.y),
                       });
                     }}
                     onResizeStop={(_e, _dir, ref, _delta, pos) => {
                       trackChange(gif.id, {
-                        width: toIntPercent((parseInt(ref.style.width) / containerWidth) * 100),
-                        height: toIntPercent((parseInt(ref.style.height) / containerWidth) * 100),
-                        x: toIntPercent((pos.x / containerWidth) * 100),
-                        y: toIntPercent((pos.y / canvasHeight) * 100),
+                        width: Math.round(parseInt(ref.style.width)),
+                        height: Math.round(parseInt(ref.style.height)),
+                        x: Math.round(pos.x),
+                        y: Math.round(pos.y),
                       });
                     }}
                     className={`border-2 border-dashed rounded bg-black/10 ${pendingChanges[gif.id] ? 'border-yellow-400' : 'border-primary/60'}`}
@@ -202,7 +192,6 @@ const PositioningArea = ({
     </div>
   );
 };
-
 export const GlobalGifsManager = () => {
   const { data: gifs = [], isLoading } = useGlobalGifs(true);
   const createGif = useCreateGif();
@@ -257,7 +246,7 @@ export const GlobalGifsManager = () => {
     for (const file of files) {
       try {
         const aspectRatio = await getMediaAspectRatio(file);
-        const width = file.type.startsWith('video/') ? 36 : 32;
+        const width = file.type.startsWith('video/') ? 140 : 120;
         const height = Math.round(width / (aspectRatio || 1));
         const url = await uploadGif.mutateAsync(file);
         await createGif.mutateAsync({ url, page: selectedPage, width, height, aspectRatio });
@@ -277,7 +266,7 @@ export const GlobalGifsManager = () => {
     for (const file of files) {
       try {
         const aspectRatio = await getMediaAspectRatio(file);
-        const width = file.type.startsWith('video/') ? 36 : 32;
+        const width = file.type.startsWith('video/') ? 140 : 120;
         const height = Math.round(width / (aspectRatio || 1));
         const url = await uploadGif.mutateAsync(file);
         await createGif.mutateAsync({ url, page: selectedPage, width, height, aspectRatio });
