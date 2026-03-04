@@ -155,9 +155,11 @@ serve(async (req) => {
 
     if (ratesError) throw ratesError;
 
-    // Check for active luck boosts
+    // Check for active luck boosts (from codes AND winstreak)
     let luckMultiplier = 1;
     const now = new Date().toISOString();
+
+    // 1. Code redemption boosts
     const { data: activeRedemptions } = await supabaseClient
       .from('code_redemptions')
       .select('code_id, boost_expires_at')
@@ -174,6 +176,28 @@ serve(async (req) => {
       (codes || []).forEach((code: any) => {
         const config = code.reward_config as Record<string, any>;
         if (code.reward_type === 'boost_luck' && config?.multiplier) {
+          luckMultiplier = Math.max(luckMultiplier, config.multiplier);
+        }
+      });
+    }
+
+    // 2. Winstreak boosts
+    const { data: wsClaims } = await supabaseClient
+      .from('winstreak_claims')
+      .select('reward_id, boost_expires_at')
+      .eq('user_id', user.id)
+      .gt('boost_expires_at', now);
+
+    if (wsClaims && wsClaims.length > 0) {
+      const rewardIds = wsClaims.map((c: any) => c.reward_id);
+      const { data: rewards } = await supabaseClient
+        .from('winstreak_rewards')
+        .select('id, reward_type, reward_config')
+        .in('id', rewardIds);
+
+      (rewards || []).forEach((r: any) => {
+        const config = r.reward_config as Record<string, any>;
+        if (r.reward_type === 'boost_luck' && config?.multiplier) {
           luckMultiplier = Math.max(luckMultiplier, config.multiplier);
         }
       });
