@@ -184,31 +184,39 @@ export const useTodayCard = (userId: string | undefined) => {
   });
 };
 
-// Get random cards for pack opening - now uses database drop rates
+// Get random cards for pack opening (trade flow) with unified active boosts
 export const useRandomCards = () => {
   return useMutation({
     mutationFn: async ({ count, userId, rarityMultiplier = 1, packType = 'standard' }: { count: number; userId?: string; rarityMultiplier?: number; packType?: string }) => {
-      // Fetch cards, drop rates, and active boosts in parallel
-      const boostQuery = userId
+      // Fetch cards and active boosts (code + winstreak) in parallel
+      const nowIso = new Date().toISOString();
+      const codeBoostsPromise = userId
         ? supabase
             .from('code_redemptions')
-            .select('id, code_id, boost_expires_at')
+            .select('code_id, boost_expires_at')
             .eq('user_id', userId)
-            .gt('boost_expires_at', new Date().toISOString())
-        : null;
+            .gt('boost_expires_at', nowIso)
+        : Promise.resolve({ data: [] as any[], error: null });
 
-      const [cardsResult, ratesResult, boostsResult] = await Promise.all([
+      const winstreakBoostsPromise = userId
+        ? supabase
+            .from('winstreak_claims')
+            .select('reward_id, boost_expires_at')
+            .eq('user_id', userId)
+            .gt('boost_expires_at', nowIso)
+        : Promise.resolve({ data: [] as any[], error: null });
+
+      const [cardsResult, codeBoostsResult, winstreakBoostsResult] = await Promise.all([
         supabase.from('cards').select('*'),
-        supabase.from('drop_rates').select('*'),
-        boostQuery,
+        codeBoostsPromise,
+        winstreakBoostsPromise,
       ]);
-      
+
       if (cardsResult.error) throw cardsResult.error;
-      if (ratesResult.error) throw ratesResult.error;
-      
+      if (codeBoostsResult.error) throw codeBoostsResult.error;
+      if (winstreakBoostsResult.error) throw winstreakBoostsResult.error;
+
       const cards = cardsResult.data || [];
-      const dropRates = ratesResult.data || [];
-      
       if (cards.length === 0) return [];
 
       // Check for active boosts
@@ -216,24 +224,44 @@ export const useRandomCards = () => {
       let packBonusCards = 0;
       let packMultiplier = 1;
 
-      if (boostsResult?.data && boostsResult.data.length > 0) {
-        const codeIds = boostsResult.data.map((r: any) => r.code_id);
-        const { data: codes } = await supabase
-          .from('reward_codes')
-          .select('id, reward_type, reward_config')
-          .in('id', codeIds);
+      const applyBoost = (rewardType: string, config: Record<string, any>) => {
+        if (rewardType === 'boost_luck' && config?.multiplier) {
+          luckMultiplier = Math.max(luckMultiplier, Number(config.multiplier));
+        }
+        if (rewardType === 'boost_pack') {
+          if (config?.bonus) packBonusCards = Math.max(packBonusCards, Number(config.bonus));
+          if (config?.multiplier) packMultiplier = Math.max(packMultiplier, Number(config.multiplier));
+        }
+      };
 
-        (codes || []).forEach((code: any) => {
-          const config = code.reward_config as Record<string, any>;
-          if (code.reward_type === 'boost_luck' && config?.multiplier) {
-            luckMultiplier = Math.max(luckMultiplier, config.multiplier);
-          }
-          if (code.reward_type === 'boost_pack') {
-            if (config?.bonus) packBonusCards = Math.max(packBonusCards, config.bonus);
-            if (config?.multiplier) packMultiplier = Math.max(packMultiplier, config.multiplier);
-          }
-        });
-      }
+      const codeIds = (codeBoostsResult.data || []).map((r: any) => r.code_id);
+      const rewardIds = (winstreakBoostsResult.data || []).map((r: any) => r.reward_id);
+
+      const [codesResult, rewardsResult] = await Promise.all([
+        codeIds.length > 0
+          ? supabase
+              .from('reward_codes')
+              .select('id, reward_type, reward_config')
+              .in('id', codeIds)
+          : Promise.resolve({ data: [] as any[], error: null }),
+        rewardIds.length > 0
+          ? supabase
+              .from('winstreak_rewards')
+              .select('id, reward_type, reward_config')
+              .in('id', rewardIds)
+          : Promise.resolve({ data: [] as any[], error: null }),
+      ]);
+
+      if (codesResult.error) throw codesResult.error;
+      if (rewardsResult.error) throw rewardsResult.error;
+
+      (codesResult.data || []).forEach((code: any) => {
+        applyBoost(code.reward_type, (code.reward_config as Record<string, any>) || {});
+      });
+
+      (rewardsResult.data || []).forEach((reward: any) => {
+        applyBoost(reward.reward_type, (reward.reward_config as Record<string, any>) || {});
+      });
 
       // Fixed probability tables for luck boost multipliers
       const LUCK_TABLES: Record<number, Record<string, number>> = {
@@ -285,7 +313,7 @@ export const useRandomCards = () => {
       });
 
       // Apply pack bonuses to card count
-      const finalCount = (count * packMultiplier) + packBonusCards;
+      const finalCount = Math.max(1, Math.round(count * packMultiplier) + packBonusCards);
       
       const result: GameCard[] = [];
       for (let i = 0; i < finalCount; i++) {
