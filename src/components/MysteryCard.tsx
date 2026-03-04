@@ -105,8 +105,7 @@ export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'm
 
       <div className={cn(
         "flip-card-inner relative w-full h-full",
-        flipped && "flipped",
-        flipped && card.rarity === 'legendary' && "legendary-spin"
+        flipped && "flipped"
       )}>
         {/* Card Back */}
         <div className={cn(

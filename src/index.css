@@ -190,16 +190,6 @@
     transform: rotateY(180deg);
   }
 
-  @keyframes legendary-3d-spin {
-    0% { transform: rotateY(180deg); }
-    100% { transform: rotateY(540deg); }
-  }
-
-  .flip-card-inner.flipped.legendary-spin {
-    animation: legendary-3d-spin 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards;
-    transform: rotateY(180deg);
-  }
-
   .flip-card-front,
   .flip-card-back {
     backface-visibility: hidden;
