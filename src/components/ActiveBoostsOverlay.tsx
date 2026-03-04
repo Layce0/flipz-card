@@ -69,23 +69,15 @@ export const ActiveBoostsOverlay = () => {
   const luckBoosts = activeBoosts.filter((b) => b.reward_type === 'boost_luck');
   const otherBoosts = activeBoosts.filter((b) => b.reward_type !== 'boost_luck');
 
+  // Combine all boosts: luck first, then others
+  const sortedBoosts = [...luckBoosts, ...otherBoosts];
+
   return createPortal(
-    <>
-      {otherBoosts.length > 0 && (
-        <div className="fixed top-3 left-3 z-[2147483646] flex flex-col gap-1 pointer-events-none">
-          {otherBoosts.map((boost) => (
-            <BoostIndicator key={boost.id} boost={boost} />
-          ))}
-        </div>
-      )}
-      {luckBoosts.length > 0 && (
-        <div className="fixed top-3 left-3 z-[2147483647] flex flex-col gap-1 pointer-events-none" style={{ marginTop: otherBoosts.length * 32 }}>
-          {luckBoosts.map((boost) => (
-            <BoostIndicator key={boost.id} boost={boost} />
-          ))}
-        </div>
-      )}
-    </>,
+    <div className="fixed top-3 left-3 z-[2147483647] flex flex-col gap-1.5 pointer-events-none">
+      {sortedBoosts.map((boost) => (
+        <BoostIndicator key={boost.id} boost={boost} />
+      ))}
+    </div>,
     document.body
   );
 };
