@@ -157,9 +157,19 @@ Deno.serve(async (req) => {
         })
       }
 
-      // Determine luck multiplier from active boosts (codes + winstreak)
+      // Determine boosts from active codes + winstreak
       let luckMult = 1
+      let bonusCards = 0
+      let cardMult = 1
       const boostNow = new Date().toISOString()
+
+      const applyBoost = (rt: string, cfg: Record<string, any>) => {
+        if (rt === 'boost_luck' && cfg?.multiplier) luckMult = Math.max(luckMult, cfg.multiplier)
+        if (rt === 'boost_pack') {
+          if (cfg?.bonus) bonusCards = Math.max(bonusCards, cfg.bonus)
+          if (cfg?.multiplier) cardMult = Math.max(cardMult, cfg.multiplier)
+        }
+      }
 
       // 1. Code redemption boosts
       const { data: boosts } = await supabaseAdmin
@@ -174,10 +184,7 @@ Deno.serve(async (req) => {
           .select('id, reward_type, reward_config')
           .in('id', bCodeIds)
         ;(bCodes || []).forEach((c: any) => {
-          const cfg = c.reward_config as Record<string, any>
-          if (c.reward_type === 'boost_luck' && cfg?.multiplier) {
-            luckMult = Math.max(luckMult, cfg.multiplier)
-          }
+          applyBoost(c.reward_type, c.reward_config as Record<string, any>)
         })
       }
 
@@ -194,12 +201,11 @@ Deno.serve(async (req) => {
           .select('id, reward_type, reward_config')
           .in('id', rwIds)
         ;(rwData || []).forEach((r: any) => {
-          const cfg = r.reward_config as Record<string, any>
-          if (r.reward_type === 'boost_luck' && cfg?.multiplier) {
-            luckMult = Math.max(luckMult, cfg.multiplier)
-          }
+          applyBoost(r.reward_type, r.reward_config as Record<string, any>)
         })
       }
+
+      const finalCardCount = Math.round(cardCount * cardMult) + bonusCards
 
       // Pack type probability tables
       const LUCK_TABLES: Record<number, Record<string, number>> = {
@@ -244,7 +250,7 @@ Deno.serve(async (req) => {
       })
 
       const selectedCards: any[] = []
-      for (let i = 0; i < cardCount; i++) {
+      for (let i = 0; i < finalCardCount; i++) {
         selectedCards.push(pool[Math.floor(Math.random() * pool.length)])
       }
 
@@ -254,7 +260,7 @@ Deno.serve(async (req) => {
         .insert(selectedCards.map((c: any) => ({ user_id: userId, card_id: c.id })))
 
       rewardDetails.cards = selectedCards
-      rewardDetails.card_count = cardCount
+      rewardDetails.card_count = finalCardCount
       rewardDetails.pack_type = rewardType
     }
 
