@@ -156,13 +156,16 @@ Deno.serve(async (req) => {
         })
       }
 
-      // Check active luck boosts from code_redemptions
+      // Check active luck boosts from code_redemptions AND winstreak_claims
       let luckMult = 1
+      const boostNow = new Date().toISOString()
+
+      // 1. Code redemption boosts
       const { data: boosts } = await supabaseAdmin
         .from('code_redemptions')
         .select('code_id, boost_expires_at')
         .eq('user_id', userId)
-        .gt('boost_expires_at', new Date().toISOString())
+        .gt('boost_expires_at', boostNow)
       if (boosts && boosts.length > 0) {
         const bCodeIds = boosts.map((b: any) => b.code_id)
         const { data: bCodes } = await supabaseAdmin
@@ -172,6 +175,26 @@ Deno.serve(async (req) => {
         ;(bCodes || []).forEach((c: any) => {
           const cfg = c.reward_config as Record<string, any>
           if (c.reward_type === 'boost_luck' && cfg?.multiplier) {
+            luckMult = Math.max(luckMult, cfg.multiplier)
+          }
+        })
+      }
+
+      // 2. Winstreak boosts
+      const { data: wsBoosts } = await supabaseAdmin
+        .from('winstreak_claims')
+        .select('reward_id, boost_expires_at')
+        .eq('user_id', userId)
+        .gt('boost_expires_at', boostNow)
+      if (wsBoosts && wsBoosts.length > 0) {
+        const rwIds = wsBoosts.map((c: any) => c.reward_id)
+        const { data: rwData } = await supabaseAdmin
+          .from('winstreak_rewards')
+          .select('id, reward_type, reward_config')
+          .in('id', rwIds)
+        ;(rwData || []).forEach((r: any) => {
+          const cfg = r.reward_config as Record<string, any>
+          if (r.reward_type === 'boost_luck' && cfg?.multiplier) {
             luckMult = Math.max(luckMult, cfg.multiplier)
           }
         })
