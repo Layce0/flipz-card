@@ -60,11 +60,6 @@ export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'm
     if (!flipped && onReveal) {
       setFlipped(true);
       spawnParticles();
-      if (card.rarity === 'legendary') {
-        setShowLegendaryReveal(true);
-        setShowRing(true);
-        setTimeout(() => setShowRing(false), 900);
-      }
       onReveal();
     }
   };
