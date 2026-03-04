@@ -11,6 +11,7 @@ import { z } from 'zod';
 import Lottie from 'lottie-react';
 import flipzLogo from '@/assets/flipz-logo-new.jpeg';
 import catAnimation from '@/assets/lottie-cat.json';
+import { ForgotPasswordDialog } from '@/components/ForgotPasswordDialog';
 
 const passwordRules = [
   { key: 'minLength', test: (p: string) => p.length >= 8, label: '8 caractères minimum' },
@@ -30,6 +31,7 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [lockoutUntil, setLockoutUntil] = useState<number | null>(null);
   const [lockoutRemaining, setLockoutRemaining] = useState(0);
@@ -205,6 +207,19 @@ const Auth = () => {
               </button>
           </div>
 
+          {/* Forgot password link - login only */}
+          {isLogin && (
+            <div className="text-right -mt-1">
+              <button
+                type="button"
+                onClick={() => setShowForgotPassword(true)}
+                className="text-xs text-muted-foreground hover:text-primary transition-colors"
+              >
+                Mot de passe oublié ?
+              </button>
+            </div>
+          )}
+
           {/* Confirm password - signup only */}
           {!isLogin && (
             <div className="space-y-2">
@@ -297,6 +312,8 @@ const Auth = () => {
           </button>
         </div>
       </div>
+
+      <ForgotPasswordDialog open={showForgotPassword} onOpenChange={setShowForgotPassword} />
     </div>
   );
 };
