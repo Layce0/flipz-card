@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, memo } from 'react';
+import { useState, useEffect, useCallback, memo, useRef } from 'react';
 import { GameCard, RARITY_CONFIG } from '@/types/card';
 import { cn } from '@/lib/utils';
 import cardBackImage from '@/assets/card-back.png';
@@ -25,6 +25,8 @@ export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'm
   const [flipped, setFlipped] = useState(isRevealed);
   const [showParticles, setShowParticles] = useState(false);
   const [particles, setParticles] = useState<Particle[]>([]);
+  const [showLegendaryReveal, setShowLegendaryReveal] = useState(false);
+  const [showRing, setShowRing] = useState(false);
 
   useEffect(() => {
     if (isRevealed) setFlipped(true);
@@ -58,6 +60,12 @@ export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'm
     if (!flipped && onReveal) {
       setFlipped(true);
       spawnParticles();
+      if (card.rarity === 'legendary') {
+        setShowLegendaryReveal(true);
+        setShowRing(true);
+        setTimeout(() => setShowRing(false), 900);
+        setTimeout(() => setShowLegendaryReveal(false), 1200);
+      }
       onReveal();
     }
   };
@@ -101,13 +109,25 @@ export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'm
         flipped && "flipped"
       )}>
         {/* Card Back */}
-        <div className="flip-card-front absolute inset-0 rounded-2xl overflow-hidden card-shadow">
+        <div className={cn(
+          "flip-card-front absolute inset-0 rounded-2xl overflow-hidden card-shadow",
+          !flipped && card.rarity === 'legendary' && "legendary-sweep"
+        )}>
           <img src={cardBackImage} alt="Card back" className="w-full h-full object-cover rounded-2xl" />
+          {!flipped && card.rarity === 'legendary' && (
+            <div className="absolute inset-0 rounded-2xl animate-pulse" style={{
+              boxShadow: 'inset 0 0 30px hsl(45 95% 60% / 0.3), 0 0 20px hsl(45 95% 60% / 0.2)',
+            }} />
+          )}
         </div>
 
         {/* Card Front */}
-        <div className="flip-card-back absolute inset-0 rounded-2xl overflow-hidden card-shadow">
-          <div 
+        <div className={cn(
+          "flip-card-back absolute inset-0 rounded-2xl overflow-hidden card-shadow",
+          showLegendaryReveal && "legendary-reveal-anim"
+        )}>
+          {showRing && <div className="legendary-ring" />}
+          <div
             className={cn(
               "absolute inset-0 rounded-2xl",
               card.rarity === 'legendary' && "animate-glow-pulse"
