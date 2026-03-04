@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { GameCard, RARITY_CONFIG } from '@/types/card';
 import { cn } from '@/lib/utils';
+import { useLocalizedCard } from '@/hooks/useLocalizedCard';
 
 interface CollectionCardProps {
   card: GameCard;
@@ -10,6 +11,7 @@ interface CollectionCardProps {
 
 export const CollectionCard = memo(({ card, onClick }: CollectionCardProps) => {
   const { t } = useTranslation();
+  const { getTitle } = useLocalizedCard();
   const rarityConfig = RARITY_CONFIG[card.rarity];
 
   return (
@@ -31,7 +33,7 @@ export const CollectionCard = memo(({ card, onClick }: CollectionCardProps) => {
         <div className="aspect-[3/4] overflow-hidden">
           <img 
             src={card.image_url} 
-            alt={card.title}
+            alt={getTitle(card)}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             loading="lazy"
           />
@@ -48,7 +50,7 @@ export const CollectionCard = memo(({ card, onClick }: CollectionCardProps) => {
           >
             {t(`rarity.${card.rarity}`)}
           </span>
-          <h4 className="font-display text-sm text-foreground truncate">{card.title}</h4>
+          <h4 className="font-display text-sm text-foreground truncate">{getTitle(card)}</h4>
         </div>
 
         {card.rarity === 'legendary' && (

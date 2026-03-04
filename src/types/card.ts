@@ -8,6 +8,10 @@ export interface GameCard {
   rarity: Rarity;
   release_date: string;
   created_at: string;
+  title_en?: string | null;
+  title_es?: string | null;
+  description_en?: string | null;
+  description_es?: string | null;
 }
 
 export interface UserCard {

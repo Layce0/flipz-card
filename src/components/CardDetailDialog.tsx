@@ -3,6 +3,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { X } from 'lucide-react';
 import { GameCard, RARITY_CONFIG, Rarity } from '@/types/card';
 import { cn } from '@/lib/utils';
+import { useLocalizedCard } from '@/hooks/useLocalizedCard';
 
 interface CardDetailDialogProps {
   card: GameCard | null;
@@ -18,6 +19,7 @@ export const CardDetailDialog = ({
   onOpenChange
 }: CardDetailDialogProps) => {
   const { t } = useTranslation();
+  const { getTitle, getDescription } = useLocalizedCard();
   
   if (!card) return null;
 
@@ -38,7 +40,7 @@ export const CardDetailDialog = ({
         <div className="relative aspect-[3/4] w-full">
           <img 
             src={card.image_url} 
-            alt={card.title}
+            alt={getTitle(card)}
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
@@ -68,9 +70,9 @@ export const CardDetailDialog = ({
         {/* Card info */}
         <div className="p-4 space-y-4">
           <div>
-            <h2 className="font-display text-xl text-foreground">{card.title}</h2>
+            <h2 className="font-display text-xl text-foreground">{getTitle(card)}</h2>
             <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-              {card.description}
+              {getDescription(card)}
             </p>
           </div>
         </div>

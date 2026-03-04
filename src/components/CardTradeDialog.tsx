@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { RefreshCw, Package, Loader2 } from 'lucide-react';
 import { GameCard, RARITY_CONFIG, Rarity } from '@/types/card';
 import { cn } from '@/lib/utils';
+import { useLocalizedCard } from '@/hooks/useLocalizedCard';
 
 interface CardTradeDialogProps {
   eligibleCards: { card: GameCard; count: number }[];
@@ -12,6 +13,7 @@ interface CardTradeDialogProps {
 }
 
 export const CardTradeDialog = ({ eligibleCards, onTrade, isTrading }: CardTradeDialogProps) => {
+  const { getTitle } = useLocalizedCard();
   const [open, setOpen] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
 
@@ -60,11 +62,11 @@ export const CardTradeDialog = ({ eligibleCards, onTrade, isTrading }: CardTrade
               >
                 <img 
                   src={card.image_url} 
-                  alt={card.title}
+                  alt={getTitle(card)}
                   className="w-12 h-16 object-cover rounded-lg"
                 />
                 <div className="flex-1 text-left">
-                  <h4 className="font-display text-sm">{card.title}</h4>
+                  <h4 className="font-display text-sm">{getTitle(card)}</h4>
                   <span 
                     className={cn(
                       "inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase",

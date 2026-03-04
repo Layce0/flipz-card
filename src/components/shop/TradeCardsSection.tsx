@@ -8,6 +8,7 @@ import { ArrowRightLeft, Loader2, Package } from 'lucide-react';
 import { Rarity, RARITY_CONFIG } from '@/types/card';
 import { TRADE_CONFIG } from '@/types/pack';
 import { UserCardWithCount } from '@/hooks/useCards';
+import { useLocalizedCard } from '@/hooks/useLocalizedCard';
 import { cn } from '@/lib/utils';
 import { PackRevealFlow } from '@/components/shop/PackRevealFlow';
 
@@ -19,6 +20,7 @@ interface TradeCardsSectionProps {
 
 export const TradeCardsSection = ({ userCards, onTrade, isTrading }: TradeCardsSectionProps) => {
   const { t } = useTranslation();
+  const { getTitle } = useLocalizedCard();
   const [selectedCard, setSelectedCard] = useState<UserCardWithCount | null>(null);
   const [rewardCards, setRewardCards] = useState<any[]>([]);
   const [showReward, setShowReward] = useState(false);
@@ -116,12 +118,12 @@ export const TradeCardsSection = ({ userCards, onTrade, isTrading }: TradeCardsS
                           <div className="relative w-20 aspect-[2/3] rounded-lg overflow-hidden border-2 border-border group-hover:border-primary transition-colors">
                             <img
                               src={card.image_url}
-                              alt={card.title}
+                              alt={getTitle(card)}
                               className="w-full h-full object-cover"
                             />
                             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-1">
                               <span className="text-[10px] text-white font-medium truncate block">
-                                {card.title}
+                                {getTitle(card)}
                               </span>
                               <span className="text-[10px] text-primary font-bold">
                                 ×{card.count}
@@ -147,7 +149,7 @@ export const TradeCardsSection = ({ userCards, onTrade, isTrading }: TradeCardsS
             <DialogDescription>
               {selectedCard && t('trade.confirmDescription', {
                 required: TRADE_CONFIG[selectedCard.rarity as Rarity].required,
-                title: selectedCard.title,
+                title: getTitle(selectedCard),
                 reward: TRADE_CONFIG[selectedCard.rarity as Rarity].reward
               })}
             </DialogDescription>
@@ -158,7 +160,7 @@ export const TradeCardsSection = ({ userCards, onTrade, isTrading }: TradeCardsS
               <div className="relative w-24 aspect-[2/3] rounded-xl overflow-hidden border-2 border-border">
                 <img
                   src={selectedCard.image_url}
-                  alt={selectedCard.title}
+                  alt={getTitle(selectedCard)}
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute top-1 right-1 bg-destructive text-destructive-foreground text-xs px-1.5 py-0.5 rounded-full font-bold">

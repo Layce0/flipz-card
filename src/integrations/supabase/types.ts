@@ -18,29 +18,41 @@ export type Database = {
         Row: {
           created_at: string
           description: string
+          description_en: string | null
+          description_es: string | null
           id: string
           image_url: string
           rarity: Database["public"]["Enums"]["card_rarity"]
           release_date: string
           title: string
+          title_en: string | null
+          title_es: string | null
         }
         Insert: {
           created_at?: string
           description: string
+          description_en?: string | null
+          description_es?: string | null
           id?: string
           image_url: string
           rarity?: Database["public"]["Enums"]["card_rarity"]
           release_date?: string
           title: string
+          title_en?: string | null
+          title_es?: string | null
         }
         Update: {
           created_at?: string
           description?: string
+          description_en?: string | null
+          description_es?: string | null
           id?: string
           image_url?: string
           rarity?: Database["public"]["Enums"]["card_rarity"]
           release_date?: string
           title?: string
+          title_en?: string | null
+          title_es?: string | null
         }
         Relationships: []
       }

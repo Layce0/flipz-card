@@ -3,6 +3,7 @@ import { GameCard, Rarity, RARITY_CONFIG } from '@/types/card';
 import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight, HelpCircle, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useLocalizedCard } from '@/hooks/useLocalizedCard';
 
 interface CollectionBookProps {
   allCards: GameCard[];
@@ -131,6 +132,7 @@ export const CollectionBook = ({ allCards, collectedCardIds, cardCountMap, activ
 
 // Card slot component
 const CardSlot = ({ card, isCollected, count, onClick }: { card: GameCard; isCollected: boolean; count: number; onClick?: () => void }) => {
+  const { getTitle } = useLocalizedCard();
   const rarityConfig = RARITY_CONFIG[card.rarity];
 
   if (!isCollected) {
@@ -165,7 +167,7 @@ const CardSlot = ({ card, isCollected, count, onClick }: { card: GameCard; isCol
         <div className="absolute inset-0 overflow-hidden">
           <img 
             src={card.image_url} 
-            alt={card.title}
+            alt={getTitle(card)}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-card via-card/20 to-transparent" />
@@ -182,7 +184,7 @@ const CardSlot = ({ card, isCollected, count, onClick }: { card: GameCard; isCol
           >
             {rarityConfig.label}
           </span>
-          <h4 className="font-display text-sm text-foreground truncate">{card.title}</h4>
+          <h4 className="font-display text-sm text-foreground truncate">{getTitle(card)}</h4>
         </div>
         
         {/* Card count badge - always show */}
