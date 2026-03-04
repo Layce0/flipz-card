@@ -64,7 +64,6 @@ export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'm
         setShowLegendaryReveal(true);
         setShowRing(true);
         setTimeout(() => setShowRing(false), 900);
-        setTimeout(() => setShowLegendaryReveal(false), 1200);
       }
       onReveal();
     }
@@ -106,7 +105,8 @@ export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'm
 
       <div className={cn(
         "flip-card-inner relative w-full h-full",
-        flipped && "flipped"
+        flipped && "flipped",
+        flipped && card.rarity === 'legendary' && "legendary-spin"
       )}>
         {/* Card Back */}
         <div className={cn(
