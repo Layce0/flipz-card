@@ -38,7 +38,11 @@ const Admin = () => {
   const [editingCard, setEditingCard] = useState<GameCard | null>(null);
   const [editFormData, setEditFormData] = useState({
     title: '',
+    title_en: '',
+    title_es: '',
     description: '',
+    description_en: '',
+    description_es: '',
     image_url: '',
     rarity: 'common' as Rarity,
     release_date: '',
@@ -52,7 +56,11 @@ const Admin = () => {
 
   const [formData, setFormData] = useState({
     title: '',
+    title_en: '',
+    title_es: '',
     description: '',
+    description_en: '',
+    description_es: '',
     image_url: '',
     rarity: 'common' as Rarity,
     release_date: new Date().toISOString().split('T')[0],
@@ -92,7 +100,11 @@ const Admin = () => {
       toast.success('Carte créée avec succès !');
       setFormData({
         title: '',
+        title_en: '',
+        title_es: '',
         description: '',
+        description_en: '',
+        description_es: '',
         image_url: '',
         rarity: 'common',
         release_date: new Date().toISOString().split('T')[0],
@@ -134,7 +146,11 @@ const Admin = () => {
     setEditingCard(card);
     setEditFormData({
       title: card.title,
+      title_en: card.title_en || '',
+      title_es: card.title_es || '',
       description: card.description,
+      description_en: card.description_en || '',
+      description_es: card.description_es || '',
       image_url: card.image_url,
       rarity: card.rarity,
       release_date: card.release_date,
@@ -201,9 +217,9 @@ const Admin = () => {
         <section>
           <h2 className="font-display text-lg mb-4 text-foreground">Créer une carte</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Title */}
+            {/* Title FR */}
             <div className="space-y-2">
-              <Label htmlFor="title">Titre</Label>
+              <Label htmlFor="title">Titre 🇫🇷</Label>
               <Input
                 id="title"
                 value={formData.title}
@@ -213,10 +229,32 @@ const Admin = () => {
                 className="bg-card border-border"
               />
             </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-2">
+                <Label htmlFor="title_en">Titre 🇬🇧</Label>
+                <Input
+                  id="title_en"
+                  value={formData.title_en}
+                  onChange={(e) => setFormData({ ...formData, title_en: e.target.value })}
+                  placeholder="Ancestral Dragon"
+                  className="bg-card border-border"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="title_es">Titre 🇪🇸</Label>
+                <Input
+                  id="title_es"
+                  value={formData.title_es}
+                  onChange={(e) => setFormData({ ...formData, title_es: e.target.value })}
+                  placeholder="Dragón Ancestral"
+                  className="bg-card border-border"
+                />
+              </div>
+            </div>
 
-            {/* Description */}
+            {/* Description FR */}
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">Description 🇫🇷</Label>
               <Textarea
                 id="description"
                 value={formData.description}
@@ -225,6 +263,28 @@ const Admin = () => {
                 required
                 className="bg-card border-border min-h-20"
               />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-2">
+                <Label htmlFor="desc_en">Description 🇬🇧</Label>
+                <Textarea
+                  id="desc_en"
+                  value={formData.description_en}
+                  onChange={(e) => setFormData({ ...formData, description_en: e.target.value })}
+                  placeholder="A short description..."
+                  className="bg-card border-border min-h-20"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="desc_es">Description 🇪🇸</Label>
+                <Textarea
+                  id="desc_es"
+                  value={formData.description_es}
+                  onChange={(e) => setFormData({ ...formData, description_es: e.target.value })}
+                  placeholder="Una breve descripción..."
+                  className="bg-card border-border min-h-20"
+                />
+              </div>
             </div>
 
             {/* Image upload */}
@@ -560,9 +620,9 @@ const Admin = () => {
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* Title */}
+            {/* Title FR */}
             <div className="space-y-2">
-              <Label htmlFor="edit-title">Titre</Label>
+              <Label htmlFor="edit-title">Titre 🇫🇷</Label>
               <Input
                 id="edit-title"
                 value={editFormData.title}
@@ -570,16 +630,56 @@ const Admin = () => {
                 className="bg-card border-border"
               />
             </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-2">
+                <Label htmlFor="edit-title-en">Titre 🇬🇧</Label>
+                <Input
+                  id="edit-title-en"
+                  value={editFormData.title_en}
+                  onChange={(e) => setEditFormData({ ...editFormData, title_en: e.target.value })}
+                  className="bg-card border-border"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-title-es">Titre 🇪🇸</Label>
+                <Input
+                  id="edit-title-es"
+                  value={editFormData.title_es}
+                  onChange={(e) => setEditFormData({ ...editFormData, title_es: e.target.value })}
+                  className="bg-card border-border"
+                />
+              </div>
+            </div>
 
-            {/* Description */}
+            {/* Description FR */}
             <div className="space-y-2">
-              <Label htmlFor="edit-description">Description</Label>
+              <Label htmlFor="edit-description">Description 🇫🇷</Label>
               <Textarea
                 id="edit-description"
                 value={editFormData.description}
                 onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
                 className="bg-card border-border min-h-20"
               />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-2">
+                <Label htmlFor="edit-desc-en">Description 🇬🇧</Label>
+                <Textarea
+                  id="edit-desc-en"
+                  value={editFormData.description_en}
+                  onChange={(e) => setEditFormData({ ...editFormData, description_en: e.target.value })}
+                  className="bg-card border-border min-h-20"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-desc-es">Description 🇪🇸</Label>
+                <Textarea
+                  id="edit-desc-es"
+                  value={editFormData.description_es}
+                  onChange={(e) => setEditFormData({ ...editFormData, description_es: e.target.value })}
+                  className="bg-card border-border min-h-20"
+                />
+              </div>
             </div>
 
             {/* Image upload */}

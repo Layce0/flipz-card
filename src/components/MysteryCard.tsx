@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, memo, useRef } from 'react';
 import { GameCard, RARITY_CONFIG } from '@/types/card';
 import { cn } from '@/lib/utils';
 import cardBackImage from '@/assets/card-back.png';
+import { useLocalizedCard } from '@/hooks/useLocalizedCard';
 
 interface Particle {
   id: number;
@@ -22,6 +23,7 @@ interface MysteryCardProps {
 }
 
 export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'md', isNew = false }: MysteryCardProps) => {
+  const { getTitle, getDescription } = useLocalizedCard();
   const [flipped, setFlipped] = useState(isRevealed);
   const [showParticles, setShowParticles] = useState(false);
   const [particles, setParticles] = useState<Particle[]>([]);
@@ -137,7 +139,7 @@ export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'm
             <div className="relative h-[55%] overflow-hidden">
               <img 
                 src={card.image_url} 
-                alt={card.title}
+                 alt={getTitle(card)}
                 className="w-full h-full object-cover"
                 loading="lazy"
               />
@@ -158,11 +160,11 @@ export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'm
               </div>
 
               <h3 className="font-display text-lg leading-tight text-foreground">
-                {card.title}
+                {getTitle(card)}
               </h3>
 
               <p className="text-sm text-muted-foreground line-clamp-3">
-                {card.description}
+                {getDescription(card)}
               </p>
             </div>
 
