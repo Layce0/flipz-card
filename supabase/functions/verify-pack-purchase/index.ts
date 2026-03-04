@@ -155,9 +155,21 @@ serve(async (req) => {
 
     if (ratesError) throw ratesError;
 
-    // Check for active luck boosts (from codes AND winstreak)
+    // Check for active boosts (luck + pack) from codes AND winstreak
     let luckMultiplier = 1;
+    let bonusCards = 0;
+    let cardMultiplier = 1;
     const now = new Date().toISOString();
+
+    const applyBoost = (rewardType: string, config: Record<string, any>) => {
+      if (rewardType === 'boost_luck' && config?.multiplier) {
+        luckMultiplier = Math.max(luckMultiplier, config.multiplier);
+      }
+      if (rewardType === 'boost_pack') {
+        if (config?.bonus) bonusCards = Math.max(bonusCards, config.bonus);
+        if (config?.multiplier) cardMultiplier = Math.max(cardMultiplier, config.multiplier);
+      }
+    };
 
     // 1. Code redemption boosts
     const { data: activeRedemptions } = await supabaseClient
@@ -174,10 +186,7 @@ serve(async (req) => {
         .in('id', codeIds);
 
       (codes || []).forEach((code: any) => {
-        const config = code.reward_config as Record<string, any>;
-        if (code.reward_type === 'boost_luck' && config?.multiplier) {
-          luckMultiplier = Math.max(luckMultiplier, config.multiplier);
-        }
+        applyBoost(code.reward_type, code.reward_config as Record<string, any>);
       });
     }
 
@@ -196,12 +205,12 @@ serve(async (req) => {
         .in('id', rewardIds);
 
       (rewards || []).forEach((r: any) => {
-        const config = r.reward_config as Record<string, any>;
-        if (r.reward_type === 'boost_luck' && config?.multiplier) {
-          luckMultiplier = Math.max(luckMultiplier, config.multiplier);
-        }
+        applyBoost(r.reward_type, r.reward_config as Record<string, any>);
       });
     }
+
+    // Apply pack boost to card count
+    const finalCardCount = Math.round(cardCount * cardMultiplier) + bonusCards;
 
     // Fixed probability tables for luck boost multipliers
     const LUCK_TABLES: Record<number, Record<string, number>> = {
@@ -243,7 +252,7 @@ serve(async (req) => {
     const normalizedWeights: Record<string, number> = tableSet[effectiveLuck] 
       ?? tableSet[1];
 
-    logStep("Calculated weights", { packType, multiplier, luckMultiplier, effectiveLuck, normalizedWeights });
+    logStep("Calculated weights", { packType, multiplier, luckMultiplier, effectiveLuck, finalCardCount, normalizedWeights });
 
     // Generate weighted random cards
     const weightedCards: any[] = [];
@@ -255,7 +264,7 @@ serve(async (req) => {
     });
 
     const selectedCards: any[] = [];
-    for (let i = 0; i < cardCount; i++) {
+    for (let i = 0; i < finalCardCount; i++) {
       const randomIndex = Math.floor(Math.random() * weightedCards.length);
       selectedCards.push(weightedCards[randomIndex]);
     }

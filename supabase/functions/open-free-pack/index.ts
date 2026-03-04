@@ -116,9 +116,22 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check for active luck boosts (from codes AND winstreak)
+    // Check for active boosts (luck + pack) from codes AND winstreak
     let luckMultiplier = 1;
+    let bonusCards = 0;
+    let cardMultiplier = 1;
     const now = new Date().toISOString();
+
+    // Helper to process boost entries
+    const applyBoost = (rewardType: string, config: Record<string, any>) => {
+      if (rewardType === 'boost_luck' && config?.multiplier) {
+        luckMultiplier = Math.max(luckMultiplier, config.multiplier);
+      }
+      if (rewardType === 'boost_pack') {
+        if (config?.bonus) bonusCards = Math.max(bonusCards, config.bonus);
+        if (config?.multiplier) cardMultiplier = Math.max(cardMultiplier, config.multiplier);
+      }
+    };
 
     // 1. Code redemption boosts
     const { data: activeRedemptions } = await supabaseAdmin
@@ -135,10 +148,7 @@ Deno.serve(async (req) => {
         .in('id', codeIds);
 
       (codes || []).forEach((code: any) => {
-        const config = code.reward_config as Record<string, any>;
-        if (code.reward_type === 'boost_luck' && config?.multiplier) {
-          luckMultiplier = Math.max(luckMultiplier, config.multiplier);
-        }
+        applyBoost(code.reward_type, code.reward_config as Record<string, any>);
       });
     }
 
@@ -157,17 +167,18 @@ Deno.serve(async (req) => {
         .in('id', rewardIds);
 
       (rewards || []).forEach((r: any) => {
-        const config = r.reward_config as Record<string, any>;
-        if (r.reward_type === 'boost_luck' && config?.multiplier) {
-          luckMultiplier = Math.max(luckMultiplier, config.multiplier);
-        }
+        applyBoost(r.reward_type, r.reward_config as Record<string, any>);
       });
     }
+
+    // Apply pack boost to card count
+    let finalCardCount = 3; // free pack = 3 cards
+    finalCardCount = Math.round(finalCardCount * cardMultiplier) + bonusCards;
 
     const effectiveLuck = luckMultiplier > 1 ? luckMultiplier : 1;
     const weights = LUCK_TABLES[effectiveLuck] ?? LUCK_TABLES[1];
 
-    const selectedCards = generateWeightedCards(cards, weights, 3);
+    const selectedCards = generateWeightedCards(cards, weights, finalCardCount);
 
     // Insert cards server-side
     await supabaseAdmin
