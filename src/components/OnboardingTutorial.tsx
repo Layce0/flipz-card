@@ -156,8 +156,7 @@ export const OnboardingTutorial = () => {
     localStorage.setItem(ONBOARDING_KEY, 'true');
     setPhase('done');
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    // Navigate back home
-    navigate('/');
+    // Stay on shop page (last step navigates there)
   };
 
   const handleTourNext = () => {
@@ -289,7 +288,7 @@ export const OnboardingTutorial = () => {
           <rect
             x="0" y="0"
             width="100%" height="100%"
-            fill="rgba(0,0,0,0.75)"
+            fill="rgba(0,0,0,0.45)"
             mask="url(#spotlight-mask)"
           />
         </svg>
