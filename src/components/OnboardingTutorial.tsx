@@ -251,9 +251,9 @@ export const OnboardingTutorial = () => {
     }
 
     return (
-      <div className="fixed inset-0 z-[100]">
+      <div className={cn("fixed inset-0 z-[100]", allowClickThrough && "pointer-events-none")}>
         {/* Dark overlay with spotlight cutout */}
-        <svg className="absolute inset-0 w-full h-full" style={{ pointerEvents: allowClickThrough ? 'none' : 'auto' }}>
+        <svg className="absolute inset-0 w-full h-full pointer-events-auto" style={{ pointerEvents: allowClickThrough ? 'none' : 'auto' }}>
           <defs>
             <mask id="spotlight-mask">
               <rect x="0" y="0" width="100%" height="100%" fill="white" />
