@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import Lottie from 'lottie-react';
 import { MysteryCard } from '@/components/MysteryCard';
 import { Navigation } from '@/components/Navigation';
+import { OnboardingTutorial } from '@/components/OnboardingTutorial';
 import { WinstreakBadge } from '@/components/WinstreakBadge';
 import { Clock, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -143,6 +144,7 @@ const Index = () => {
         </div>
       )}
 
+      <OnboardingTutorial />
       <Navigation />
     </div>
   );

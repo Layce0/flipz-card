@@ -175,5 +175,19 @@
   },
   "cardReveal": {
     "progress": "Card {{current}} of {{total}}"
+  },
+  "onboarding": {
+    "skip": "Skip",
+    "start": "Let's go!",
+    "step1Title": "Welcome to Flipz!",
+    "step1Desc": "Collect unique cards every day and complete your collection!",
+    "step2Title": "Daily Card",
+    "step2Desc": "Every day, a new mystery card awaits you on the home page. Flip it to discover it!",
+    "step3Title": "Open Packs",
+    "step3Desc": "Watch an ad to open free packs and get multiple cards at once!",
+    "step4Title": "The Shop",
+    "step4Desc": "Buy premium packs or trade your duplicates for new cards in the shop.",
+    "step5Title": "Login Streak",
+    "step5Desc": "Come back every day to maintain your streak and unlock exclusive rewards!"
   }
 }

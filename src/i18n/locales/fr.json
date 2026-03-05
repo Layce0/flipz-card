@@ -175,5 +175,19 @@
   },
   "cardReveal": {
     "progress": "Carte {{current}} sur {{total}}"
+  },
+  "onboarding": {
+    "skip": "Passer",
+    "start": "C'est parti !",
+    "step1Title": "Bienvenue sur Flipz !",
+    "step1Desc": "Collectionnez des cartes uniques chaque jour et complétez votre collection !",
+    "step2Title": "Carte du jour",
+    "step2Desc": "Chaque jour, une nouvelle carte mystère vous attend sur la page d'accueil. Retournez-la pour la découvrir !",
+    "step3Title": "Ouvrez des Packs",
+    "step3Desc": "Regardez une publicité pour ouvrir des packs gratuits et obtenir plusieurs cartes d'un coup !",
+    "step4Title": "La Boutique",
+    "step4Desc": "Achetez des packs premium ou échangez vos doublons contre de nouvelles cartes dans la boutique.",
+    "step5Title": "Série de connexion",
+    "step5Desc": "Revenez chaque jour pour maintenir votre série et débloquer des récompenses exclusives !"
   }
 }
