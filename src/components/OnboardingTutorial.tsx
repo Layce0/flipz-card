@@ -308,6 +308,22 @@ export const OnboardingTutorial = () => {
           }}
         />
 
+        {/* Floating label on card for flip step */}
+        {step.interaction === 'flip-card' && waitingForInteraction && targetRect && (
+          <div
+            className="absolute pointer-events-none z-10 flex flex-col items-center animate-bounce"
+            style={{
+              top: targetRect.top + targetRect.height / 2 - 16,
+              left: targetRect.left + targetRect.width / 2,
+              transform: 'translateX(-50%)',
+            }}
+          >
+            <span className="px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-bold shadow-lg whitespace-nowrap">
+              👆 {t('onboarding.flipHint')}
+            </span>
+          </div>
+        )}
+
         {/* Tooltip */}
         <div
           className="absolute w-[85vw] max-w-xs animate-fade-in pointer-events-auto"

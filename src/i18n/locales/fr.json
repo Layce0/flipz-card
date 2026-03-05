@@ -182,6 +182,7 @@
     "skip": "Passer",
     "start": "C'est parti !",
     "interactHint": "Interagissez pour continuer",
+    "flipHint": "Retourne la carte !",
     "waitAction": "En attente…",
     "step1Title": "Bienvenue sur Flipz !",
     "step1Desc": "Collectionnez des cartes uniques chaque jour et complétez votre collection !",
