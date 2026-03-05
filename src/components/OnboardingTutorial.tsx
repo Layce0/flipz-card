@@ -72,7 +72,7 @@ export const OnboardingTutorial = () => {
         } else {
           handleFinish();
         }
-      }, 800);
+      }, 2000);
       return () => clearTimeout(timer);
     }
   }, [location.pathname, phase, tourStep, waitingForInteraction]);
@@ -93,7 +93,7 @@ export const OnboardingTutorial = () => {
           } else {
             handleFinish();
           }
-        }, 1000);
+        }, 2000);
         return;
       }
       requestAnimationFrame(checkFlipped);
