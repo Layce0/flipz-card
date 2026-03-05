@@ -183,6 +183,7 @@
     "start": "Let's go!",
     "finishTitle": "Your turn to play!",
     "finishDesc": "You know everything! Collect cards, open packs and complete your collection. Good luck!",
+    "codeHint": "A little boost to get started, use the code",
     "interactHint": "Interact to continue",
     "flipHint": "Flip the card!",
     "waitAction": "Waiting…",

@@ -183,6 +183,7 @@
     "start": "C'est parti !",
     "finishTitle": "À vous de jouer !",
     "finishDesc": "Vous savez tout ! Collectionnez des cartes, ouvrez des packs et complétez votre collection. Bonne chance !",
+    "codeHint": "Petit boost pour bien démarrer, utilisez le code",
     "interactHint": "Interagissez pour continuer",
     "flipHint": "Retourne la carte !",
     "waitAction": "En attente…",
