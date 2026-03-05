@@ -245,6 +245,11 @@ export const OnboardingTutorial = () => {
             <p className="text-muted-foreground text-sm leading-relaxed">
               {t('onboarding.finishDesc')}
             </p>
+            <div className="mt-2 px-4 py-2.5 rounded-xl bg-primary/10 border border-primary/20">
+              <p className="text-xs text-muted-foreground">
+                💡 {t('onboarding.codeHint')} <span className="font-mono font-bold text-primary">debut</span>
+              </p>
+            </div>
             <Button
               variant="gold"
               size="lg"
