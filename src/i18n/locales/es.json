@@ -177,6 +177,8 @@
     "progress": "Carta {{current}} de {{total}}"
   },
   "onboarding": {
+    "langTitle": "Elige tu idioma",
+    "langDesc": "Selecciona el idioma en el que quieres usar la aplicación.",
     "skip": "Saltar",
     "start": "¡Vamos!",
     "step1Title": "¡Bienvenido a Flipz!",
