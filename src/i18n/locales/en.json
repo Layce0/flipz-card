@@ -181,6 +181,8 @@
     "langDesc": "Select the language you want to use in the app.",
     "skip": "Skip",
     "start": "Let's go!",
+    "finishTitle": "Your turn to play!",
+    "finishDesc": "You know everything! Collect cards, open packs and complete your collection. Good luck!",
     "interactHint": "Interact to continue",
     "flipHint": "Flip the card!",
     "waitAction": "Waiting…",

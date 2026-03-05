@@ -181,6 +181,8 @@
     "langDesc": "Sélectionnez la langue dans laquelle vous souhaitez utiliser l'application.",
     "skip": "Passer",
     "start": "C'est parti !",
+    "finishTitle": "À vous de jouer !",
+    "finishDesc": "Vous savez tout ! Collectionnez des cartes, ouvrez des packs et complétez votre collection. Bonne chance !",
     "interactHint": "Interagissez pour continuer",
     "flipHint": "Retourne la carte !",
     "waitAction": "En attente…",

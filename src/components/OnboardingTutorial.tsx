@@ -42,7 +42,7 @@ interface Rect {
 }
 
 export const OnboardingTutorial = () => {
-  const [phase, setPhase] = useState<'idle' | 'lang' | 'tour' | 'done'>('idle');
+  const [phase, setPhase] = useState<'idle' | 'lang' | 'tour' | 'finish' | 'done'>('idle');
   const [tourStep, setTourStep] = useState(0);
   const [targetRect, setTargetRect] = useState<Rect | null>(null);
   const [waitingForInteraction, setWaitingForInteraction] = useState(false);
@@ -153,10 +153,8 @@ export const OnboardingTutorial = () => {
   };
 
   const handleFinish = () => {
-    localStorage.setItem(ONBOARDING_KEY, 'true');
-    setPhase('done');
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    // Stay on shop page (last step navigates there)
+    setPhase('finish');
   };
 
   const handleTourNext = () => {
@@ -227,6 +225,36 @@ export const OnboardingTutorial = () => {
             </Button>
             <Button variant="default" size="sm" onClick={handleLangNext}>
               {t('common.next')}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // Finish screen
+  if (phase === 'finish') {
+    return (
+      <Dialog open onOpenChange={() => {}}>
+        <DialogContent className="max-w-sm rounded-2xl border-primary/30 bg-card p-0 overflow-hidden [&>button]:hidden">
+          <div className="flex flex-col items-center text-center px-6 py-10 gap-4">
+            <div className="text-6xl mb-2">🎉</div>
+            <h2 className="text-2xl font-display font-bold text-foreground">
+              {t('onboarding.finishTitle')}
+            </h2>
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              {t('onboarding.finishDesc')}
+            </p>
+            <Button
+              variant="gold"
+              size="lg"
+              className="mt-4 w-full text-base font-bold"
+              onClick={() => {
+                localStorage.setItem(ONBOARDING_KEY, 'true');
+                setPhase('done');
+              }}
+            >
+              {t('onboarding.start')}
             </Button>
           </div>
         </DialogContent>
