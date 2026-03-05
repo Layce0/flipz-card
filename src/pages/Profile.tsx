@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { User, Settings, BarChart3, LogOut, Camera, Lock, Save } from 'lucide-react';
+import { User, Settings, BarChart3, LogOut, Camera, Lock, Save, GraduationCap } from 'lucide-react';
 import { toast } from 'sonner';
 
 const LANGUAGES = [
@@ -390,6 +390,23 @@ const Profile = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                {/* Replay tutorial */}
+                <div className="space-y-2">
+                  <Label>{t('settings.tutorial', 'Tutoriel')}</Label>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      localStorage.removeItem('flipz_onboarding_done');
+                      navigate('/');
+                      window.location.reload();
+                    }}
+                  >
+                    <GraduationCap className="w-4 h-4 mr-2" />
+                    {t('settings.replayTutorial', 'Revoir le tutoriel')}
+                  </Button>
                 </div>
 
                 <Button onClick={saveProfile} disabled={saving} className="w-full">
