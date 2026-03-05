@@ -183,13 +183,13 @@
     "start": "¡Vamos!",
     "step1Title": "¡Bienvenido a Flipz!",
     "step1Desc": "¡Colecciona cartas únicas cada día y completa tu colección!",
-    "step2Title": "Carta del día",
-    "step2Desc": "Cada día, una nueva carta misteriosa te espera en la página de inicio. ¡Dale la vuelta para descubrirla!",
-    "step3Title": "Abrir Packs",
-    "step3Desc": "¡Mira un anuncio para abrir packs gratis y obtener varias cartas a la vez!",
-    "step4Title": "La Tienda",
-    "step4Desc": "Compra packs premium o intercambia tus duplicados por nuevas cartas en la tienda.",
-    "step5Title": "Racha de conexión",
-    "step5Desc": "¡Vuelve cada día para mantener tu racha y desbloquear recompensas exclusivas!"
+    "step2Title": "Cuenta regresiva",
+    "step2Desc": "Este temporizador muestra el tiempo restante antes de que llegue una nueva carta misteriosa.",
+    "step3Title": "La Carta Misteriosa",
+    "step3Desc": "¡Toca la carta para voltearla y descubrirla! Se añadirá a tu colección.",
+    "step4Title": "Tu Colección",
+    "step4Desc": "Encuentra aquí todas las cartas que has coleccionado, ordenadas por rareza.",
+    "step5Title": "Los Packs",
+    "step5Desc": "¡Abre packs para obtener varias cartas a la vez y completar tu colección más rápido!"
   }
 }

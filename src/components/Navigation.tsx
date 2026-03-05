@@ -13,24 +13,25 @@ export const Navigation = memo(() => {
   const { hasNewCards } = useNewCardIndicator();
 
   const navItems = [
-    { path: '/', icon: Home, labelKey: 'nav.home', show: true, badge: false },
-    { path: '/collection', icon: BookOpen, labelKey: 'nav.collection', show: true, badge: hasNewCards },
-    { path: '/packs', icon: Package, labelKey: 'nav.packs', show: true, badge: false },
-    { path: '/shop', icon: Store, labelKey: 'nav.shop', show: !!user, badge: false },
-    { path: '/admin', icon: Shield, labelKey: 'nav.admin', show: isAdmin, badge: false },
-    { path: '/profile', icon: User, labelKey: 'nav.profile', show: !!user, badge: false },
-    { path: '/auth', icon: LogIn, labelKey: 'nav.login', show: !user, badge: false },
+    { path: '/', icon: Home, labelKey: 'nav.home', show: true, badge: false, tour: 'nav-home' },
+    { path: '/collection', icon: BookOpen, labelKey: 'nav.collection', show: true, badge: hasNewCards, tour: 'nav-collection' },
+    { path: '/packs', icon: Package, labelKey: 'nav.packs', show: true, badge: false, tour: 'nav-packs' },
+    { path: '/shop', icon: Store, labelKey: 'nav.shop', show: !!user, badge: false, tour: 'nav-shop' },
+    { path: '/admin', icon: Shield, labelKey: 'nav.admin', show: isAdmin, badge: false, tour: '' },
+    { path: '/profile', icon: User, labelKey: 'nav.profile', show: !!user, badge: false, tour: 'nav-profile' },
+    { path: '/auth', icon: LogIn, labelKey: 'nav.login', show: !user, badge: false, tour: 'nav-login' },
   ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/90 backdrop-blur-lg border-t border-border safe-area-bottom">
       <div className="flex items-center justify-around py-2 px-4 max-w-lg mx-auto">
-        {navItems.filter(item => item.show).map(({ path, icon: Icon, labelKey, badge }) => {
+        {navItems.filter(item => item.show).map(({ path, icon: Icon, labelKey, badge, tour }) => {
           const isActive = location.pathname === path;
           return (
             <Link
               key={path}
               to={path}
+              data-tour={tour || undefined}
               className={cn(
                 "relative flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-all duration-300",
                 isActive 
