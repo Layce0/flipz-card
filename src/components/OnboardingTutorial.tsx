@@ -46,6 +46,7 @@ export const OnboardingTutorial = () => {
   const [tourStep, setTourStep] = useState(0);
   const [targetRect, setTargetRect] = useState<Rect | null>(null);
   const [waitingForInteraction, setWaitingForInteraction] = useState(false);
+  const [minimized, setMinimized] = useState(false);
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
@@ -64,8 +65,9 @@ export const OnboardingTutorial = () => {
     if (phase !== 'tour' || !waitingForInteraction) return;
     const step = TOUR_STEPS[tourStep];
     if (step.interaction === 'click-target' && step.navigateTo && location.pathname === step.navigateTo) {
-      // Small delay to let the page render, then advance
+      setMinimized(true);
       const timer = setTimeout(() => {
+        setMinimized(false);
         setWaitingForInteraction(false);
         if (tourStep < TOUR_STEPS.length - 1) {
           setTourStep(tourStep + 1);
@@ -87,7 +89,9 @@ export const OnboardingTutorial = () => {
       const cardInner = document.querySelector('[data-tour="card"] .flip-card-inner');
       if (cardInner?.classList.contains('flipped')) {
         setWaitingForInteraction(false);
+        setMinimized(true);
         setTimeout(() => {
+          setMinimized(false);
           if (tourStep < TOUR_STEPS.length - 1) {
             setTourStep(tourStep + 1);
           } else {
@@ -232,7 +236,10 @@ export const OnboardingTutorial = () => {
   }
 
   // Interactive spotlight tour
-  if (phase === 'tour' && targetRect) {
+  if (phase === 'tour' && (targetRect || minimized)) {
+    if (minimized) {
+      return <div className="fixed inset-0 z-[100] pointer-events-none" />;
+    }
     const step = TOUR_STEPS[tourStep];
     const isLast = tourStep === TOUR_STEPS.length - 1;
     const isInteractive = step.interaction !== 'none';
