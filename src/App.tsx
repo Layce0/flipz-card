@@ -1,4 +1,5 @@
 import { lazy, Suspense } from "react";
+import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -40,6 +41,7 @@ const App = () => (
           <div className="relative min-h-screen">
             <ParticlesBackground />
             <ActiveBoostsOverlay />
+            <OnboardingTutorial />
             <GlobalGifsOverlay />
             <Suspense fallback={<PageLoader />}>
               <Routes>
