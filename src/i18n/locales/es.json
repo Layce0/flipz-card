@@ -181,15 +181,19 @@
     "langDesc": "Selecciona el idioma en el que quieres usar la aplicación.",
     "skip": "Saltar",
     "start": "¡Vamos!",
+    "interactHint": "Interactúa para continuar",
+    "waitAction": "Esperando…",
     "step1Title": "¡Bienvenido a Flipz!",
     "step1Desc": "¡Colecciona cartas únicas cada día y completa tu colección!",
     "step2Title": "Cuenta regresiva",
     "step2Desc": "Este temporizador muestra el tiempo restante antes de que llegue una nueva carta misteriosa.",
     "step3Title": "La Carta Misteriosa",
-    "step3Desc": "¡Toca la carta para voltearla y descubrirla! Se añadirá a tu colección.",
+    "step3Desc": "¡Voltea la carta para descubrirla! Tócala ahora.",
     "step4Title": "Tu Colección",
-    "step4Desc": "Encuentra aquí todas las cartas que has coleccionado, ordenadas por rareza.",
+    "step4Desc": "Toca Colección para ver tus cartas.",
     "step5Title": "Los Packs",
-    "step5Desc": "¡Abre packs para obtener varias cartas a la vez y completar tu colección más rápido!"
+    "step5Desc": "¡Toca Packs para descubrir cómo obtener más!",
+    "step6Title": "La Tienda",
+    "step6Desc": "¡Toca Tienda para comprar packs e intercambiar cartas!"
   }
 }

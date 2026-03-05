@@ -181,15 +181,19 @@
     "langDesc": "Select the language you want to use in the app.",
     "skip": "Skip",
     "start": "Let's go!",
+    "interactHint": "Interact to continue",
+    "waitAction": "Waiting…",
     "step1Title": "Welcome to Flipz!",
     "step1Desc": "Collect unique cards every day and complete your collection!",
     "step2Title": "Countdown",
     "step2Desc": "This timer shows the time remaining before a new mystery card arrives.",
     "step3Title": "The Mystery Card",
-    "step3Desc": "Tap the card to flip it and discover it! It will be added to your collection.",
+    "step3Desc": "Flip the card to discover it! Tap it now.",
     "step4Title": "Your Collection",
-    "step4Desc": "Find all the cards you've collected here, sorted by rarity.",
+    "step4Desc": "Tap Collection to see your cards.",
     "step5Title": "Packs",
-    "step5Desc": "Open packs to get multiple cards at once and complete your collection faster!"
+    "step5Desc": "Tap Packs to discover how to get more!",
+    "step6Title": "The Shop",
+    "step6Desc": "Tap Shop to buy packs and trade cards!"
   }
 }
