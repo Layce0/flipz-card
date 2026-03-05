@@ -237,8 +237,18 @@ export const OnboardingTutorial = () => {
 
   // Interactive spotlight tour
   if (phase === 'tour' && (targetRect || minimized)) {
+    const goldenBorder = (
+      <div className="fixed inset-0 z-[101] pointer-events-none">
+        <div className="absolute inset-0 border-[3px] border-primary/60 rounded-none shadow-[inset_0_0_30px_hsl(45_90%_55%_/_0.15),0_0_30px_hsl(45_90%_55%_/_0.1)]" />
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+        <div className="absolute top-0 bottom-0 left-0 w-1 bg-gradient-to-b from-transparent via-primary/50 to-transparent" />
+        <div className="absolute top-0 bottom-0 right-0 w-1 bg-gradient-to-b from-transparent via-primary/50 to-transparent" />
+      </div>
+    );
+
     if (minimized) {
-      return <div className="fixed inset-0 z-[100] pointer-events-none" />;
+      return <>{goldenBorder}<div className="fixed inset-0 z-[100] pointer-events-none" /></>;
     }
     const step = TOUR_STEPS[tourStep];
     const isLast = tourStep === TOUR_STEPS.length - 1;
@@ -258,6 +268,8 @@ export const OnboardingTutorial = () => {
     }
 
     return (
+      <>
+      {goldenBorder}
       <div className={cn("fixed inset-0 z-[100]", allowClickThrough && "pointer-events-none")}>
         {/* Dark overlay with spotlight cutout */}
         <svg className="absolute inset-0 w-full h-full pointer-events-auto" style={{ pointerEvents: allowClickThrough ? 'none' : 'auto' }}>
@@ -354,6 +366,7 @@ export const OnboardingTutorial = () => {
           </div>
         </div>
       </div>
+      </>
     );
   }
 
