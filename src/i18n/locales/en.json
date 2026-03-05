@@ -177,6 +177,8 @@
     "progress": "Card {{current}} of {{total}}"
   },
   "onboarding": {
+    "langTitle": "Choose your language",
+    "langDesc": "Select the language you want to use in the app.",
     "skip": "Skip",
     "start": "Let's go!",
     "step1Title": "Welcome to Flipz!",

@@ -2,20 +2,28 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { BookOpen, Package, Store, Sparkles, Trophy } from 'lucide-react';
+import { BookOpen, Package, Store, Sparkles, Trophy, Globe } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const ONBOARDING_KEY = 'flipz_onboarding_done';
+
+const LANGUAGES = [
+  { code: 'fr', label: '🇫🇷 Français' },
+  { code: 'en', label: '🇬🇧 English' },
+  { code: 'es', label: '🇪🇸 Español' },
+];
 
 interface Step {
   icon: React.ReactNode;
   titleKey: string;
   descKey: string;
+  isLangStep?: boolean;
 }
 
 export const OnboardingTutorial = () => {
   const [open, setOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     const done = localStorage.getItem(ONBOARDING_KEY);
@@ -25,7 +33,18 @@ export const OnboardingTutorial = () => {
     }
   }, []);
 
+  const handleLanguageChange = (code: string) => {
+    i18n.changeLanguage(code);
+    localStorage.setItem('i18nextLng', code);
+  };
+
   const steps: Step[] = [
+    {
+      icon: <Globe className="w-12 h-12 text-primary" />,
+      titleKey: 'onboarding.langTitle',
+      descKey: 'onboarding.langDesc',
+      isLangStep: true,
+    },
     {
       icon: <Sparkles className="w-12 h-12 text-primary" />,
       titleKey: 'onboarding.step1Title',
@@ -103,6 +122,26 @@ export const OnboardingTutorial = () => {
           <p className="text-muted-foreground text-sm leading-relaxed">
             {t(step.descKey)}
           </p>
+
+          {/* Language selector on first step */}
+          {step.isLangStep && (
+            <div className="flex flex-col gap-2 w-full mt-2">
+              {LANGUAGES.map((lang) => (
+                <button
+                  key={lang.code}
+                  onClick={() => handleLanguageChange(lang.code)}
+                  className={cn(
+                    "w-full py-3 px-4 rounded-xl text-sm font-medium transition-all duration-200 border",
+                    i18n.language?.startsWith(lang.code)
+                      ? "bg-primary/15 border-primary text-foreground"
+                      : "bg-muted/50 border-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )}
+                >
+                  {lang.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Actions */}
