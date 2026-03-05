@@ -84,7 +84,7 @@ const Index = () => {
             <WinstreakBadge streak={streakData.current_streak} />
           </div>
         )}
-        <div className="mb-2">
+        <div className="mb-2" data-tour="logo">
           <img src={flipzLogo} alt="FLIPZ" className="h-28 sm:h-36 mx-auto" />
         </div>
         <p className="text-muted-foreground text-sm">{t('home.subtitle')}</p>
@@ -93,7 +93,7 @@ const Index = () => {
       {/* Daily card section */}
       <main className="px-4 flex flex-col items-center">
         {/* Timer */}
-        <div className="relative flex items-center gap-2 bg-card/80 px-5 py-2.5 rounded-full mb-8 timer-glow-border">
+        <div data-tour="timer" className="relative flex items-center gap-2 bg-card/80 px-5 py-2.5 rounded-full mb-8 timer-glow-border">
           <Clock className="w-4 h-4 text-primary" />
           <span className="text-sm text-muted-foreground">{t('home.nextCard')}</span>
           <span className="font-mono text-primary font-semibold">{timeLeft}</span>
@@ -111,7 +111,7 @@ const Index = () => {
         ) : (
           <>
             {/* Card */}
-            <div className="relative mb-8">
+            <div className="relative mb-8" data-tour="card">
               <div className="absolute -inset-8 bg-gradient-radial from-primary/20 via-transparent to-transparent blur-2xl" />
               <MysteryCard 
                 card={todayCard} 

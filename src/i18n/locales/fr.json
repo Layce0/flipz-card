@@ -183,13 +183,13 @@
     "start": "C'est parti !",
     "step1Title": "Bienvenue sur Flipz !",
     "step1Desc": "Collectionnez des cartes uniques chaque jour et complétez votre collection !",
-    "step2Title": "Carte du jour",
-    "step2Desc": "Chaque jour, une nouvelle carte mystère vous attend sur la page d'accueil. Retournez-la pour la découvrir !",
-    "step3Title": "Ouvrez des Packs",
-    "step3Desc": "Regardez une publicité pour ouvrir des packs gratuits et obtenir plusieurs cartes d'un coup !",
-    "step4Title": "La Boutique",
-    "step4Desc": "Achetez des packs premium ou échangez vos doublons contre de nouvelles cartes dans la boutique.",
-    "step5Title": "Série de connexion",
-    "step5Desc": "Revenez chaque jour pour maintenir votre série et débloquer des récompenses exclusives !"
+    "step2Title": "Compte à rebours",
+    "step2Desc": "Ce timer indique le temps restant avant l'arrivée d'une nouvelle carte mystère.",
+    "step3Title": "La Carte Mystère",
+    "step3Desc": "Touchez la carte pour la retourner et la découvrir ! Elle sera ajoutée à votre collection.",
+    "step4Title": "Votre Collection",
+    "step4Desc": "Retrouvez ici toutes les cartes que vous avez collectées, triées par rareté.",
+    "step5Title": "Les Packs",
+    "step5Desc": "Ouvrez des packs pour obtenir plusieurs cartes d'un coup et compléter votre collection plus vite !"
   }
 }
