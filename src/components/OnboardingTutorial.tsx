@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Globe } from 'lucide-react';
@@ -13,19 +14,24 @@ const LANGUAGES = [
   { code: 'es', label: '🇪🇸 Español' },
 ];
 
+type InteractionType = 'none' | 'click-target' | 'flip-card';
+
 interface SpotlightStep {
   selector: string;
   titleKey: string;
   descKey: string;
   position: 'top' | 'bottom';
+  interaction: InteractionType;
+  navigateTo?: string;
 }
 
 const TOUR_STEPS: SpotlightStep[] = [
-  { selector: '[data-tour="logo"]', titleKey: 'onboarding.step1Title', descKey: 'onboarding.step1Desc', position: 'bottom' },
-  { selector: '[data-tour="timer"]', titleKey: 'onboarding.step2Title', descKey: 'onboarding.step2Desc', position: 'bottom' },
-  { selector: '[data-tour="card"]', titleKey: 'onboarding.step3Title', descKey: 'onboarding.step3Desc', position: 'top' },
-  { selector: '[data-tour="nav-collection"]', titleKey: 'onboarding.step4Title', descKey: 'onboarding.step4Desc', position: 'top' },
-  { selector: '[data-tour="nav-packs"]', titleKey: 'onboarding.step5Title', descKey: 'onboarding.step5Desc', position: 'top' },
+  { selector: '[data-tour="logo"]', titleKey: 'onboarding.step1Title', descKey: 'onboarding.step1Desc', position: 'bottom', interaction: 'none' },
+  { selector: '[data-tour="timer"]', titleKey: 'onboarding.step2Title', descKey: 'onboarding.step2Desc', position: 'bottom', interaction: 'none' },
+  { selector: '[data-tour="card"]', titleKey: 'onboarding.step3Title', descKey: 'onboarding.step3Desc', position: 'top', interaction: 'flip-card' },
+  { selector: '[data-tour="nav-collection"]', titleKey: 'onboarding.step4Title', descKey: 'onboarding.step4Desc', position: 'top', interaction: 'click-target', navigateTo: '/collection' },
+  { selector: '[data-tour="nav-packs"]', titleKey: 'onboarding.step5Title', descKey: 'onboarding.step5Desc', position: 'top', interaction: 'click-target', navigateTo: '/packs' },
+  { selector: '[data-tour="nav-shop"]', titleKey: 'onboarding.step6Title', descKey: 'onboarding.step6Desc', position: 'top', interaction: 'click-target', navigateTo: '/shop' },
 ];
 
 interface Rect {
@@ -39,7 +45,10 @@ export const OnboardingTutorial = () => {
   const [phase, setPhase] = useState<'idle' | 'lang' | 'tour' | 'done'>('idle');
   const [tourStep, setTourStep] = useState(0);
   const [targetRect, setTargetRect] = useState<Rect | null>(null);
+  const [waitingForInteraction, setWaitingForInteraction] = useState(false);
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const rafRef = useRef<number>();
 
   useEffect(() => {
@@ -49,6 +58,49 @@ export const OnboardingTutorial = () => {
       return () => clearTimeout(timer);
     }
   }, []);
+
+  // After navigating for a click-target step, auto-advance once we're on the right page
+  useEffect(() => {
+    if (phase !== 'tour' || !waitingForInteraction) return;
+    const step = TOUR_STEPS[tourStep];
+    if (step.interaction === 'click-target' && step.navigateTo && location.pathname === step.navigateTo) {
+      // Small delay to let the page render, then advance
+      const timer = setTimeout(() => {
+        setWaitingForInteraction(false);
+        if (tourStep < TOUR_STEPS.length - 1) {
+          setTourStep(tourStep + 1);
+        } else {
+          handleFinish();
+        }
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [location.pathname, phase, tourStep, waitingForInteraction]);
+
+  // Listen for card flip during flip-card step
+  useEffect(() => {
+    if (phase !== 'tour' || !waitingForInteraction) return;
+    const step = TOUR_STEPS[tourStep];
+    if (step.interaction !== 'flip-card') return;
+
+    const checkFlipped = () => {
+      const cardInner = document.querySelector('[data-tour="card"] .flip-card-inner');
+      if (cardInner?.classList.contains('flipped')) {
+        setWaitingForInteraction(false);
+        setTimeout(() => {
+          if (tourStep < TOUR_STEPS.length - 1) {
+            setTourStep(tourStep + 1);
+          } else {
+            handleFinish();
+          }
+        }, 1000);
+        return;
+      }
+      requestAnimationFrame(checkFlipped);
+    };
+    const id = requestAnimationFrame(checkFlipped);
+    return () => cancelAnimationFrame(id);
+  }, [phase, tourStep, waitingForInteraction]);
 
   const measureTarget = useCallback(() => {
     if (phase !== 'tour') return;
@@ -74,20 +126,44 @@ export const OnboardingTutorial = () => {
     }
   }, [phase, tourStep, measureTarget]);
 
+  // When entering a new step, set up interaction mode
+  useEffect(() => {
+    if (phase !== 'tour') return;
+    const step = TOUR_STEPS[tourStep];
+    if (step.interaction !== 'none') {
+      setWaitingForInteraction(true);
+    } else {
+      setWaitingForInteraction(false);
+    }
+  }, [phase, tourStep]);
+
   const handleLanguageChange = (code: string) => {
     i18n.changeLanguage(code);
     localStorage.setItem('i18nextLng', code);
   };
 
-  const handleLangNext = () => setPhase('tour');
+  const handleLangNext = () => {
+    // Navigate to home for the tour
+    if (location.pathname !== '/') navigate('/');
+    setPhase('tour');
+  };
 
   const handleFinish = () => {
     localStorage.setItem(ONBOARDING_KEY, 'true');
     setPhase('done');
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    // Navigate back home
+    navigate('/');
   };
 
   const handleTourNext = () => {
+    const step = TOUR_STEPS[tourStep];
+    // For interactive steps, don't allow manual next
+    if (step.interaction !== 'none' && !waitingForInteraction) {
+      // Already completed interaction, this shouldn't happen
+    }
+    if (step.interaction !== 'none') return; // must interact
+
     if (tourStep < TOUR_STEPS.length - 1) {
       setTourStep(tourStep + 1);
     } else {
@@ -96,7 +172,18 @@ export const OnboardingTutorial = () => {
   };
 
   const handleTourPrev = () => {
-    if (tourStep > 0) setTourStep(tourStep - 1);
+    if (tourStep > 0) {
+      // Navigate back to home if needed
+      if (location.pathname !== '/') navigate('/');
+      setTimeout(() => setTourStep(tourStep - 1), 100);
+    }
+  };
+
+  const handleClickOverlay = () => {
+    const step = TOUR_STEPS[tourStep];
+    if (step.interaction === 'click-target' && step.navigateTo) {
+      // Let the user click the target element - don't block
+    }
   };
 
   // Language dialog
@@ -148,6 +235,8 @@ export const OnboardingTutorial = () => {
   if (phase === 'tour' && targetRect) {
     const step = TOUR_STEPS[tourStep];
     const isLast = tourStep === TOUR_STEPS.length - 1;
+    const isInteractive = step.interaction !== 'none';
+    const allowClickThrough = isInteractive && waitingForInteraction;
 
     // Tooltip position
     const tooltipStyle: React.CSSProperties = {};
@@ -162,9 +251,9 @@ export const OnboardingTutorial = () => {
     }
 
     return (
-      <div className="fixed inset-0 z-[100]" onClick={(e) => e.stopPropagation()}>
-        {/* Dark overlay with spotlight cutout using CSS clip-path */}
-        <svg className="absolute inset-0 w-full h-full" style={{ pointerEvents: 'none' }}>
+      <div className="fixed inset-0 z-[100]">
+        {/* Dark overlay with spotlight cutout */}
+        <svg className="absolute inset-0 w-full h-full" style={{ pointerEvents: allowClickThrough ? 'none' : 'auto' }}>
           <defs>
             <mask id="spotlight-mask">
               <rect x="0" y="0" width="100%" height="100%" fill="white" />
@@ -188,7 +277,10 @@ export const OnboardingTutorial = () => {
 
         {/* Spotlight ring */}
         <div
-          className="absolute rounded-xl border-2 border-primary shadow-[0_0_20px_hsl(45_90%_55%_/_0.4)] pointer-events-none transition-all duration-500 ease-out"
+          className={cn(
+            "absolute rounded-xl border-2 border-primary shadow-[0_0_20px_hsl(45_90%_55%_/_0.4)] pointer-events-none transition-all duration-500 ease-out",
+            allowClickThrough && "animate-pulse"
+          )}
           style={{
             top: targetRect.top,
             left: targetRect.left,
@@ -199,7 +291,7 @@ export const OnboardingTutorial = () => {
 
         {/* Tooltip */}
         <div
-          className="absolute w-[85vw] max-w-xs animate-fade-in"
+          className="absolute w-[85vw] max-w-xs animate-fade-in pointer-events-auto"
           style={tooltipStyle}
         >
           <div className="bg-card border border-primary/30 rounded-2xl p-5 shadow-[0_0_30px_hsl(45_90%_55%_/_0.15)]">
@@ -223,6 +315,12 @@ export const OnboardingTutorial = () => {
               {t(step.descKey)}
             </p>
 
+            {isInteractive && waitingForInteraction && (
+              <p className="text-primary text-xs font-semibold mb-3 animate-pulse">
+                👆 {t('onboarding.interactHint')}
+              </p>
+            )}
+
             <div className="flex items-center justify-between">
               {tourStep > 0 ? (
                 <Button variant="ghost" size="sm" onClick={handleTourPrev}>
@@ -236,9 +334,15 @@ export const OnboardingTutorial = () => {
               <span className="text-xs text-muted-foreground">
                 {tourStep + 1} / {TOUR_STEPS.length}
               </span>
-              <Button variant={isLast ? 'gold' : 'default'} size="sm" onClick={handleTourNext}>
-                {isLast ? t('onboarding.start') : t('common.next')}
-              </Button>
+              {isInteractive ? (
+                <span className="text-xs text-muted-foreground italic">
+                  {t('onboarding.waitAction')}
+                </span>
+              ) : (
+                <Button variant={isLast ? 'gold' : 'default'} size="sm" onClick={handleTourNext}>
+                  {isLast ? t('onboarding.start') : t('common.next')}
+                </Button>
+              )}
             </div>
           </div>
         </div>
