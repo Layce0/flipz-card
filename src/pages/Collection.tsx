@@ -93,7 +93,7 @@ const Collection = () => {
           <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center glow-gold">
             <BookOpen className="w-5 h-5 text-primary" />
           </div>
-          <h1 className="text-3xl font-bold text-gradient-gold" style={{ fontFamily: "'Bubblegum Sans', cursive" }}>{t('collection.title')}</h1>
+          <h1 className="font-display text-2xl text-gradient-gold">{t('collection.title')}</h1>
         </div>
 
         {/* Progress bar */}
