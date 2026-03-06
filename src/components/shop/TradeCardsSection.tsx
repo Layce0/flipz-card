@@ -163,8 +163,8 @@ export const TradeCardsSection = ({ userCards, onTrade, isTrading }: TradeCardsS
                   alt={getTitle(selectedCard)}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute top-1 right-1 bg-destructive text-destructive-foreground text-xs px-1.5 py-0.5 rounded-full font-bold">
-                  -{TRADE_CONFIG[selectedCard.rarity as Rarity].required}
+                 <div className="absolute top-1 right-1 bg-destructive text-destructive-foreground text-xs px-1.5 py-0.5 rounded-full font-bold">
+                   -{TRADE_CONFIG[selectedCard.rarity as Rarity].required - TRADE_CONFIG[selectedCard.rarity as Rarity].keep}
                 </div>
               </div>
               <div className="flex items-center px-4">

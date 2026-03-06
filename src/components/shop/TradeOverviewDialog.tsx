@@ -46,7 +46,7 @@ export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => 
       await deleteUserCards.mutateAsync({ 
         userId: user.id, 
         cardId, 
-        count: config.required 
+        count: config.required - config.keep 
       });
       
       // Get reward cards
