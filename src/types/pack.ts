@@ -41,7 +41,7 @@ export const TRADE_CONFIG: Record<string, TradeConfig> = {
   common: { required: 6, reward: 2, keep: 1 },      // 6 cards needed, get 2 back, keep 1
   rare: { required: 6, reward: 4, keep: 1 },        // 6 cards needed, get 4 back, keep 1
   epic: { required: 6, reward: 7, keep: 1 },        // 6 cards needed, get 7 back, keep 1
-  legendary: { required: 4, reward: 15, keep: 0 },  // 4 cards needed, get 15 back
+  legendary: { required: 4, reward: 15, keep: 1 },  // 4 cards needed, get 15 back, keep 1
 };
 
 export const getPacksByType = (type: PackType): PackConfig[] => {
