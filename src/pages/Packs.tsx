@@ -19,7 +19,7 @@ const Packs = () => {
   const { user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { showInterstitial, isLoading: isAdLoading } = useAdMob();
+  const { showInterstitial, isLoading: isAdLoading, showFakeAd, fakeAdCountdown, dismissFakeAd } = useAdMob();
   const [isWatchingAd, setIsWatchingAd] = useState(false);
   const [revealedCards, setRevealedCards] = useState<GameCard[]>([]);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
