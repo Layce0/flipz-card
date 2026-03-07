@@ -14,7 +14,7 @@ const initializeAdMob = async () => {
   
   try {
     await AdMob.initialize({
-      initializeForTesting: true, // Set to false in production
+      initializeForTesting: false,
     });
     admobInitialized = true;
   } catch (error) {
@@ -46,7 +46,7 @@ export const useAdMob = () => {
     try {
       const options: AdOptions = {
         adId: INTERSTITIAL_AD_ID,
-        isTesting: true, // Set to false in production
+        isTesting: false,
       };
 
       await AdMob.prepareInterstitial(options);
