@@ -5,6 +5,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
 
 const ONBOARDING_KEY = 'flipz_onboarding_done';
 
@@ -51,14 +52,16 @@ export const OnboardingTutorial = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const rafRef = useRef<number>();
+  const { user } = useAuth();
 
   useEffect(() => {
+    if (!user) return; // Only start onboarding after login
     const done = localStorage.getItem(ONBOARDING_KEY);
     if (!done) {
       const timer = setTimeout(() => setPhase('lang'), 800);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [user]);
 
   // After navigating for a click-target step, auto-advance once we're on the right page
   useEffect(() => {
