@@ -19,7 +19,7 @@ const Packs = () => {
   const { user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { showInterstitial, isLoading: isAdLoading } = useAdMob();
+  const { showInterstitial, isLoading: isAdLoading, showFakeAd, fakeAdCountdown, dismissFakeAd } = useAdMob();
   const [isWatchingAd, setIsWatchingAd] = useState(false);
   const [revealedCards, setRevealedCards] = useState<GameCard[]>([]);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
@@ -184,6 +184,34 @@ const Packs = () => {
 
   return (
     <div className="min-h-screen flex flex-col relative">
+      {/* Fake Ad Overlay for Web Testing */}
+      {showFakeAd && (
+        <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center">
+          <div className="absolute top-4 right-4 flex items-center gap-2">
+            {fakeAdCountdown <= 0 ? (
+              <Button variant="ghost" size="icon" onClick={dismissFakeAd} className="text-white border border-white/30">
+                <X className="w-5 h-5" />
+              </Button>
+            ) : (
+              <span className="text-white/60 text-sm font-mono bg-white/10 rounded-full w-8 h-8 flex items-center justify-center">
+                {fakeAdCountdown}
+              </span>
+            )}
+          </div>
+          <div className="border-2 border-dashed border-white/20 rounded-2xl p-12 flex flex-col items-center gap-4 max-w-sm mx-4">
+            <Play className="w-16 h-16 text-primary" />
+            <p className="text-white text-xl font-display text-center">Publicité simulée</p>
+            <p className="text-white/50 text-sm text-center">Cette pub n'apparaît que sur le web.<br/>Sur mobile natif, une vraie pub AdMob s'affichera.</p>
+            <div className="w-full bg-white/10 rounded-full h-2 mt-4">
+              <div 
+                className="bg-primary h-2 rounded-full transition-all duration-1000 ease-linear" 
+                style={{ width: `${((5 - fakeAdCountdown) / 5) * 100}%` }} 
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Pack Opening Animation */}
       <PackOpeningAnimation
         isOpen={showPackAnimation}

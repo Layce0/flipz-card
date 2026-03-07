@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { AdMob, InterstitialAdPluginEvents } from '@capacitor-community/admob';
 import type { AdOptions } from '@capacitor-community/admob';
@@ -32,13 +32,38 @@ export const useAdMob = () => {
     }
   }, [isNative]);
 
+  const [showFakeAd, setShowFakeAd] = useState(false);
+  const [fakeAdCountdown, setFakeAdCountdown] = useState(5);
+  const fakeAdResolveRef = useRef<((val: boolean) => void) | null>(null);
+
+  const dismissFakeAd = useCallback(() => {
+    setShowFakeAd(false);
+    setIsLoading(false);
+    fakeAdResolveRef.current?.(true);
+    fakeAdResolveRef.current = null;
+  }, []);
+
   const showInterstitial = useCallback(async (): Promise<boolean> => {
-    // On web, simulate an ad with a timer
     if (!isNative) {
       setIsLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      setIsLoading(false);
-      return true;
+      setFakeAdCountdown(5);
+      setShowFakeAd(true);
+
+      return new Promise<boolean>((resolve) => {
+        fakeAdResolveRef.current = resolve;
+        let count = 5;
+        const interval = setInterval(() => {
+          count--;
+          setFakeAdCountdown(count);
+          if (count <= 0) {
+            clearInterval(interval);
+            setShowFakeAd(false);
+            setIsLoading(false);
+            resolve(true);
+            fakeAdResolveRef.current = null;
+          }
+        }, 1000);
+      });
     }
 
     setIsLoading(true);
@@ -84,5 +109,5 @@ export const useAdMob = () => {
     }
   }, [isNative]);
 
-  return { showInterstitial, isLoading, isNative };
+  return { showInterstitial, isLoading, isNative, showFakeAd, fakeAdCountdown, dismissFakeAd };
 };
