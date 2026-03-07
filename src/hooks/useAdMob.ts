@@ -109,5 +109,5 @@ export const useAdMob = () => {
     }
   }, [isNative]);
 
-  return { showInterstitial, isLoading, isNative };
+  return { showInterstitial, isLoading, isNative, showFakeAd, fakeAdCountdown, dismissFakeAd };
 };
