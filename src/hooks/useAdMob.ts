@@ -3,10 +3,8 @@ import { Capacitor } from '@capacitor/core';
 import { AdMob, InterstitialAdPluginEvents } from '@capacitor-community/admob';
 import type { AdOptions } from '@capacitor-community/admob';
 
-// Use test ad unit IDs during development
-const INTERSTITIAL_AD_ID = Capacitor.getPlatform() === 'ios'
-  ? 'ca-app-pub-3940256099942544/4411468910' // iOS test ID
-  : 'ca-app-pub-3940256099942544/1033173712'; // Android test ID
+// Production ad unit ID for interstitials
+const INTERSTITIAL_AD_ID = 'ca-app-pub-1812377454430177/5961368412';
 
 let admobInitialized = false;
 
