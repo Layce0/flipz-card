@@ -400,33 +400,29 @@
     animation: legendary-ring 0.8s ease-out forwards;
   }
 
-  /* Pack tear animations */
+  /* Pack tear animations — tear at top */
   @keyframes tear-top {
     0% {
       transform: translateY(0) rotate(0deg);
       opacity: 1;
     }
     30% {
-      transform: translateY(-10px) rotate(-2deg);
+      transform: translateY(-15px) rotate(-3deg);
       opacity: 1;
     }
     100% {
-      transform: translateY(-200px) rotate(-15deg);
+      transform: translateY(-250px) rotate(-18deg);
       opacity: 0;
     }
   }
 
   @keyframes tear-bottom {
     0% {
-      transform: translateY(0) rotate(0deg);
-      opacity: 1;
-    }
-    30% {
-      transform: translateY(10px) rotate(2deg);
+      transform: translateY(0);
       opacity: 1;
     }
     100% {
-      transform: translateY(200px) rotate(10deg);
+      transform: translateY(180px);
       opacity: 0;
     }
   }
