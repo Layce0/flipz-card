@@ -1,5 +1,4 @@
 import { useState, useCallback, useRef } from 'react';
-import { cn } from '@/lib/utils';
 import packSachetImg from '@/assets/pack-sachet.png';
 
 interface PackOpeningAnimationProps {
@@ -8,25 +7,23 @@ interface PackOpeningAnimationProps {
 }
 
 const SHAKE_CONFIGS = [
-  null, // index 0 unused
-  { displacement: 6, rotation: 2, duration: 400 },
-  { displacement: 12, rotation: 4, duration: 450 },
-  { displacement: 18, rotation: 6, duration: 500 },
-  { displacement: 24, rotation: 8, duration: 550 },
-  { displacement: 30, rotation: 10, duration: 600 },
+  null,
+  { displacement: 10, rotation: 3, duration: 350 },
+  { displacement: 22, rotation: 7, duration: 400 },
+  { displacement: 36, rotation: 12, duration: 450 },
 ];
 
 export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimationProps) => {
   const [tapCount, setTapCount] = useState(0);
-  const [isExploding, setIsExploding] = useState(false);
-  const imgRef = useRef<HTMLImageElement>(null);
+  const [isTearing, setIsTearing] = useState(false);
+  const [showParticles, setShowParticles] = useState(false);
+  const imgRef = useRef<HTMLDivElement>(null);
 
-  const MAX_TAPS = 5;
+  const MAX_TAPS = 3;
 
   const triggerShake = useCallback((level: number) => {
     const el = imgRef.current;
     if (!el) return;
-
     const config = SHAKE_CONFIGS[level];
     if (!config) return;
 
@@ -47,7 +44,7 @@ export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimatio
   }, []);
 
   const handleTap = useCallback(() => {
-    if (isExploding) return;
+    if (isTearing) return;
 
     const newCount = tapCount + 1;
     setTapCount(newCount);
@@ -55,24 +52,18 @@ export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimatio
 
     if (newCount >= MAX_TAPS) {
       setTimeout(() => {
-        setIsExploding(true);
-        const el = imgRef.current;
-        if (el) {
-          el.getAnimations().forEach(a => a.cancel());
-          el.animate([
-            { transform: 'scale(1)', opacity: 1 },
-            { transform: 'scale(1.5)', opacity: 0.7 },
-            { transform: 'scale(2.5)', opacity: 0 },
-          ], { duration: 450, easing: 'ease-out', fill: 'forwards' });
-        }
+        setIsTearing(true);
+        setShowParticles(true);
+
         setTimeout(() => {
           setTapCount(0);
-          setIsExploding(false);
+          setIsTearing(false);
+          setShowParticles(false);
           onComplete();
-        }, 550);
-      }, 300);
+        }, 900);
+      }, 250);
     }
-  }, [tapCount, isExploding, onComplete, triggerShake]);
+  }, [tapCount, isTearing, onComplete, triggerShake]);
 
   if (!isOpen) return null;
 
@@ -82,22 +73,24 @@ export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimatio
       style={{ touchAction: 'none', cursor: 'pointer' }}
       onClick={handleTap}
     >
-      {/* Explosion particles */}
-      {isExploding && (
+      {/* Particle burst on tear */}
+      {showParticles && (
         <div className="absolute inset-0 pointer-events-none z-50 overflow-hidden">
-          {Array.from({ length: 60 }, (_, i) => {
-            const angle = (360 / 60) * i + Math.random() * 15;
+          {Array.from({ length: 50 }, (_, i) => {
+            const angle = (360 / 50) * i + Math.random() * 20;
             const rad = (angle * Math.PI) / 180;
-            const speed = 150 + Math.random() * 350;
+            const speed = 100 + Math.random() * 300;
             const tx = Math.cos(rad) * speed;
             const ty = Math.sin(rad) * speed;
-            const size = 3 + Math.random() * 8;
-            const isWhite = i % 3 === 0;
+            const size = 3 + Math.random() * 7;
+            const isWhite = i % 4 === 0;
             const color = isWhite
-              ? 'hsl(0 0% 95%)'
-              : i % 2 === 0
-                ? 'hsl(300 70% 65%)'
-                : 'hsl(270 60% 60%)';
+              ? 'hsl(45 90% 80%)'
+              : i % 3 === 0
+                ? 'hsl(45 95% 55%)'
+                : i % 2 === 0
+                  ? 'hsl(35 90% 50%)'
+                  : 'hsl(280 60% 55%)';
             return (
               <span
                 key={i}
@@ -108,8 +101,8 @@ export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimatio
                   backgroundColor: color,
                   boxShadow: `0 0 ${size * 2}px ${color}`,
                   opacity: 0,
-                  animation: 'particle-burst 0.5s ease-out forwards',
-                  animationDelay: `${Math.random() * 0.08}s`,
+                  animation: 'particle-burst 0.7s ease-out forwards',
+                  animationDelay: `${Math.random() * 0.1}s`,
                   '--tx': `${tx}px`,
                   '--ty': `${ty}px`,
                   '--start-opacity': '1',
@@ -120,22 +113,89 @@ export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimatio
         </div>
       )}
 
-      {/* Pack sachet */}
-      <div className="relative z-10 pointer-events-none">
-        <img
-          ref={imgRef}
-          src={packSachetImg}
-          alt="Pack Flipz"
-          className="w-72 h-auto select-none drop-shadow-2xl"
-          draggable={false}
-        />
+      {/* Pack container with tear effect */}
+      <div ref={imgRef} className="relative z-10 pointer-events-none">
+        {!isTearing ? (
+          <img
+            src={packSachetImg}
+            alt="Pack Flipz"
+            className="w-72 h-auto select-none drop-shadow-2xl"
+            draggable={false}
+          />
+        ) : (
+          <div className="relative w-72">
+            {/* Top half — flies up and rotates */}
+            <div
+              className="overflow-hidden"
+              style={{
+                height: '50%',
+                animation: 'tear-top 0.7s ease-in forwards',
+              }}
+            >
+              <img
+                src={packSachetImg}
+                alt=""
+                className="w-72 h-auto select-none"
+                style={{ objectFit: 'cover', objectPosition: 'top' }}
+                draggable={false}
+              />
+            </div>
+
+            {/* Bottom half — slides down */}
+            <div
+              className="overflow-hidden"
+              style={{
+                height: '50%',
+                animation: 'tear-bottom 0.7s ease-in forwards',
+              }}
+            >
+              <img
+                src={packSachetImg}
+                alt=""
+                className="w-72 h-auto select-none"
+                style={{
+                  objectFit: 'cover',
+                  objectPosition: 'bottom',
+                  marginTop: '-100%',
+                }}
+                draggable={false}
+              />
+            </div>
+
+            {/* Cards emerging from center — golden glow */}
+            <div
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-24 rounded-lg"
+              style={{
+                background: 'radial-gradient(ellipse, hsl(45 90% 55% / 0.8) 0%, hsl(45 90% 55% / 0.3) 40%, transparent 70%)',
+                animation: 'cards-emerge 0.7s ease-out forwards',
+              }}
+            />
+          </div>
+        )}
       </div>
 
       {/* Tap instruction */}
-      {!isExploding && (
-        <p className="text-muted-foreground/60 text-sm mt-8 z-10 tracking-widest uppercase pointer-events-none">
-          Tapotez pour ouvrir
-        </p>
+      {!isTearing && (
+        <div className="z-10 mt-8 flex flex-col items-center gap-2 pointer-events-none">
+          <p className="text-muted-foreground/60 text-sm tracking-widest uppercase">
+            Tapotez pour ouvrir
+          </p>
+          {/* Tap progress dots */}
+          <div className="flex gap-2">
+            {Array.from({ length: MAX_TAPS }, (_, i) => (
+              <div
+                key={i}
+                className="w-2.5 h-2.5 rounded-full transition-all duration-300"
+                style={{
+                  backgroundColor: i < tapCount
+                    ? 'hsl(45 90% 55%)'
+                    : 'hsl(240 15% 25%)',
+                  boxShadow: i < tapCount ? '0 0 8px hsl(45 90% 55% / 0.6)' : 'none',
+                }}
+              />
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );
