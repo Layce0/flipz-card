@@ -399,4 +399,53 @@
     pointer-events: none;
     animation: legendary-ring 0.8s ease-out forwards;
   }
+
+  /* Pack tear animations */
+  @keyframes tear-top {
+    0% {
+      transform: translateY(0) rotate(0deg);
+      opacity: 1;
+    }
+    30% {
+      transform: translateY(-10px) rotate(-2deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(-200px) rotate(-15deg);
+      opacity: 0;
+    }
+  }
+
+  @keyframes tear-bottom {
+    0% {
+      transform: translateY(0) rotate(0deg);
+      opacity: 1;
+    }
+    30% {
+      transform: translateY(10px) rotate(2deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(200px) rotate(10deg);
+      opacity: 0;
+    }
+  }
+
+  @keyframes cards-emerge {
+    0% {
+      transform: translate(-50%, -50%) scale(0.3);
+      opacity: 0;
+    }
+    30% {
+      opacity: 1;
+    }
+    60% {
+      transform: translate(-50%, -50%) scale(2.5);
+      opacity: 0.9;
+    }
+    100% {
+      transform: translate(-50%, -50%) scale(4);
+      opacity: 0;
+    }
+  }
 }
