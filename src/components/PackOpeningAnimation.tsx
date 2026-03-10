@@ -124,11 +124,11 @@ export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimatio
           />
         ) : (
           <div className="relative w-72">
-            {/* Top half — flies up and rotates */}
+            {/* Top cap — flies up (top 25%) */}
             <div
               className="overflow-hidden"
               style={{
-                height: '50%',
+                height: '25%',
                 animation: 'tear-top 0.7s ease-in forwards',
               }}
             >
@@ -141,11 +141,11 @@ export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimatio
               />
             </div>
 
-            {/* Bottom half — slides down */}
+            {/* Bottom body — slides down (bottom 75%) */}
             <div
               className="overflow-hidden"
               style={{
-                height: '50%',
+                height: '75%',
                 animation: 'tear-bottom 0.7s ease-in forwards',
               }}
             >
@@ -156,16 +156,18 @@ export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimatio
                 style={{
                   objectFit: 'cover',
                   objectPosition: 'bottom',
-                  marginTop: '-100%',
+                  marginTop: '-33.33%',
                 }}
                 draggable={false}
               />
             </div>
 
-            {/* Cards emerging from center — golden glow */}
+            {/* Cards emerging glow from tear line */}
             <div
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-24 rounded-lg"
+              className="absolute left-1/2 w-16 h-24 rounded-lg"
               style={{
+                top: '25%',
+                transform: 'translate(-50%, -50%)',
                 background: 'radial-gradient(ellipse, hsl(45 90% 55% / 0.8) 0%, hsl(45 90% 55% / 0.3) 40%, transparent 70%)',
                 animation: 'cards-emerge 0.7s ease-out forwards',
               }}
