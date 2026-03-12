@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import Lottie from 'lottie-react';
+import { lazy, Suspense } from 'react';
+const Lottie = lazy(() => import('lottie-react'));
 import { MysteryCard } from '@/components/MysteryCard';
 import { Navigation } from '@/components/Navigation';
 
