@@ -144,11 +144,13 @@ export const WinstreakDialog = ({ open, onOpenChange, streak }: WinstreakDialogP
 
                     {reward && RewardIcon ? (
                       <div className={cn(
-                        "w-7 h-7 rounded-full flex items-center justify-center",
+                        "w-7 h-7 rounded-full flex items-center justify-center overflow-hidden",
                         isClaimed ? "bg-green-500/20" : isCurrentDay ? "bg-orange-400/20" : "bg-muted"
                       )}>
                         {isClaimed ? (
                           <Check className="w-3.5 h-3.5 text-green-400" />
+                        ) : reward.reward_type === 'pack' ? (
+                          <img src={packClassicImg} alt="Pack" className="w-6 h-6 object-contain" />
                         ) : (
                           <RewardIcon className={cn(
                             "w-3.5 h-3.5",
