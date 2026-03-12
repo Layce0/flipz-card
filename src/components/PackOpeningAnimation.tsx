@@ -10,9 +10,9 @@ interface PackOpeningAnimationProps {
 
 const SHAKE_CONFIGS = [
   null,
-  { displacement: 10, rotation: 3, duration: 350 },
-  { displacement: 22, rotation: 7, duration: 400 },
-  { displacement: 36, rotation: 12, duration: 450 },
+  { displacement: 6, rotation: 2, duration: 350 },
+  { displacement: 12, rotation: 4, duration: 400 },
+  { displacement: 20, rotation: 7, duration: 450 },
 ];
 
 export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimationProps) => {
@@ -121,11 +121,11 @@ export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimatio
           <img
             src={packSachetImg}
             alt="Pack Flipz"
-            className="w-72 h-auto select-none drop-shadow-2xl"
+            className="w-56 h-auto select-none drop-shadow-2xl"
             draggable={false}
           />
         ) : (
-          <div className="relative w-72">
+          <div className="relative w-56">
             {/* Top cap — flies up */}
             <div
               style={{
@@ -135,7 +135,7 @@ export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimatio
               <img
                 src={packTopCapImg}
                 alt=""
-                className="w-72 h-auto select-none"
+                className="w-56 h-auto select-none"
                 draggable={false}
               />
             </div>
@@ -149,7 +149,7 @@ export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimatio
               <img
                 src={packBottomBodyImg}
                 alt=""
-                className="w-72 h-auto select-none"
+                className="w-56 h-auto select-none"
                 draggable={false}
               />
             </div>
