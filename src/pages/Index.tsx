@@ -13,8 +13,6 @@ import { useTodayCard, useHasCollectedToday, useCollectCard, useUserCards } from
 import { useUserStreak, useUpdateStreak } from '@/hooks/useWinstreak';
 import { toast } from 'sonner';
 import flipzLogo from '@/assets/flipz-logo-new.jpeg';
-const catAnimation = () => import('@/assets/lottie-cat.json').then(m => m.default);
-const catRunAnimation = () => import('@/assets/lottie-cat-run.json').then(m => m.default);
 
 const Index = () => {
   const [isRunning, setIsRunning] = useState(false);
