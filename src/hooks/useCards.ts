@@ -40,6 +40,7 @@ export const useGiveCard = () => {
 export const useAllCards = () => {
   return useQuery({
     queryKey: ['cards'],
+    staleTime: 10 * 60 * 1000, // cards rarely change
     queryFn: async () => {
       const { data, error } = await supabase
         .from('cards')

@@ -80,4 +80,6 @@ export const ActiveBoostsOverlay = memo(() => {
     </div>,
     document.body
   );
-};
+});
+
+ActiveBoostsOverlay.displayName = 'ActiveBoostsOverlay';

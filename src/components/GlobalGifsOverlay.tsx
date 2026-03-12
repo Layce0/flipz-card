@@ -93,4 +93,6 @@ export const GlobalGifsOverlay = memo(() => {
       })}
     </>
   );
-};
+});
+
+GlobalGifsOverlay.displayName = 'GlobalGifsOverlay';
