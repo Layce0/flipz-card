@@ -11,7 +11,7 @@ interface Particle {
   pulseSpeed: number;
 }
 
-export const ParticlesBackground = () => {
+export const ParticlesBackground = memo(() => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
