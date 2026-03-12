@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import packSachetImg from '@/assets/pack-sachet.png';
 import packTopCapImg from '@/assets/pack-top-cap.png';
+import packBottomBodyImg from '@/assets/pack-bottom-body.png';
 
 interface PackOpeningAnimationProps {
   isOpen: boolean;
@@ -139,23 +140,16 @@ export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimatio
               />
             </div>
 
-            {/* Bottom body — slides down (bottom 75%) */}
+            {/* Bottom body — slides down */}
             <div
-              className="overflow-hidden"
               style={{
-                height: '75%',
                 animation: 'tear-bottom 0.7s ease-in forwards',
               }}
             >
               <img
-                src={packSachetImg}
+                src={packBottomBodyImg}
                 alt=""
                 className="w-72 h-auto select-none"
-                style={{
-                  objectFit: 'cover',
-                  objectPosition: 'bottom',
-                  marginTop: '-33.33%',
-                }}
                 draggable={false}
               />
             </div>
