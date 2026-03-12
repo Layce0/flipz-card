@@ -125,19 +125,16 @@ export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimatio
           />
         ) : (
           <div className="relative w-72">
-            {/* Top cap — flies up (top 25%) */}
+            {/* Top cap — flies up */}
             <div
-              className="overflow-hidden"
               style={{
-                height: '25%',
                 animation: 'tear-top 0.7s ease-in forwards',
               }}
             >
               <img
-                src={packSachetImg}
+                src={packTopCapImg}
                 alt=""
                 className="w-72 h-auto select-none"
-                style={{ objectFit: 'cover', objectPosition: 'top' }}
                 draggable={false}
               />
             </div>
