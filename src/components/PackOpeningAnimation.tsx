@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import packSachetImg from '@/assets/pack-sachet.png';
 import packTopCapImg from '@/assets/pack-top-cap.png';
+import packBottomBodyImg from '@/assets/pack-bottom-body.png';
 
 interface PackOpeningAnimationProps {
   isOpen: boolean;
