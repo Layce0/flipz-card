@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { Flame } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { WinstreakDialog } from './WinstreakDialog';
+
+const WinstreakDialog = lazy(() => import('./WinstreakDialog').then(m => ({ default: m.WinstreakDialog })));
 
 interface WinstreakBadgeProps {
   streak: number;
