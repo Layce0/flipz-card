@@ -168,27 +168,12 @@ export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimatio
         )}
       </div>
 
-      {/* Tap instruction */}
+      {/* Tap instruction - no progress dots */}
       {!isTearing && (
         <div className="z-10 mt-8 flex flex-col items-center gap-2 pointer-events-none">
           <p className="text-muted-foreground/60 text-sm tracking-widest uppercase">
             Tapotez pour ouvrir
           </p>
-          {/* Tap progress dots */}
-          <div className="flex gap-2">
-            {Array.from({ length: MAX_TAPS }, (_, i) => (
-              <div
-                key={i}
-                className="w-2.5 h-2.5 rounded-full transition-all duration-300"
-                style={{
-                  backgroundColor: i < tapCount
-                    ? 'hsl(45 90% 55%)'
-                    : 'hsl(240 15% 25%)',
-                  boxShadow: i < tapCount ? '0 0 8px hsl(45 90% 55% / 0.6)' : 'none',
-                }}
-              />
-            ))}
-          </div>
         </div>
       )}
     </div>
