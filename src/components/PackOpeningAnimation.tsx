@@ -129,7 +129,7 @@ export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimatio
             {/* Top cap — flies up */}
             <div
               style={{
-                animation: 'tear-top 0.7s ease-in forwards',
+                animation: 'tear-top 0.8s cubic-bezier(0.25, 0.1, 0.25, 1) forwards',
               }}
             >
               <img
