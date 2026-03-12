@@ -143,7 +143,7 @@ export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimatio
             {/* Bottom body — slides down */}
             <div
               style={{
-                animation: 'tear-bottom 0.7s ease-in forwards',
+                animation: 'tear-bottom 0.8s cubic-bezier(0.25, 0.1, 0.25, 1) forwards',
               }}
             >
               <img
