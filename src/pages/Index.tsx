@@ -13,15 +13,20 @@ import { useTodayCard, useHasCollectedToday, useCollectCard, useUserCards } from
 import { useUserStreak, useUpdateStreak } from '@/hooks/useWinstreak';
 import { toast } from 'sonner';
 import flipzLogo from '@/assets/flipz-logo-new.jpeg';
-import catAnimation from '@/assets/lottie-cat.json';
-import catRunAnimation from '@/assets/lottie-cat-run.json';
 
 const Index = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [timeLeft, setTimeLeft] = useState('');
+  const [catData, setCatData] = useState<any>(null);
+  const [catRunData, setCatRunData] = useState<any>(null);
   const { user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
+
+  // Lazy load lottie JSON data
+  useEffect(() => {
+    import('@/assets/lottie-cat.json').then(m => setCatData(m.default));
+  }, []);
 
   // Redirect unauthenticated users to auth page
   useEffect(() => {
@@ -135,24 +140,30 @@ const Index = () => {
       </main>
 
       {/* Lottie cat - bottom left */}
-      <Suspense fallback={null}>
-        <div 
-          className="fixed bottom-24 left-4 z-10 cursor-pointer"
-          onClick={() => { if (!isRunning) setIsRunning(true); }}
-        >
-          <Lottie animationData={catAnimation} loop className="w-28 h-28 sm:w-32 sm:h-32" />
-        </div>
-
-        {/* Running cat animation */}
-        {isRunning && (
+      {catData && (
+        <Suspense fallback={null}>
           <div 
-            className="fixed z-50 top-1/2 -translate-y-1/2 animate-[catRun_2s_ease-in-out_forwards] pointer-events-none"
-            onAnimationEnd={() => setIsRunning(false)}
+            className="fixed bottom-24 left-4 z-10 cursor-pointer"
+            onClick={() => { 
+              if (!isRunning) {
+                setIsRunning(true);
+                if (!catRunData) import('@/assets/lottie-cat-run.json').then(m => setCatRunData(m.default));
+              }
+            }}
           >
-            <Lottie animationData={catRunAnimation} loop className="w-32 h-32 sm:w-40 sm:h-40" />
+            <Lottie animationData={catData} loop className="w-28 h-28 sm:w-32 sm:h-32" />
           </div>
-        )}
-      </Suspense>
+
+          {isRunning && catRunData && (
+            <div 
+              className="fixed z-50 top-1/2 -translate-y-1/2 animate-[catRun_2s_ease-in-out_forwards] pointer-events-none"
+              onAnimationEnd={() => setIsRunning(false)}
+            >
+              <Lottie animationData={catRunData} loop className="w-32 h-32 sm:w-40 sm:h-40" />
+            </div>
+          )}
+        </Suspense>
+      )}
 
       
       <Navigation />

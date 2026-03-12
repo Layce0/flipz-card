@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { OnboardingTutorial } from "@/components/OnboardingTutorial";
+const OnboardingTutorial = lazy(() => import("@/components/OnboardingTutorial").then(m => ({ default: m.OnboardingTutorial })));
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
