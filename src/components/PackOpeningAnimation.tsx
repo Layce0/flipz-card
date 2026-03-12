@@ -10,9 +10,9 @@ interface PackOpeningAnimationProps {
 
 const SHAKE_CONFIGS = [
   null,
-  { displacement: 10, rotation: 3, duration: 350 },
-  { displacement: 22, rotation: 7, duration: 400 },
-  { displacement: 36, rotation: 12, duration: 450 },
+  { displacement: 6, rotation: 2, duration: 350 },
+  { displacement: 12, rotation: 4, duration: 400 },
+  { displacement: 20, rotation: 7, duration: 450 },
 ];
 
 export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimationProps) => {
