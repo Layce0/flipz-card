@@ -129,7 +129,7 @@ export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimatio
             {/* Top cap — flies up */}
             <div
               style={{
-                animation: 'tear-top 0.7s ease-in forwards',
+                animation: 'tear-top 0.8s cubic-bezier(0.25, 0.1, 0.25, 1) forwards',
               }}
             >
               <img
@@ -143,7 +143,7 @@ export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimatio
             {/* Bottom body — slides down */}
             <div
               style={{
-                animation: 'tear-bottom 0.7s ease-in forwards',
+                animation: 'tear-bottom 0.8s cubic-bezier(0.25, 0.1, 0.25, 1) forwards',
               }}
             >
               <img
@@ -161,7 +161,7 @@ export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimatio
                 top: '25%',
                 transform: 'translate(-50%, -50%)',
                 background: 'radial-gradient(ellipse, hsl(45 90% 55% / 0.8) 0%, hsl(45 90% 55% / 0.3) 40%, transparent 70%)',
-                animation: 'cards-emerge 0.7s ease-out forwards',
+                animation: 'cards-emerge 0.8s ease-out forwards',
               }}
             />
           </div>

@@ -406,12 +406,12 @@
       transform: translateY(0) rotate(0deg);
       opacity: 1;
     }
-    30% {
-      transform: translateY(-15px) rotate(-3deg);
+    20% {
+      transform: translateY(-8px) rotate(-1.5deg);
       opacity: 1;
     }
     100% {
-      transform: translateY(-250px) rotate(-18deg);
+      transform: translateY(-220px) rotate(-12deg);
       opacity: 0;
     }
   }
@@ -422,25 +422,21 @@
       opacity: 1;
     }
     100% {
-      transform: translateY(180px);
+      transform: translateY(160px);
       opacity: 0;
     }
   }
 
   @keyframes cards-emerge {
     0% {
-      transform: translate(-50%, -50%) scale(0.3);
+      transform: translate(-50%, -50%);
       opacity: 0;
     }
     30% {
       opacity: 1;
     }
-    60% {
-      transform: translate(-50%, -50%) scale(2.5);
-      opacity: 0.9;
-    }
     100% {
-      transform: translate(-50%, -50%) scale(4);
+      transform: translate(-50%, -50%);
       opacity: 0;
     }
   }
