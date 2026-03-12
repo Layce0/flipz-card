@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, memo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useGlobalGifs, GlobalGif } from '@/hooks/useGlobalGifs';
 
