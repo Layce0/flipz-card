@@ -140,23 +140,16 @@ export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimatio
               />
             </div>
 
-            {/* Bottom body — slides down (bottom 75%) */}
+            {/* Bottom body — slides down */}
             <div
-              className="overflow-hidden"
               style={{
-                height: '75%',
                 animation: 'tear-bottom 0.7s ease-in forwards',
               }}
             >
               <img
-                src={packSachetImg}
+                src={packBottomBodyImg}
                 alt=""
                 className="w-72 h-auto select-none"
-                style={{
-                  objectFit: 'cover',
-                  objectPosition: 'bottom',
-                  marginTop: '-33.33%',
-                }}
                 draggable={false}
               />
             </div>
