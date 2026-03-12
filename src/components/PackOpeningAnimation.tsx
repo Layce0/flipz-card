@@ -125,7 +125,7 @@ export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimatio
             draggable={false}
           />
         ) : (
-          <div className="relative w-72">
+          <div className="relative w-56">
             {/* Top cap — flies up */}
             <div
               style={{
@@ -135,7 +135,7 @@ export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimatio
               <img
                 src={packTopCapImg}
                 alt=""
-                className="w-72 h-auto select-none"
+                className="w-56 h-auto select-none"
                 draggable={false}
               />
             </div>
@@ -149,7 +149,7 @@ export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimatio
               <img
                 src={packBottomBodyImg}
                 alt=""
-                className="w-72 h-auto select-none"
+                className="w-56 h-auto select-none"
                 draggable={false}
               />
             </div>
