@@ -121,7 +121,7 @@ export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimatio
           <img
             src={packSachetImg}
             alt="Pack Flipz"
-            className="w-72 h-auto select-none drop-shadow-2xl"
+            className="w-56 h-auto select-none drop-shadow-2xl"
             draggable={false}
           />
         ) : (
