@@ -161,7 +161,7 @@ export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimatio
                 top: '25%',
                 transform: 'translate(-50%, -50%)',
                 background: 'radial-gradient(ellipse, hsl(45 90% 55% / 0.8) 0%, hsl(45 90% 55% / 0.3) 40%, transparent 70%)',
-                animation: 'cards-emerge 0.7s ease-out forwards',
+                animation: 'cards-emerge 0.8s ease-out forwards',
               }}
             />
           </div>
