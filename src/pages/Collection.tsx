@@ -39,13 +39,11 @@ const Collection = () => {
     }
   }, [user, authLoading, navigate]);
 
-  const collectedCardIds = new Set(userCards.map(card => card.id));
+  const collectedCardIds = useMemo(() => new Set(userCards.map(card => card.id)), [userCards]);
   
-  // Create a map of card counts for display
-  const cardCountMap = new Map(userCards.map(card => [card.id, card.count]));
+  const cardCountMap = useMemo(() => new Map(userCards.map(card => [card.id, card.count])), [userCards]);
   
-  // Count total unique cards vs total including duplicates
-  const totalCardsCollected = userCards.reduce((sum, card) => sum + card.count, 0);
+  const totalCardsCollected = useMemo(() => userCards.reduce((sum, card) => sum + card.count, 0), [userCards]);
   
   const handleCardClick = (card: GameCard, count: number) => {
     setSelectedCard(card);
@@ -53,21 +51,21 @@ const Collection = () => {
     setDetailOpen(true);
   };
 
-  const counts = {
+  const counts = useMemo(() => ({
     all: allCards.length,
     common: allCards.filter(c => c.rarity === 'common').length,
     rare: allCards.filter(c => c.rarity === 'rare').length,
     epic: allCards.filter(c => c.rarity === 'epic').length,
     legendary: allCards.filter(c => c.rarity === 'legendary').length,
-  };
+  }), [allCards]);
 
-  const collectedCounts = {
+  const collectedCounts = useMemo(() => ({
     all: userCards.length,
     common: userCards.filter(c => c.rarity === 'common').length,
     rare: userCards.filter(c => c.rarity === 'rare').length,
     epic: userCards.filter(c => c.rarity === 'epic').length,
     legendary: userCards.filter(c => c.rarity === 'legendary').length,
-  };
+  }), [userCards]);
 
   const isLoading = authLoading || cardsLoading || userCardsLoading;
 
