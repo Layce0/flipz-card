@@ -67,6 +67,8 @@ const Collection = () => {
     legendary: userCards.filter(c => c.rarity === 'legendary').length,
   }), [userCards]);
 
+  const progressPercent = useMemo(() => allCards.length > 0 ? Math.round((userCards.length / allCards.length) * 100) : 0, [allCards.length, userCards.length]);
+
   const isLoading = authLoading || cardsLoading || userCardsLoading;
 
   if (authLoading) {
@@ -80,8 +82,6 @@ const Collection = () => {
   if (!user) {
     return null;
   }
-
-  const progressPercent = useMemo(() => allCards.length > 0 ? Math.round((userCards.length / allCards.length) * 100) : 0, [allCards.length, userCards.length]);
 
   return (
     <div className="min-h-screen pb-24">
