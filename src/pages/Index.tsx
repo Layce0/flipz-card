@@ -17,9 +17,16 @@ import flipzLogo from '@/assets/flipz-logo-new.jpeg';
 const Index = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [timeLeft, setTimeLeft] = useState('');
+  const [catData, setCatData] = useState<any>(null);
+  const [catRunData, setCatRunData] = useState<any>(null);
   const { user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
+
+  // Lazy load lottie JSON data
+  useEffect(() => {
+    import('@/assets/lottie-cat.json').then(m => setCatData(m.default));
+  }, []);
 
   // Redirect unauthenticated users to auth page
   useEffect(() => {
