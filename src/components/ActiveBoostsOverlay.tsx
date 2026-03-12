@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { Sparkles, Package } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
