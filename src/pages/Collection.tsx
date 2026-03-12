@@ -81,7 +81,7 @@ const Collection = () => {
     return null;
   }
 
-  const progressPercent = allCards.length > 0 ? Math.round((userCards.length / allCards.length) * 100) : 0;
+  const progressPercent = useMemo(() => allCards.length > 0 ? Math.round((userCards.length / allCards.length) * 100) : 0, [allCards.length, userCards.length]);
 
   return (
     <div className="min-h-screen pb-24">

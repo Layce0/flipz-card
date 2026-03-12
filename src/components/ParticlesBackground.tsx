@@ -120,4 +120,6 @@ export const ParticlesBackground = memo(() => {
       style={{ zIndex: 0, willChange: 'transform' }}
     />
   );
-};
+});
+
+ParticlesBackground.displayName = 'ParticlesBackground';

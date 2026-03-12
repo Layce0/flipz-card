@@ -20,6 +20,7 @@ export interface GlobalGif {
 export const useGlobalGifs = (adminMode = false) => {
   return useQuery({
     queryKey: ['global-gifs', adminMode],
+    staleTime: adminMode ? 0 : 10 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('global_gifs' as any)
