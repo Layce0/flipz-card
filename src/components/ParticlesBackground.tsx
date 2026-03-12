@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, memo } from 'react';
 
 interface Particle {
   x: number;
@@ -11,7 +11,7 @@ interface Particle {
   pulseSpeed: number;
 }
 
-export const ParticlesBackground = () => {
+export const ParticlesBackground = memo(() => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -120,4 +120,6 @@ export const ParticlesBackground = () => {
       style={{ zIndex: 0, willChange: 'transform' }}
     />
   );
-};
+});
+
+ParticlesBackground.displayName = 'ParticlesBackground';

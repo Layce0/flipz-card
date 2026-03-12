@@ -93,6 +93,7 @@ export const useUpdateStreak = () => {
 export const useWinstreakRewards = () => {
   return useQuery({
     queryKey: ['winstreak-rewards'],
+    staleTime: 10 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('winstreak_rewards')
