@@ -56,7 +56,7 @@ const BoostIndicator = ({ boost }: { boost: ActiveBoost }) => {
   );
 };
 
-export const ActiveBoostsOverlay = () => {
+export const ActiveBoostsOverlay = memo(() => {
   const { user } = useAuth();
   const { data: boosts = [] } = useActiveBoosts(user?.id);
 
