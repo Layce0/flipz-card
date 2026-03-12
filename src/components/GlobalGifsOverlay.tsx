@@ -5,7 +5,7 @@ import { useGlobalGifs, GlobalGif } from '@/hooks/useGlobalGifs';
 // Persists across navigations within the same session
 const playedVideoIds = new Set<string>();
 
-export const GlobalGifsOverlay = () => {
+export const GlobalGifsOverlay = memo(() => {
   const { data: mediaItems = [] } = useGlobalGifs();
   const { pathname } = useLocation();
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
