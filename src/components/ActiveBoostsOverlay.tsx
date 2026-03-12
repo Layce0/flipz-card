@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { Sparkles, Package } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -56,7 +56,7 @@ const BoostIndicator = ({ boost }: { boost: ActiveBoost }) => {
   );
 };
 
-export const ActiveBoostsOverlay = () => {
+export const ActiveBoostsOverlay = memo(() => {
   const { user } = useAuth();
   const { data: boosts = [] } = useActiveBoosts(user?.id);
 
@@ -80,4 +80,6 @@ export const ActiveBoostsOverlay = () => {
     </div>,
     document.body
   );
-};
+});
+
+ActiveBoostsOverlay.displayName = 'ActiveBoostsOverlay';

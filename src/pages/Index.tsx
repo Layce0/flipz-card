@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import Lottie from 'lottie-react';
+import { lazy, Suspense } from 'react';
+const Lottie = lazy(() => import('lottie-react'));
 import { MysteryCard } from '@/components/MysteryCard';
 import { Navigation } from '@/components/Navigation';
 
@@ -134,22 +135,24 @@ const Index = () => {
       </main>
 
       {/* Lottie cat - bottom left */}
-      <div 
-        className="fixed bottom-24 left-4 z-10 cursor-pointer"
-        onClick={() => { if (!isRunning) setIsRunning(true); }}
-      >
-        <Lottie animationData={catAnimation} loop className="w-28 h-28 sm:w-32 sm:h-32" />
-      </div>
-
-      {/* Running cat animation */}
-      {isRunning && (
+      <Suspense fallback={null}>
         <div 
-          className="fixed z-50 top-1/2 -translate-y-1/2 animate-[catRun_2s_ease-in-out_forwards] pointer-events-none"
-          onAnimationEnd={() => setIsRunning(false)}
+          className="fixed bottom-24 left-4 z-10 cursor-pointer"
+          onClick={() => { if (!isRunning) setIsRunning(true); }}
         >
-          <Lottie animationData={catRunAnimation} loop className="w-32 h-32 sm:w-40 sm:h-40" />
+          <Lottie animationData={catAnimation} loop className="w-28 h-28 sm:w-32 sm:h-32" />
         </div>
-      )}
+
+        {/* Running cat animation */}
+        {isRunning && (
+          <div 
+            className="fixed z-50 top-1/2 -translate-y-1/2 animate-[catRun_2s_ease-in-out_forwards] pointer-events-none"
+            onAnimationEnd={() => setIsRunning(false)}
+          >
+            <Lottie animationData={catRunAnimation} loop className="w-32 h-32 sm:w-40 sm:h-40" />
+          </div>
+        )}
+      </Suspense>
 
       
       <Navigation />
