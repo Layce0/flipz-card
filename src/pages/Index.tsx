@@ -140,24 +140,30 @@ const Index = () => {
       </main>
 
       {/* Lottie cat - bottom left */}
-      <Suspense fallback={null}>
-        <div 
-          className="fixed bottom-24 left-4 z-10 cursor-pointer"
-          onClick={() => { if (!isRunning) setIsRunning(true); }}
-        >
-          <Lottie animationData={catAnimation} loop className="w-28 h-28 sm:w-32 sm:h-32" />
-        </div>
-
-        {/* Running cat animation */}
-        {isRunning && (
+      {catData && (
+        <Suspense fallback={null}>
           <div 
-            className="fixed z-50 top-1/2 -translate-y-1/2 animate-[catRun_2s_ease-in-out_forwards] pointer-events-none"
-            onAnimationEnd={() => setIsRunning(false)}
+            className="fixed bottom-24 left-4 z-10 cursor-pointer"
+            onClick={() => { 
+              if (!isRunning) {
+                setIsRunning(true);
+                if (!catRunData) import('@/assets/lottie-cat-run.json').then(m => setCatRunData(m.default));
+              }
+            }}
           >
-            <Lottie animationData={catRunAnimation} loop className="w-32 h-32 sm:w-40 sm:h-40" />
+            <Lottie animationData={catData} loop className="w-28 h-28 sm:w-32 sm:h-32" />
           </div>
-        )}
-      </Suspense>
+
+          {isRunning && catRunData && (
+            <div 
+              className="fixed z-50 top-1/2 -translate-y-1/2 animate-[catRun_2s_ease-in-out_forwards] pointer-events-none"
+              onAnimationEnd={() => setIsRunning(false)}
+            >
+              <Lottie animationData={catRunData} loop className="w-32 h-32 sm:w-40 sm:h-40" />
+            </div>
+          )}
+        </Suspense>
+      )}
 
       
       <Navigation />
