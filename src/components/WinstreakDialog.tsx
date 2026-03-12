@@ -8,6 +8,7 @@ import { useWinstreakRewards, useWinstreakClaims, useClaimWinstreakReward } from
 import { toast } from 'sonner';
 import { GameCard } from '@/types/card';
 import { PackRevealFlow } from '@/components/shop/PackRevealFlow';
+import packClassicImg from '@/assets/pack-classic-reward.png';
 
 interface WinstreakDialogProps {
   open: boolean;
