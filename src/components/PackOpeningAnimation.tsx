@@ -149,7 +149,7 @@ export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimatio
               <img
                 src={packBottomBodyImg}
                 alt=""
-                className="w-56 h-auto select-none"
+                className="w-64 h-auto select-none"
                 draggable={false}
               />
             </div>
