@@ -35,6 +35,8 @@ export const PackRevealFlow = ({ cards, isOpen, onClose }: PackRevealFlowProps) 
 
   useEffect(() => {
     if (isOpen) {
+      // Snapshot owned cards before reveal starts
+      setOwnedSnapshot(new Set(userCards.map(c => c.id)));
       setShowPackAnimation(true);
       setCurrentCardIndex(0);
       setCardRevealed(false);
