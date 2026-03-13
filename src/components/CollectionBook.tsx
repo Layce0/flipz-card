@@ -17,10 +17,28 @@ export const CollectionBook = ({ allCards, collectedCardIds, cardCountMap, activ
   const [currentPage, setCurrentPage] = useState(0);
   const cardsPerPage = 4;
 
-  // Filter cards by rarity
-  const filteredCards = activeRarity === 'all' 
-    ? allCards 
-    : allCards.filter(card => card.rarity === activeRarity);
+  // Filter and sort cards - in "all" tab, show collected cards first ordered by obtained_at
+  const filteredCards = useMemo(() => {
+    const filtered = activeRarity === 'all' 
+      ? allCards 
+      : allCards.filter(card => card.rarity === activeRarity);
+    
+    if (activeRarity === 'all') {
+      const collected = filtered.filter(c => collectedCardIds.has(c.id));
+      const uncollected = filtered.filter(c => !collectedCardIds.has(c.id));
+      
+      // Sort collected cards by obtained_at (earliest first)
+      collected.sort((a, b) => {
+        const dateA = obtainedAtMap?.get(a.id) || '';
+        const dateB = obtainedAtMap?.get(b.id) || '';
+        return dateA.localeCompare(dateB);
+      });
+      
+      return [...collected, ...uncollected];
+    }
+    
+    return filtered;
+  }, [allCards, activeRarity, collectedCardIds, obtainedAtMap]);
 
   const totalPages = Math.ceil(filteredCards.length / cardsPerPage);
   const currentCards = filteredCards.slice(
