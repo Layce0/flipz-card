@@ -7,7 +7,7 @@ import { GameCard } from '@/types/card';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
-import { useUserCards } from '@/hooks/useCards';
+import { useUserCards, isCardNew, UserCardWithCount } from '@/hooks/useCards';
 
 interface PackRevealFlowProps {
   cards: GameCard[];
