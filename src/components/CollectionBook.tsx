@@ -32,7 +32,7 @@ export const CollectionBook = ({ allCards, collectedCardIds, cardCountMap, obtai
       collected.sort((a, b) => {
         const dateA = obtainedAtMap?.get(a.id) || '';
         const dateB = obtainedAtMap?.get(b.id) || '';
-        return dateA.localeCompare(dateB);
+        return dateB.localeCompare(dateA);
       });
       
       return [...collected, ...uncollected];
