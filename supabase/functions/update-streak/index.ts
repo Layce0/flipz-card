@@ -40,15 +40,15 @@ Deno.serve(async (req) => {
     })
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
 
-    const token = authHeader.replace('Bearer ', '')
-    const { data: claimsData, error: claimsError } = await supabaseAnon.auth.getClaims(token)
-    if (claimsError || !claimsData?.claims) {
+    // Get authenticated user
+    const { data: { user }, error: userError } = await supabaseAnon.auth.getUser()
+    if (userError || !user) {
       return new Response(JSON.stringify({ error: 'Non autorisé' }), {
         status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
-    const userId = claimsData.claims.sub as string
+    const userId = user.id
 
     const today = new Date().toISOString().split('T')[0]
 
