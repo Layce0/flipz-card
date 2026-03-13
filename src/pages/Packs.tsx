@@ -53,7 +53,11 @@ const Packs = () => {
       if (data?.error) throw new Error(data.error);
       
       const cards = (data?.cards || []) as GameCard[];
-      setOwnedSnapshot(new Set(userCards.map(c => c.id)));
+      // Snapshot cards owned BEFORE opening (count > 0 means truly owned)
+      const ownedIds = userCards
+        .filter(c => c.count > 0)
+        .map(c => c.id);
+      setOwnedSnapshot(new Set(ownedIds));
       setRevealedCards(cards);
       setCurrentCardIndex(0);
       setShowPackAnimation(true);
