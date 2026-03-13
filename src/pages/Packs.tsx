@@ -53,6 +53,7 @@ const Packs = () => {
       if (data?.error) throw new Error(data.error);
       
       const cards = (data?.cards || []) as GameCard[];
+      setOwnedSnapshot(new Set(userCards.map(c => c.id)));
       setRevealedCards(cards);
       setCurrentCardIndex(0);
       setShowPackAnimation(true);
