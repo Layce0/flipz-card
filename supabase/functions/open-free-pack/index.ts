@@ -181,9 +181,11 @@ Deno.serve(async (req) => {
     const selectedCards = generateWeightedCards(cards, weights, finalCardCount);
 
     // Insert cards server-side
-    await supabaseAdmin
+    const { error: insertError } = await supabaseAdmin
       .from('user_cards')
       .insert(selectedCards.map((c: any) => ({ user_id: userId, card_id: c.id })));
+
+    if (insertError) throw insertError;
 
     return new Response(JSON.stringify({ success: true, cards: selectedCards }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
