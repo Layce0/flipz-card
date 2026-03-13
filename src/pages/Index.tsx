@@ -9,7 +9,7 @@ import { Navigation } from '@/components/Navigation';
 import { WinstreakBadge } from '@/components/WinstreakBadge';
 import { Clock, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTodayCard, useHasCollectedToday, useCollectCard, useUserCards } from '@/hooks/useCards';
+import { useTodayCard, useHasCollectedToday, useCollectCard, useUserCards, isCardNew } from '@/hooks/useCards';
 import { useUserStreak, useUpdateStreak } from '@/hooks/useWinstreak';
 import { toast } from 'sonner';
 import flipzLogo from '@/assets/flipz-logo-new.jpeg';
@@ -131,7 +131,7 @@ const Index = () => {
                 isRevealed={isRevealed}
                 onReveal={handleReveal}
                 size="lg"
-                isNew={!userCards.some(uc => uc.id === todayCard.id)}
+                isNew={isCardNew(todayCard.id, userCards)}
               />
             </div>
 

@@ -7,7 +7,7 @@ import { GameCard } from '@/types/card';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
-import { useUserCards } from '@/hooks/useCards';
+import { useUserCards, isCardNew, UserCardWithCount } from '@/hooks/useCards';
 
 interface PackRevealFlowProps {
   cards: GameCard[];
@@ -36,7 +36,11 @@ export const PackRevealFlow = ({ cards, isOpen, onClose }: PackRevealFlowProps) 
   useEffect(() => {
     if (isOpen) {
       // Snapshot owned cards before reveal starts
-      setOwnedSnapshot(new Set(userCards.map(c => c.id)));
+      // Only consider cards with count > 0 as "owned"
+      const ownedIds = userCards
+        .filter(c => c.count > 0)
+        .map(c => c.id);
+      setOwnedSnapshot(new Set(ownedIds));
       setShowPackAnimation(true);
       setCurrentCardIndex(0);
       setCardRevealed(false);
@@ -44,7 +48,7 @@ export const PackRevealFlow = ({ cards, isOpen, onClose }: PackRevealFlowProps) 
       setDragX(0);
       setDragY(0);
     }
-  }, [isOpen]);
+  }, [isOpen, userCards]);
 
   const goNext = useCallback(() => {
     const dirX = dragX !== 0 ? dragX : 0;
@@ -216,7 +220,9 @@ export const PackRevealFlow = ({ cards, isOpen, onClose }: PackRevealFlowProps) 
               size="lg"
               isNew={(() => {
                 const cardId = cards[currentCardIndex].id;
+                // Check if already owned before pack opening (using snapshot)
                 if (ownedSnapshot.has(cardId)) return false;
+                // Check if already revealed in this pack (duplicate handling)
                 const previouslyRevealed = cards.slice(0, currentCardIndex).some(c => c.id === cardId);
                 return !previouslyRevealed;
               })()}

@@ -7,7 +7,7 @@ import { MysteryCard } from '@/components/MysteryCard';
 import { PackOpeningAnimation } from '@/components/PackOpeningAnimation';
 import { Play, Loader2, X, ChevronLeft } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useCollectCard, useUserCards } from '@/hooks/useCards';
+import { useCollectCard, useUserCards, isCardNew } from '@/hooks/useCards';
 import { useAdMob } from '@/hooks/useAdMob';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -53,7 +53,11 @@ const Packs = () => {
       if (data?.error) throw new Error(data.error);
       
       const cards = (data?.cards || []) as GameCard[];
-      setOwnedSnapshot(new Set(userCards.map(c => c.id)));
+      // Snapshot cards owned BEFORE opening (count > 0 means truly owned)
+      const ownedIds = userCards
+        .filter(c => c.count > 0)
+        .map(c => c.id);
+      setOwnedSnapshot(new Set(ownedIds));
       setRevealedCards(cards);
       setCurrentCardIndex(0);
       setShowPackAnimation(true);
