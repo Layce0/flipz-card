@@ -41,48 +41,10 @@ export const useUpdateStreak = () => {
 
   return useMutation({
     mutationFn: async (userId: string) => {
-      const today = new Date().toISOString().split('T')[0];
-
-      // Fetch current streak
-      const { data: existing } = await supabase
-        .from('user_streaks')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      if (!existing) {
-        // First time ever
-        const { error } = await supabase
-          .from('user_streaks')
-          .insert({ user_id: userId, current_streak: 1, last_streak_date: today });
-        if (error) throw error;
-        return 1;
-      }
-
-      // Already updated today
-      if (existing.last_streak_date === today) {
-        return existing.current_streak;
-      }
-
-      // Check if yesterday
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayStr = yesterday.toISOString().split('T')[0];
-
-      let newStreak: number;
-      if (existing.last_streak_date === yesterdayStr) {
-        newStreak = existing.current_streak + 1;
-      } else {
-        // Streak broken
-        newStreak = 1;
-      }
-
-      const { error } = await supabase
-        .from('user_streaks')
-        .update({ current_streak: newStreak, last_streak_date: today })
-        .eq('user_id', userId);
+      const { data, error } = await supabase.functions.invoke('update-streak');
       if (error) throw error;
-      return newStreak;
+      if (data?.error) throw new Error(data.error);
+      return data?.current_streak as number;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-streak'] });

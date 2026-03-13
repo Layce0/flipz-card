@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.claim-winstreak-reward]
 verify_jwt = false
+
+[functions.update-streak]
+verify_jwt = false
