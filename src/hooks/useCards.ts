@@ -122,6 +122,16 @@ export const useUserCards = (userId: string | undefined) => {
 
 export type UserCardWithCount = GameCard & { obtained_at: string; count: number };
 
+// Helper function to check if a card is new (not in user's collection)
+export const isCardNew = (
+  cardId: string,
+  userCards: UserCardWithCount[]
+): boolean => {
+  const existingCard = userCards.find(uc => uc.id === cardId);
+  // Card is new if not found OR if count is 0 (shouldn't happen but safety check)
+  return !existingCard || existingCard.count === 0;
+};
+
 // Fetch user card stats
 export const useUserCardStats = (userId: string | undefined) => {
   return useQuery({
