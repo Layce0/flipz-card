@@ -6,6 +6,8 @@ import { X, Sparkles, ChevronLeft } from 'lucide-react';
 import { GameCard } from '@/types/card';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUserCards } from '@/hooks/useCards';
 
 interface PackRevealFlowProps {
   cards: GameCard[];
@@ -14,6 +16,9 @@ interface PackRevealFlowProps {
 }
 
 export const PackRevealFlow = ({ cards, isOpen, onClose }: PackRevealFlowProps) => {
+  const { user } = useAuth();
+  const { data: userCards = [] } = useUserCards(user?.id);
+  const [ownedSnapshot, setOwnedSnapshot] = useState<Set<string>>(new Set());
   const { t } = useTranslation();
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [cardRevealed, setCardRevealed] = useState(false);
@@ -30,6 +35,8 @@ export const PackRevealFlow = ({ cards, isOpen, onClose }: PackRevealFlowProps) 
 
   useEffect(() => {
     if (isOpen) {
+      // Snapshot owned cards before reveal starts
+      setOwnedSnapshot(new Set(userCards.map(c => c.id)));
       setShowPackAnimation(true);
       setCurrentCardIndex(0);
       setCardRevealed(false);
@@ -207,6 +214,12 @@ export const PackRevealFlow = ({ cards, isOpen, onClose }: PackRevealFlowProps) 
               isRevealed={cardRevealed}
               onReveal={handleRevealCard}
               size="lg"
+              isNew={(() => {
+                const cardId = cards[currentCardIndex].id;
+                if (ownedSnapshot.has(cardId)) return false;
+                const previouslyRevealed = cards.slice(0, currentCardIndex).some(c => c.id === cardId);
+                return !previouslyRevealed;
+              })()}
             />
           )}
         </div>

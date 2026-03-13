@@ -7,7 +7,7 @@ import { MysteryCard } from '@/components/MysteryCard';
 import { PackOpeningAnimation } from '@/components/PackOpeningAnimation';
 import { Play, Loader2, X, ChevronLeft } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useCollectCard } from '@/hooks/useCards';
+import { useCollectCard, useUserCards } from '@/hooks/useCards';
 import { useAdMob } from '@/hooks/useAdMob';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -26,6 +26,8 @@ const Packs = () => {
   const [isRevealing, setIsRevealing] = useState(false);
   const [cardRevealed, setCardRevealed] = useState(false);
   const [showPackAnimation, setShowPackAnimation] = useState(false);
+  const { data: userCards = [] } = useUserCards(user?.id);
+  const [ownedSnapshot, setOwnedSnapshot] = useState<Set<string>>(new Set());
 
   const handleWatchAd = async () => {
     if (!user) {
@@ -51,6 +53,7 @@ const Packs = () => {
       if (data?.error) throw new Error(data.error);
       
       const cards = (data?.cards || []) as GameCard[];
+      setOwnedSnapshot(new Set(userCards.map(c => c.id)));
       setRevealedCards(cards);
       setCurrentCardIndex(0);
       setShowPackAnimation(true);
@@ -300,6 +303,12 @@ const Packs = () => {
                     isRevealed={cardRevealed}
                     onReveal={handleRevealCard}
                     size="lg"
+                    isNew={(() => {
+                      const cardId = revealedCards[currentCardIndex].id;
+                      if (ownedSnapshot.has(cardId)) return false;
+                      const previouslyRevealed = revealedCards.slice(0, currentCardIndex).some(c => c.id === cardId);
+                      return !previouslyRevealed;
+                    })()}
                   />
                 )}
               </div>

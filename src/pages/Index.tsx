@@ -131,7 +131,7 @@ const Index = () => {
                 isRevealed={isRevealed}
                 onReveal={handleReveal}
                 size="lg"
-                isNew={!userCards.some(uc => uc.id === todayCard.id && uc.count > 1)}
+                isNew={!userCards.some(uc => uc.id === todayCard.id)}
               />
             </div>
 
