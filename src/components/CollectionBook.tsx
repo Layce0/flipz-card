@@ -9,6 +9,7 @@ interface CollectionBookProps {
   allCards: GameCard[];
   collectedCardIds: Set<string>;
   cardCountMap: Map<string, number>;
+  obtainedAtMap?: Map<string, string>;
   activeRarity: Rarity | 'all';
   onCardClick?: (card: GameCard, count: number) => void;
 }
