@@ -43,6 +43,8 @@ const Collection = () => {
   
   const cardCountMap = useMemo(() => new Map(userCards.map(card => [card.id, card.count])), [userCards]);
   
+  const obtainedAtMap = useMemo(() => new Map(userCards.map(card => [card.id, card.obtained_at])), [userCards]);
+  
   const totalCardsCollected = useMemo(() => userCards.reduce((sum, card) => sum + card.count, 0), [userCards]);
   
   const handleCardClick = (card: GameCard, count: number) => {
