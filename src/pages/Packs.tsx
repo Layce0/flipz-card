@@ -29,6 +29,7 @@ const Packs = () => {
   const [showPackAnimation, setShowPackAnimation] = useState(false);
   const { data: userCards = [] } = useUserCards(user?.id);
   const [ownedSnapshot, setOwnedSnapshot] = useState<Set<string>>(new Set());
+  const queryClient = useQueryClient();
 
   const handleWatchAd = async () => {
     if (!user) {
