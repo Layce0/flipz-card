@@ -220,7 +220,9 @@ export const PackRevealFlow = ({ cards, isOpen, onClose }: PackRevealFlowProps) 
               size="lg"
               isNew={(() => {
                 const cardId = cards[currentCardIndex].id;
+                // Check if already owned before pack opening (using snapshot)
                 if (ownedSnapshot.has(cardId)) return false;
+                // Check if already revealed in this pack (duplicate handling)
                 const previouslyRevealed = cards.slice(0, currentCardIndex).some(c => c.id === cardId);
                 return !previouslyRevealed;
               })()}
