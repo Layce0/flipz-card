@@ -14,7 +14,7 @@ interface CollectionBookProps {
   onCardClick?: (card: GameCard, count: number) => void;
 }
 
-export const CollectionBook = ({ allCards, collectedCardIds, cardCountMap, activeRarity, onCardClick }: CollectionBookProps) => {
+export const CollectionBook = ({ allCards, collectedCardIds, cardCountMap, obtainedAtMap, activeRarity, onCardClick }: CollectionBookProps) => {
   const [currentPage, setCurrentPage] = useState(0);
   const cardsPerPage = 4;
 
