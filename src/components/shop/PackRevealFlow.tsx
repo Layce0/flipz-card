@@ -6,6 +6,8 @@ import { X, Sparkles, ChevronLeft } from 'lucide-react';
 import { GameCard } from '@/types/card';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUserCards } from '@/hooks/useCards';
 
 interface PackRevealFlowProps {
   cards: GameCard[];
@@ -14,6 +16,9 @@ interface PackRevealFlowProps {
 }
 
 export const PackRevealFlow = ({ cards, isOpen, onClose }: PackRevealFlowProps) => {
+  const { user } = useAuth();
+  const { data: userCards = [] } = useUserCards(user?.id);
+  const [ownedSnapshot, setOwnedSnapshot] = useState<Set<string>>(new Set());
   const { t } = useTranslation();
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [cardRevealed, setCardRevealed] = useState(false);
