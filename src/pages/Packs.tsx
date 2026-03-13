@@ -106,7 +106,7 @@ const Packs = () => {
       setDragX(0);
       setDragY(0);
     }, 250);
-  }, [currentCardIndex, revealedCards.length, dragX, dragY]);
+  }, [currentCardIndex, revealedCards.length, dragX, dragY, t, queryClient]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (!cardRevealed) return;
