@@ -7,7 +7,7 @@ import { MysteryCard } from '@/components/MysteryCard';
 import { PackOpeningAnimation } from '@/components/PackOpeningAnimation';
 import { Play, Loader2, X, ChevronLeft } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useCollectCard } from '@/hooks/useCards';
+import { useCollectCard, useUserCards } from '@/hooks/useCards';
 import { useAdMob } from '@/hooks/useAdMob';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
