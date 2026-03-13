@@ -214,6 +214,12 @@ export const PackRevealFlow = ({ cards, isOpen, onClose }: PackRevealFlowProps) 
               isRevealed={cardRevealed}
               onReveal={handleRevealCard}
               size="lg"
+              isNew={(() => {
+                const cardId = cards[currentCardIndex].id;
+                if (ownedSnapshot.has(cardId)) return false;
+                const previouslyRevealed = cards.slice(0, currentCardIndex).some(c => c.id === cardId);
+                return !previouslyRevealed;
+              })()}
             />
           )}
         </div>
