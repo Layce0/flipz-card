@@ -63,6 +63,10 @@ const Packs = () => {
       setRevealedCards(cards);
       setCurrentCardIndex(0);
       setShowPackAnimation(true);
+
+      // Keep collection in sync despite 5min query staleTime
+      queryClient.invalidateQueries({ queryKey: ['user-cards'] });
+      queryClient.invalidateQueries({ queryKey: ['user-card-stats'] });
     } catch (error) {
       toast.error(t('packs.openError'));
     }
