@@ -191,7 +191,8 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
-    return new Response(JSON.stringify({ error: 'Server error' }), {
+    console.error('open-free-pack error:', error);
+    return new Response(JSON.stringify({ error: 'Server error', detail: String(error) }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
