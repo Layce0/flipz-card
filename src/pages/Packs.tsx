@@ -52,10 +52,20 @@ const Packs = () => {
     try {
       const { data, error } = await supabase.functions.invoke('open-free-pack');
       if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      if (data?.error) {
+        if (data.retryAfter) {
+          toast.error(t('packs.cooldownError', `Trop de requêtes, réessaie dans ${data.retryAfter}s`));
+        } else if (data.error === 'No cards available') {
+          toast.error(t('packs.noCardsError', 'Aucune carte disponible pour le moment'));
+        } else if (data.error === 'Unauthorized') {
+          toast.error(t('packs.authError', 'Session expirée, reconnecte-toi'));
+        } else {
+          toast.error(t('packs.openError', 'Erreur lors de l\'ouverture du pack'));
+        }
+        return;
+      }
       
       const cards = (data?.cards || []) as GameCard[];
-      // Snapshot cards owned BEFORE opening (count > 0 means truly owned)
       const ownedIds = userCards
         .filter(c => c.count > 0)
         .map(c => c.id);
@@ -64,11 +74,15 @@ const Packs = () => {
       setCurrentCardIndex(0);
       setShowPackAnimation(true);
 
-      // Keep collection in sync despite 5min query staleTime
       queryClient.invalidateQueries({ queryKey: ['user-cards'] });
       queryClient.invalidateQueries({ queryKey: ['user-card-stats'] });
-    } catch (error) {
-      toast.error(t('packs.openError'));
+    } catch (error: any) {
+      console.error('Pack opening error:', error);
+      if (error?.message?.includes('fetch') || error?.message?.includes('network')) {
+        toast.error(t('packs.networkError', 'Erreur réseau, vérifie ta connexion'));
+      } else {
+        toast.error(t('packs.openError', 'Erreur lors de l\'ouverture du pack'));
+      }
     }
   };
 
