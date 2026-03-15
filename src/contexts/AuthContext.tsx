@@ -1,7 +1,11 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { hydrateSessionFromNativeStorage, syncSessionToNativeStorage } from '@/lib/capacitorSession';
+import {
+  hydrateSessionFromNativeStorage,
+  markAuthBootstrapReady,
+  syncSessionToNativeStorage,
+} from '@/lib/capacitorSession';
 
 interface AuthContextType {
   user: User | null;
@@ -43,46 +47,54 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     let authSubscription: { unsubscribe: () => void } | null = null;
 
     const initializeAuth = async () => {
-      await hydrateSessionFromNativeStorage();
+      try {
+        await hydrateSessionFromNativeStorage();
 
-      // Set up auth state listener FIRST
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        (_event, nextSession) => {
-          if (!isMounted) return;
+        // Set up auth state listener FIRST
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          (_event, nextSession) => {
+            if (!isMounted) return;
 
-          setSession(nextSession);
-          setUser(nextSession?.user ?? null);
-          void syncSessionToNativeStorage(nextSession);
+            setSession(nextSession);
+            setUser(nextSession?.user ?? null);
+            void syncSessionToNativeStorage(nextSession);
 
-          // Check admin status from database
-          if (nextSession?.user) {
-            // Defer to avoid potential deadlocks with Supabase client
-            setTimeout(() => {
-              checkAdminRole(nextSession.user.id);
-            }, 0);
-          } else {
-            setIsAdmin(false);
+            // Check admin status from database
+            if (nextSession?.user) {
+              // Defer to avoid potential deadlocks with Supabase client
+              setTimeout(() => {
+                void checkAdminRole(nextSession.user.id);
+              }, 0);
+            } else {
+              setIsAdmin(false);
+            }
+
+            markAuthBootstrapReady();
+            setIsLoading(false);
           }
+        );
 
+        authSubscription = subscription;
+
+        // THEN check for existing session
+        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        if (!isMounted) return;
+
+        setSession(initialSession);
+        setUser(initialSession?.user ?? null);
+        void syncSessionToNativeStorage(initialSession);
+
+        if (initialSession?.user) {
+          void checkAdminRole(initialSession.user.id);
+        } else {
+          setIsAdmin(false);
+        }
+      } finally {
+        markAuthBootstrapReady();
+        if (isMounted) {
           setIsLoading(false);
         }
-      );
-
-      authSubscription = subscription;
-
-      // THEN check for existing session
-      const { data: { session: initialSession } } = await supabase.auth.getSession();
-      if (!isMounted) return;
-
-      setSession(initialSession);
-      setUser(initialSession?.user ?? null);
-      void syncSessionToNativeStorage(initialSession);
-
-      if (initialSession?.user) {
-        checkAdminRole(initialSession.user.id);
       }
-
-      setIsLoading(false);
     };
 
     void initializeAuth();
