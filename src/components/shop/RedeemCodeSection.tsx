@@ -56,6 +56,7 @@ export const RedeemCodeSection = () => {
       toast.error('Erreur lors de l\'utilisation du code');
     } finally {
       setIsRedeeming(false);
+      redeemingRef.current = false;
     }
   };
 
