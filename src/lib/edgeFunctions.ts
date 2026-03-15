@@ -5,7 +5,7 @@ type EdgeInvokeOptions = {
   headers?: Record<string, string>;
 };
 
-export const invokeEdgeFunction = async <T = unknown>(
+export const invokeEdgeFunction = async <T = any>(
   functionName: string,
   options: EdgeInvokeOptions = {}
 ) => {
