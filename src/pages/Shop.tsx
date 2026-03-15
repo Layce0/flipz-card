@@ -12,8 +12,8 @@ import { Rarity } from '@/types/card';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserCards, useDeleteUserCards, useRandomCards, useCollectCard, UserCardWithCount } from '@/hooks/useCards';
-import { supabase } from '@/integrations/supabase/client';
 import { RedeemCodeSection } from '@/components/shop/RedeemCodeSection';
+import { invokeEdgeFunction } from '@/lib/edgeFunctions';
 
 const Shop = () => {
   const { user } = useAuth();
@@ -49,7 +49,7 @@ const Shop = () => {
 
   const verifyPurchase = async (sessionId: string) => {
     try {
-      const { data, error } = await supabase.functions.invoke('verify-pack-purchase', {
+      const { data, error } = await invokeEdgeFunction('verify-pack-purchase', {
         body: { sessionId }
       });
 
@@ -77,7 +77,7 @@ const Shop = () => {
     setLoadingPackId(packId);
 
     try {
-      const { data, error } = await supabase.functions.invoke('create-pack-checkout', {
+      const { data, error } = await invokeEdgeFunction('create-pack-checkout', {
         body: { packId }
       });
 

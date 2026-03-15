@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Ticket, Loader2, Check } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { invokeEdgeFunction } from '@/lib/edgeFunctions';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { GameCard } from '@/types/card';
@@ -24,7 +24,7 @@ export const RedeemCodeSection = () => {
 
     setIsRedeeming(true);
     try {
-      const { data, error } = await supabase.functions.invoke('redeem-code', {
+      const { data, error } = await invokeEdgeFunction('redeem-code', {
         body: { code: code.trim() }
       });
 

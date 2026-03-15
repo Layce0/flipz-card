@@ -10,8 +10,8 @@ import { Play, Loader2, X, ChevronLeft } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserCards } from '@/hooks/useCards';
 import { useAdMob } from '@/hooks/useAdMob';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { invokeEdgeFunction } from '@/lib/edgeFunctions';
 import { GameCard } from '@/types/card';
 import { cn } from '@/lib/utils';
 import packBoosterImg from '@/assets/pack-booster.png';
@@ -50,7 +50,7 @@ const Packs = () => {
     
     // Open pack via server-side RNG
     try {
-      const { data, error } = await supabase.functions.invoke('open-free-pack');
+      const { data, error } = await invokeEdgeFunction('open-free-pack');
       if (error) {
         console.error('Edge function invoke error:', error);
         toast.error(`Edge error: ${error.message || JSON.stringify(error)}`);

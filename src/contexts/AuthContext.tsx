@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { hydrateSessionFromNativeStorage, syncSessionToNativeStorage } from '@/lib/capacitorSession';
 
 interface AuthContextType {
   user: User | null;
@@ -38,39 +39,58 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        // Check admin status from database
-        if (session?.user) {
-          // Defer to avoid potential deadlocks with Supabase client
-          setTimeout(() => {
-            checkAdminRole(session.user.id);
-          }, 0);
-        } else {
-          setIsAdmin(false);
+    let isMounted = true;
+    let authSubscription: { unsubscribe: () => void } | null = null;
+
+    const initializeAuth = async () => {
+      await hydrateSessionFromNativeStorage();
+
+      // Set up auth state listener FIRST
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        (_event, nextSession) => {
+          if (!isMounted) return;
+
+          setSession(nextSession);
+          setUser(nextSession?.user ?? null);
+          void syncSessionToNativeStorage(nextSession);
+
+          // Check admin status from database
+          if (nextSession?.user) {
+            // Defer to avoid potential deadlocks with Supabase client
+            setTimeout(() => {
+              checkAdminRole(nextSession.user.id);
+            }, 0);
+          } else {
+            setIsAdmin(false);
+          }
+
+          setIsLoading(false);
         }
-        
-        setIsLoading(false);
-      }
-    );
+      );
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        checkAdminRole(session.user.id);
+      authSubscription = subscription;
+
+      // THEN check for existing session
+      const { data: { session: initialSession } } = await supabase.auth.getSession();
+      if (!isMounted) return;
+
+      setSession(initialSession);
+      setUser(initialSession?.user ?? null);
+      void syncSessionToNativeStorage(initialSession);
+
+      if (initialSession?.user) {
+        checkAdminRole(initialSession.user.id);
       }
-      
+
       setIsLoading(false);
-    });
+    };
 
-    return () => subscription.unsubscribe();
+    void initializeAuth();
+
+    return () => {
+      isMounted = false;
+      authSubscription?.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
