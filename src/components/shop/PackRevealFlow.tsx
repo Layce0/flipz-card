@@ -13,9 +13,10 @@ interface PackRevealFlowProps {
   cards: GameCard[];
   isOpen: boolean;
   onClose: () => void;
+  initialOwnedCardIds?: Set<string>;
 }
 
-export const PackRevealFlow = ({ cards, isOpen, onClose }: PackRevealFlowProps) => {
+export const PackRevealFlow = ({ cards, isOpen, onClose, initialOwnedCardIds }: PackRevealFlowProps) => {
   const { user } = useAuth();
   const { data: userCards = [] } = useUserCards(user?.id);
   const [ownedSnapshot, setOwnedSnapshot] = useState<Set<string>>(new Set());
@@ -38,9 +39,9 @@ export const PackRevealFlow = ({ cards, isOpen, onClose }: PackRevealFlowProps) 
   useEffect(() => {
     // Only reset when transitioning from closed to open
     if (isOpen && !prevOpenRef.current) {
-      const ownedIds = userCards
-        .filter(c => c.count > 0)
-        .map(c => c.id);
+      const ownedIds = initialOwnedCardIds
+        ? Array.from(initialOwnedCardIds)
+        : userCards.filter(c => c.count > 0).map(c => c.id);
       setOwnedSnapshot(new Set(ownedIds));
       setShowPackAnimation(true);
       setCurrentCardIndex(0);

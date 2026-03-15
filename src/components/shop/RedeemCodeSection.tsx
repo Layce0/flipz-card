@@ -8,8 +8,13 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { GameCard } from '@/types/card';
 import { PackRevealFlow } from '@/components/shop/PackRevealFlow';
+import { UserCardWithCount } from '@/hooks/useCards';
 
-export const RedeemCodeSection = () => {
+interface RedeemCodeSectionProps {
+  userCards: UserCardWithCount[];
+}
+
+export const RedeemCodeSection = ({ userCards }: RedeemCodeSectionProps) => {
   const { user } = useAuth();
   const [code, setCode] = useState('');
   const [isRedeeming, setIsRedeeming] = useState(false);
@@ -18,6 +23,7 @@ export const RedeemCodeSection = () => {
   // Pack reveal state
   const [revealedCards, setRevealedCards] = useState<GameCard[]>([]);
   const [isRevealing, setIsRevealing] = useState(false);
+  const [ownedSnapshotForReveal, setOwnedSnapshotForReveal] = useState<Set<string>>(new Set());
   const redeemingRef = useRef(false);
 
   const handleRedeem = async () => {
@@ -26,6 +32,12 @@ export const RedeemCodeSection = () => {
 
     setIsRedeeming(true);
     try {
+      const ownedIdsBeforeRedeem = new Set(
+        userCards
+          .filter(card => card.count > 0)
+          .map(card => card.id)
+      );
+
       const { data, error } = await invokeEdgeFunction('redeem-code', {
         body: { code: code.trim() }
       });
@@ -42,6 +54,7 @@ export const RedeemCodeSection = () => {
       if (reward?.type === 'pack' || reward?.type === 'pack_lucky' || reward?.type === 'pack_ultra') {
         // Cards are now generated server-side and returned directly
         const cards = (reward.cards || []) as GameCard[];
+        setOwnedSnapshotForReveal(ownedIdsBeforeRedeem);
         setRevealedCards(cards);
         setIsRevealing(true);
         toast.success(data.message || 'Pack reçu !');
@@ -63,6 +76,7 @@ export const RedeemCodeSection = () => {
   const handleCloseReveal = () => {
     setIsRevealing(false);
     setRevealedCards([]);
+    setOwnedSnapshotForReveal(new Set());
   };
 
   return (
@@ -106,6 +120,7 @@ export const RedeemCodeSection = () => {
         cards={revealedCards}
         isOpen={isRevealing}
         onClose={handleCloseReveal}
+        initialOwnedCardIds={ownedSnapshotForReveal}
       />
     </>
   );
