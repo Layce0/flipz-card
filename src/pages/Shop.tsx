@@ -49,7 +49,7 @@ const Shop = () => {
 
   const verifyPurchase = async (sessionId: string) => {
     try {
-      const { data, error } = await supabase.functions.invoke('verify-pack-purchase', {
+      const { data, error } = await invokeEdgeFunction('verify-pack-purchase', {
         body: { sessionId }
       });
 
