@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { PackCard } from './PackCard';
 import { PackConfig } from '@/types/pack';
 
