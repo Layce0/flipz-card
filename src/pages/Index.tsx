@@ -12,7 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTodayCard, useHasCollectedToday, useCollectCard, useUserCards, isCardNew } from '@/hooks/useCards';
 import { useUserStreak, useUpdateStreak } from '@/hooks/useWinstreak';
 import { toast } from 'sonner';
-import flipzLogo from '@/assets/flipz-logo-new.jpeg';
+const flipzLogo = '/flipz-logo-new.jpeg';
 
 const Index = () => {
   const [isRunning, setIsRunning] = useState(false);
