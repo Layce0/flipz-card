@@ -51,17 +51,14 @@ const Packs = () => {
     // Open pack via server-side RNG
     try {
       const { data, error } = await supabase.functions.invoke('open-free-pack');
-      if (error) throw error;
+      if (error) {
+        console.error('Edge function invoke error:', error);
+        toast.error(`Edge error: ${error.message || JSON.stringify(error)}`);
+        return;
+      }
       if (data?.error) {
-        if (data.retryAfter) {
-          toast.error(t('packs.cooldownError', `Trop de requêtes, réessaie dans ${data.retryAfter}s`));
-        } else if (data.error === 'No cards available') {
-          toast.error(t('packs.noCardsError', 'Aucune carte disponible pour le moment'));
-        } else if (data.error === 'Unauthorized') {
-          toast.error(t('packs.authError', 'Session expirée, reconnecte-toi'));
-        } else {
-          toast.error(t('packs.openError', 'Erreur lors de l\'ouverture du pack'));
-        }
+        console.error('Edge function returned error:', data);
+        toast.error(`Server: ${data.error}${data.detail ? ' — ' + data.detail : ''}${data.retryAfter ? ' (retry ' + data.retryAfter + 's)' : ''}`);
         return;
       }
       
@@ -77,12 +74,8 @@ const Packs = () => {
       queryClient.invalidateQueries({ queryKey: ['user-cards'] });
       queryClient.invalidateQueries({ queryKey: ['user-card-stats'] });
     } catch (error: any) {
-      console.error('Pack opening error:', error);
-      if (error?.message?.includes('fetch') || error?.message?.includes('network')) {
-        toast.error(t('packs.networkError', 'Erreur réseau, vérifie ta connexion'));
-      } else {
-        toast.error(t('packs.openError', 'Erreur lors de l\'ouverture du pack'));
-      }
+      console.error('Pack opening catch:', error);
+      toast.error(`Catch: ${error?.message || JSON.stringify(error)}`);
     }
   };
 
