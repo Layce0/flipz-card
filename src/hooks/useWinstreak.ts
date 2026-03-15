@@ -141,14 +141,36 @@ export const useClaimWinstreakReward = () => {
       const { data, error } = await invokeEdgeFunction('claim-winstreak-reward', {
         body: { rewardId, dayNumber }
       });
+
       if (error) {
-        // Extract message from FunctionsHttpError or relay raw context
-        const msg = typeof error === 'object' && error !== null && 'message' in error
-          ? (error as any).message
-          : JSON.stringify(error);
-        throw new Error(msg || 'Erreur serveur');
+        const details = await extractEdgeErrorDetails(error);
+        console.error('[claim-winstreak-reward] HTTP error response', {
+          userId,
+          rewardId,
+          dayNumber,
+          status: details.status,
+          rawBody: details.rawBody,
+          parsedBody: details.parsedBody,
+          sdkMessage: details.fallbackMessage,
+        });
+        throw new Error(details.message || 'Erreur serveur');
       }
-      if (data?.error) throw new Error(data.error);
+
+      if (data?.error) {
+        const dataError = typeof data.error === 'string'
+          ? data.error
+          : JSON.stringify(data.error);
+
+        console.error('[claim-winstreak-reward] Error payload in success response', {
+          userId,
+          rewardId,
+          dayNumber,
+          errorPayload: data.error,
+        });
+
+        throw new Error(dataError || 'Erreur serveur');
+      }
+
       return data;
     },
     onSuccess: () => {
