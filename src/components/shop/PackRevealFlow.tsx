@@ -33,10 +33,11 @@ export const PackRevealFlow = ({ cards, isOpen, onClose }: PackRevealFlowProps) 
   const isSwipingRef = useRef(false);
   const cardContainerRef = useRef<HTMLDivElement>(null);
 
+  const prevOpenRef = useRef(false);
+
   useEffect(() => {
-    if (isOpen) {
-      // Snapshot owned cards before reveal starts
-      // Only consider cards with count > 0 as "owned"
+    // Only reset when transitioning from closed to open (not on userCards changes)
+    if (isOpen && !prevOpenRef.current) {
       const ownedIds = userCards
         .filter(c => c.count > 0)
         .map(c => c.id);
@@ -48,6 +49,7 @@ export const PackRevealFlow = ({ cards, isOpen, onClose }: PackRevealFlowProps) 
       setDragX(0);
       setDragY(0);
     }
+    prevOpenRef.current = isOpen;
   }, [isOpen, userCards]);
 
   const goNext = useCallback(() => {
