@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,9 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Mail, Lock, LogIn, UserPlus, Eye, EyeOff, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import Lottie from 'lottie-react';
+const Lottie = lazy(() => import('lottie-react'));
 const flipzLogo = '/flipz-logo-new.jpeg';
-import catAnimation from '@/assets/lottie-cat.json';
 import { ForgotPasswordDialog } from '@/components/ForgotPasswordDialog';
 
 const passwordRules = [
