@@ -326,11 +326,7 @@ const Packs = () => {
                     isRevealed={cardRevealed}
                     onReveal={handleRevealCard}
                     size="lg"
-                    isNew={useMemo(() => {
-                      const cardId = revealedCards[currentCardIndex]?.id;
-                      if (!cardId || ownedSnapshot.has(cardId)) return false;
-                      return !revealedCards.slice(0, currentCardIndex).some(c => c.id === cardId);
-                    }, [revealedCards, currentCardIndex, ownedSnapshot])}
+                    isNew={currentCardIsNew}
                   />
                 )}
               </div>
