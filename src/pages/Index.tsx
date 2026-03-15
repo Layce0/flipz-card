@@ -42,6 +42,14 @@ const Index = () => {
   const { data: streakData } = useUserStreak(user?.id);
   const updateStreak = useUpdateStreak();
 
+  // Auto-update streak on app launch so claim-winstreak-reward sees today's date
+  useEffect(() => {
+    if (user && !authLoading) {
+      updateStreak.mutate(user.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, authLoading]);
+
   useEffect(() => {
     const updateTimer = () => {
       const now = new Date();
