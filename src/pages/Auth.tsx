@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,9 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Mail, Lock, LogIn, UserPlus, Eye, EyeOff, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import Lottie from 'lottie-react';
+const Lottie = lazy(() => import('lottie-react'));
 const flipzLogo = '/flipz-logo-new.jpeg';
-import catAnimation from '@/assets/lottie-cat.json';
 import { ForgotPasswordDialog } from '@/components/ForgotPasswordDialog';
 
 const passwordRules = [
@@ -25,6 +24,11 @@ const MAX_ATTEMPTS = 5;
 const LOCKOUT_SECONDS = 120;
 
 const Auth = () => {
+  const [catData, setCatData] = useState<any>(null);
+
+  useEffect(() => {
+    import('@/assets/lottie-cat.json').then(m => setCatData(m.default));
+  }, []);
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -157,9 +161,13 @@ const Auth = () => {
             <div className="absolute -inset-4 bg-gradient-radial from-primary/30 via-primary/10 to-transparent blur-xl rounded-full" />
             <img src={flipzLogo} alt="FLIPZ" className="w-full rounded-2xl relative z-10" width={1257} height={510} fetchPriority="high" />
           </div>
-          <div className="w-20 h-20 sm:w-24 sm:h-24 mt-2">
-            <Lottie animationData={catAnimation} loop />
-          </div>
+          {catData && (
+            <div className="w-20 h-20 sm:w-24 sm:h-24 mt-2">
+              <Suspense fallback={null}>
+                <Lottie animationData={catData} loop />
+              </Suspense>
+            </div>
+          )}
         </div>
         <div className="text-center mb-6">
           <p className="text-muted-foreground text-sm">
