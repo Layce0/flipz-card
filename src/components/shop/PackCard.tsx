@@ -25,7 +25,7 @@ interface PackCardProps {
   disabled?: boolean;
 }
 
-export const PackCard = ({ pack, onPurchase, isLoading, disabled }: PackCardProps) => {
+export const PackCard = memo(({ pack, onPurchase, isLoading, disabled }: PackCardProps) => {
   const { t } = useTranslation();
   
   const getPackStyles = () => {
