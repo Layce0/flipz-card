@@ -12,8 +12,8 @@ import { Rarity } from '@/types/card';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserCards, useDeleteUserCards, useRandomCards, useCollectCard, UserCardWithCount } from '@/hooks/useCards';
-import { supabase } from '@/integrations/supabase/client';
 import { RedeemCodeSection } from '@/components/shop/RedeemCodeSection';
+import { invokeEdgeFunction } from '@/lib/edgeFunctions';
 
 const Shop = () => {
   const { user } = useAuth();
