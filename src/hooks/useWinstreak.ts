@@ -20,6 +20,55 @@ export interface UserStreak {
   updated_at: string;
 }
 
+const extractEdgeErrorDetails = async (error: unknown) => {
+  const fallbackMessage = error instanceof Error
+    ? error.message
+    : typeof error === 'string'
+      ? error
+      : 'Erreur serveur';
+
+  let status: number | undefined;
+  let rawBody: string | undefined;
+  let parsedBody: unknown;
+  let message = fallbackMessage;
+
+  const context =
+    error && typeof error === 'object' && 'context' in error
+      ? (error as { context?: unknown }).context
+      : undefined;
+
+  if (context && typeof context === 'object' && 'status' in context && 'text' in context) {
+    const response = context as Response;
+    status = response.status;
+
+    try {
+      rawBody = await response.clone().text();
+      if (rawBody) {
+        try {
+          parsedBody = JSON.parse(rawBody);
+        } catch {
+          parsedBody = rawBody;
+        }
+
+        if (parsedBody && typeof parsedBody === 'object') {
+          const payload = parsedBody as Record<string, unknown>;
+          if (typeof payload.error === 'string' && payload.error.trim()) {
+            message = payload.error;
+          } else if (typeof payload.message === 'string' && payload.message.trim()) {
+            message = payload.message;
+          }
+        } else if (typeof parsedBody === 'string' && parsedBody.trim()) {
+          message = parsedBody;
+        }
+      }
+    } catch {
+      // noop
+    }
+  }
+
+  return { message, status, rawBody, parsedBody, fallbackMessage };
+};
+
 export const useUserStreak = (userId: string | undefined) => {
   return useQuery({
     queryKey: ['user-streak', userId],
