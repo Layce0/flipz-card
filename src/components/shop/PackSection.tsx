@@ -11,7 +11,7 @@ interface PackSectionProps {
   loadingPackId: string | null;
 }
 
-export const PackSection = ({ 
+export const PackSection = memo(({ 
   title, 
   description, 
   packs, 
