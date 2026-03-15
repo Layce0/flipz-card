@@ -161,9 +161,13 @@ const Auth = () => {
             <div className="absolute -inset-4 bg-gradient-radial from-primary/30 via-primary/10 to-transparent blur-xl rounded-full" />
             <img src={flipzLogo} alt="FLIPZ" className="w-full rounded-2xl relative z-10" width={1257} height={510} fetchPriority="high" />
           </div>
-          <div className="w-20 h-20 sm:w-24 sm:h-24 mt-2">
-            <Lottie animationData={catAnimation} loop />
-          </div>
+          {catData && (
+            <div className="w-20 h-20 sm:w-24 sm:h-24 mt-2">
+              <Suspense fallback={null}>
+                <Lottie animationData={catData} loop />
+              </Suspense>
+            </div>
+          )}
         </div>
         <div className="text-center mb-6">
           <p className="text-muted-foreground text-sm">
