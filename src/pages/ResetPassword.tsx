@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Lock, Eye, EyeOff, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
-import flipzLogo from '@/assets/flipz-logo-new.jpeg';
+const flipzLogo = '/flipz-logo-new.jpeg';
 
 const passwordRules = [
   { key: 'minLength', test: (p: string) => p.length >= 8, label: '8 caractères minimum' },

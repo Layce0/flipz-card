@@ -9,7 +9,7 @@ import { Mail, Lock, LogIn, UserPlus, Eye, EyeOff, Check, X } from 'lucide-react
 import { toast } from 'sonner';
 import { z } from 'zod';
 import Lottie from 'lottie-react';
-import flipzLogo from '@/assets/flipz-logo-new.jpeg';
+const flipzLogo = '/flipz-logo-new.jpeg';
 import catAnimation from '@/assets/lottie-cat.json';
 import { ForgotPasswordDialog } from '@/components/ForgotPasswordDialog';
 
@@ -155,7 +155,7 @@ const Auth = () => {
         <div className="flex flex-col items-center mb-6">
           <div className="relative w-full">
             <div className="absolute -inset-4 bg-gradient-radial from-primary/30 via-primary/10 to-transparent blur-xl rounded-full" />
-            <img src={flipzLogo} alt="FLIPZ" className="w-full rounded-2xl relative z-10" />
+            <img src={flipzLogo} alt="FLIPZ" className="w-full rounded-2xl relative z-10" width={1257} height={510} fetchPriority="high" />
           </div>
           <div className="w-20 h-20 sm:w-24 sm:h-24 mt-2">
             <Lottie animationData={catAnimation} loop />

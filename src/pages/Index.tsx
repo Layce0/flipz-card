@@ -12,7 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTodayCard, useHasCollectedToday, useCollectCard, useUserCards, isCardNew } from '@/hooks/useCards';
 import { useUserStreak, useUpdateStreak } from '@/hooks/useWinstreak';
 import { toast } from 'sonner';
-import flipzLogo from '@/assets/flipz-logo-new.jpeg';
+const flipzLogo = '/flipz-logo-new.jpeg';
 
 const Index = () => {
   const [isRunning, setIsRunning] = useState(false);
@@ -98,7 +98,7 @@ const Index = () => {
           </div>
         )}
         <div className="mb-2" data-tour="logo">
-          <img src={flipzLogo} alt="FLIPZ" className="h-28 sm:h-36 mx-auto" />
+          <img src={flipzLogo} alt="FLIPZ" className="h-28 sm:h-36 mx-auto" width={1257} height={510} fetchPriority="high" />
         </div>
         <p className="text-muted-foreground text-sm">{t('home.subtitle')}</p>
       </header>
