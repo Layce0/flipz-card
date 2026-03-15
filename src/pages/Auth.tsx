@@ -24,6 +24,11 @@ const MAX_ATTEMPTS = 5;
 const LOCKOUT_SECONDS = 120;
 
 const Auth = () => {
+  const [catData, setCatData] = useState<any>(null);
+
+  useEffect(() => {
+    import('@/assets/lottie-cat.json').then(m => setCatData(m.default));
+  }, []);
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
