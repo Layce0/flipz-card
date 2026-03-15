@@ -48,11 +48,11 @@ const Collection = () => {
   
   const totalCardsCollected = useMemo(() => userCards.reduce((sum, card) => sum + card.count, 0), [userCards]);
   
-  const handleCardClick = (card: GameCard, count: number) => {
+  const handleCardClick = useCallback((card: GameCard, count: number) => {
     setSelectedCard(card);
     setSelectedCardCount(count);
     setDetailOpen(true);
-  };
+  }, []);
 
   const counts = useMemo(() => ({
     all: allCards.length,
