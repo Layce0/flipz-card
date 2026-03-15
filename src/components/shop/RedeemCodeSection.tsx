@@ -23,6 +23,7 @@ export const RedeemCodeSection = ({ userCards }: RedeemCodeSectionProps) => {
   // Pack reveal state
   const [revealedCards, setRevealedCards] = useState<GameCard[]>([]);
   const [isRevealing, setIsRevealing] = useState(false);
+  const [ownedSnapshotForReveal, setOwnedSnapshotForReveal] = useState<Set<string>>(new Set());
   const redeemingRef = useRef(false);
 
   const handleRedeem = async () => {
