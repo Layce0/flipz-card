@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Navigation } from '@/components/Navigation';
@@ -68,7 +68,7 @@ const Shop = () => {
     }
   };
 
-  const handlePurchase = async (packId: string) => {
+  const handlePurchase = useCallback(async (packId: string) => {
     if (!user) {
       toast.error(t('shop.mustBeConnected'));
       return;
@@ -91,7 +91,7 @@ const Shop = () => {
     } finally {
       setLoadingPackId(null);
     }
-  };
+  }, [user, t]);
 
   const handleTrade = async (card: UserCardWithCount): Promise<any[]> => {
     if (!user) {
@@ -136,9 +136,9 @@ const Shop = () => {
     setPurchasedCards([]);
   };
 
-  const standardPacks = getPacksByType('standard');
-  const luckyPacks = getPacksByType('lucky');
-  const ultraPacks = getPacksByType('ultra');
+  const standardPacks = useMemo(() => getPacksByType('standard'), []);
+  const luckyPacks = useMemo(() => getPacksByType('lucky'), []);
+  const ultraPacks = useMemo(() => getPacksByType('ultra'), []);
 
   if (!user) {
     return (

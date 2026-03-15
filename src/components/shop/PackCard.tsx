@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -24,7 +25,7 @@ interface PackCardProps {
   disabled?: boolean;
 }
 
-export const PackCard = ({ pack, onPurchase, isLoading, disabled }: PackCardProps) => {
+export const PackCard = memo(({ pack, onPurchase, isLoading, disabled }: PackCardProps) => {
   const { t } = useTranslation();
   
   const getPackStyles = () => {
@@ -70,7 +71,7 @@ export const PackCard = ({ pack, onPurchase, isLoading, disabled }: PackCardProp
     }
   };
 
-  const styles = getPackStyles();
+  const styles = useMemo(() => getPackStyles(), [pack.type]);
   const Icon = styles.icon;
 
   return (
@@ -165,4 +166,6 @@ export const PackCard = ({ pack, onPurchase, isLoading, disabled }: PackCardProp
       )}
     </div>
   );
-};
+});
+
+PackCard.displayName = 'PackCard';

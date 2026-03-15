@@ -24,7 +24,9 @@ export const ParticlesBackground = memo(() => {
     let animationId: number;
     let isVisible = true;
     const particles: Particle[] = [];
-    const PARTICLE_COUNT = 35; // reduced from 60
+    // Fewer particles on mobile for 60fps
+    const isMobile = window.innerWidth < 768;
+    const PARTICLE_COUNT = isMobile ? 18 : 35;
 
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio, 2);

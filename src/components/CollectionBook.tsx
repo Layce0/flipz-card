@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, memo, useCallback } from 'react';
 import { GameCard, Rarity, RARITY_CONFIG } from '@/types/card';
 import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight, HelpCircle, Lock } from 'lucide-react';
@@ -188,6 +188,7 @@ const CardSlot = ({ card, isCollected, count, onClick }: { card: GameCard; isCol
             src={card.image_url} 
             alt={getTitle(card)}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            loading="lazy"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-card via-card/20 to-transparent" />
         </div>

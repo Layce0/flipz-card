@@ -176,14 +176,18 @@
     100% { left: 100%; }
   }
 
-  /* Card flip animation */
+  /* Card flip animation — GPU-composited for 60fps on mobile */
   .flip-card {
     perspective: 1000px;
+    -webkit-perspective: 1000px;
   }
 
   .flip-card-inner {
     transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
+    will-change: transform;
+    transform: translateZ(0);
   }
 
   .flip-card-inner.flipped {
@@ -193,6 +197,8 @@
   .flip-card-front,
   .flip-card-back {
     backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: translateZ(0);
   }
 
   .flip-card-back {

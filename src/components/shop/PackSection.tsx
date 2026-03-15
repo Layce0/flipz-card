@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { PackCard } from './PackCard';
 import { PackConfig } from '@/types/pack';
 
@@ -10,7 +11,7 @@ interface PackSectionProps {
   loadingPackId: string | null;
 }
 
-export const PackSection = ({ 
+export const PackSection = memo(({ 
   title, 
   description, 
   packs, 
@@ -38,4 +39,6 @@ export const PackSection = ({
       </div>
     </section>
   );
-};
+});
+
+PackSection.displayName = 'PackSection';
