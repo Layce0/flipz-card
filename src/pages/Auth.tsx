@@ -9,7 +9,7 @@ import { Mail, Lock, LogIn, UserPlus, Eye, EyeOff, Check, X } from 'lucide-react
 import { toast } from 'sonner';
 import { z } from 'zod';
 import Lottie from 'lottie-react';
-import flipzLogo from '@/assets/flipz-logo-new.jpeg';
+const flipzLogo = '/flipz-logo-new.jpeg';
 import catAnimation from '@/assets/lottie-cat.json';
 import { ForgotPasswordDialog } from '@/components/ForgotPasswordDialog';
 
