@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { lazy, Suspense } from 'react';
@@ -41,10 +41,12 @@ const Index = () => {
   const collectCard = useCollectCard();
   const { data: streakData } = useUserStreak(user?.id);
   const updateStreak = useUpdateStreak();
+  const streakUpdatedRef = useRef(false);
 
-  // Auto-update streak on app launch so claim-winstreak-reward sees today's date
+  // Auto-update streak on app launch — fire only once
   useEffect(() => {
-    if (user && !authLoading) {
+    if (user && !authLoading && !streakUpdatedRef.current) {
+      streakUpdatedRef.current = true;
       updateStreak.mutate(user.id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
