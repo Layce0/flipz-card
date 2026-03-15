@@ -1,15 +1,16 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Navigation } from '@/components/Navigation';
 import { CollectionBook } from '@/components/CollectionBook';
 import { RarityTabs } from '@/components/RarityTabs';
-import { CardDetailDialog } from '@/components/CardDetailDialog';
 import { GameCard, Rarity } from '@/types/card';
 import { BookOpen, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAllCards, useUserCards } from '@/hooks/useCards';
 import { useNewCardIndicator } from '@/hooks/useNewCardIndicator';
+
+const CardDetailDialog = lazy(() => import('@/components/CardDetailDialog').then(m => ({ default: m.CardDetailDialog })));
 
 const Collection = () => {
   const [activeRarity, setActiveRarity] = useState<Rarity | 'all'>('all');
@@ -47,11 +48,11 @@ const Collection = () => {
   
   const totalCardsCollected = useMemo(() => userCards.reduce((sum, card) => sum + card.count, 0), [userCards]);
   
-  const handleCardClick = (card: GameCard, count: number) => {
+  const handleCardClick = useCallback((card: GameCard, count: number) => {
     setSelectedCard(card);
     setSelectedCardCount(count);
     setDetailOpen(true);
-  };
+  }, []);
 
   const counts = useMemo(() => ({
     all: allCards.length,
@@ -147,13 +148,17 @@ const Collection = () => {
         )}
       </main>
 
-      {/* Card detail dialog */}
-      <CardDetailDialog
-        card={selectedCard}
-        count={selectedCardCount}
-        open={detailOpen}
-        onOpenChange={setDetailOpen}
-      />
+      {/* Card detail dialog — lazy loaded */}
+      {detailOpen && (
+        <Suspense fallback={null}>
+          <CardDetailDialog
+            card={selectedCard}
+            count={selectedCardCount}
+            open={detailOpen}
+            onOpenChange={setDetailOpen}
+          />
+        </Suspense>
+      )}
 
       <Navigation />
     </div>
