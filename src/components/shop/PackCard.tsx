@@ -166,4 +166,6 @@ export const PackCard = memo(({ pack, onPurchase, isLoading, disabled }: PackCar
       )}
     </div>
   );
-};
+});
+
+PackCard.displayName = 'PackCard';
