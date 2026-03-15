@@ -8,6 +8,7 @@ const ALLOWED_ORIGINS = [
   'https://id-preview--292d3511-a5af-422b-bf8b-81ad9534130a.lovable.app',
   'https://292d3511-a5af-422b-bf8b-81ad9534130a.lovableproject.com',
   'http://localhost',
+  'https://localhost',
   'capacitor://localhost',
 ];
 
