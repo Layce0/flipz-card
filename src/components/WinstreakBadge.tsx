@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from 'react';
+import { useState, lazy, Suspense, memo } from 'react';
 import { Flame } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -8,7 +8,7 @@ interface WinstreakBadgeProps {
   streak: number;
 }
 
-export const WinstreakBadge = ({ streak }: WinstreakBadgeProps) => {
+export const WinstreakBadge = memo(({ streak }: WinstreakBadgeProps) => {
   const [open, setOpen] = useState(false);
 
   if (streak <= 0) return null;
@@ -32,4 +32,6 @@ export const WinstreakBadge = ({ streak }: WinstreakBadgeProps) => {
       </Suspense>
     </>
   );
-};
+});
+
+WinstreakBadge.displayName = 'WinstreakBadge';

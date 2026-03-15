@@ -14,9 +14,44 @@ import { useUserStreak, useUpdateStreak } from '@/hooks/useWinstreak';
 import { toast } from 'sonner';
 const flipzLogo = '/flipz-logo-new.jpeg';
 
+// Isolated timer component to avoid re-rendering the entire page every second
+const CountdownTimer = () => {
+  const { t } = useTranslation();
+  const timerRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    const updateTimer = () => {
+      const now = new Date();
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+      
+      const diff = tomorrow.getTime() - now.getTime();
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      
+      if (timerRef.current) {
+        timerRef.current.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      }
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div data-tour="timer" className="relative flex items-center gap-2 bg-card/80 px-5 py-2.5 rounded-full mb-8 timer-glow-border">
+      <Clock className="w-4 h-4 text-primary" />
+      <span className="text-sm text-muted-foreground">{t('home.nextCard')}</span>
+      <span ref={timerRef} className="font-mono text-primary font-semibold">00:00:00</span>
+    </div>
+  );
+};
+
 const Index = () => {
   const [isRunning, setIsRunning] = useState(false);
-  const [timeLeft, setTimeLeft] = useState('');
   const [catData, setCatData] = useState<any>(null);
   const [catRunData, setCatRunData] = useState<any>(null);
   const { user, isLoading: authLoading } = useAuth();
@@ -52,27 +87,7 @@ const Index = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, authLoading]);
 
-  useEffect(() => {
-    const updateTimer = () => {
-      const now = new Date();
-      const tomorrow = new Date(now);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(0, 0, 0, 0);
-      
-      const diff = tomorrow.getTime() - now.getTime();
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-      
-      setTimeLeft(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
-    };
-
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleReveal = async () => {
+  const handleReveal = useCallback(async () => {
     if (!user) {
       navigate('/auth');
       return;
@@ -82,26 +97,36 @@ const Index = () => {
     
     try {
       await collectCard.mutateAsync({ userId: user.id, cardId: todayCard.id });
-      // Update winstreak on card reveal
       await updateStreak.mutateAsync(user.id);
       toast.success(t('home.cardAdded'));
     } catch (error: any) {
-      // Ignore duplicate collection errors (already collected)
       if (error?.code !== '23505') {
         toast.error(t('common.error'));
       }
     }
-  };
+  }, [user, todayCard, navigate, collectCard, updateStreak, t]);
 
   const isLoading = cardLoading || collectedLoading;
-  // Card is revealed if user has collected it
   const isRevealed = hasCollected === true;
+
+  const isNewCard = useMemo(() => {
+    if (!todayCard) return false;
+    return isCardNew(todayCard.id, userCards);
+  }, [todayCard, userCards]);
+
+  const handleCatClick = useCallback(() => {
+    if (!isRunning) {
+      setIsRunning(true);
+      if (!catRunData) import('@/assets/lottie-cat-run.json').then(m => setCatRunData(m.default));
+    }
+  }, [isRunning, catRunData]);
+
+  const handleCatAnimationEnd = useCallback(() => setIsRunning(false), []);
 
   return (
     <div className="min-h-screen pb-24">
       {/* Header */}
       <header className="pt-12 pb-6 px-4 text-center relative">
-        {/* Winstreak badge - top right */}
         {streakData && streakData.current_streak > 0 && (
           <div className="absolute top-12 right-4">
             <WinstreakBadge streak={streakData.current_streak} />
@@ -115,12 +140,7 @@ const Index = () => {
 
       {/* Daily card section */}
       <main className="px-4 flex flex-col items-center">
-        {/* Timer */}
-        <div data-tour="timer" className="relative flex items-center gap-2 bg-card/80 px-5 py-2.5 rounded-full mb-8 timer-glow-border">
-          <Clock className="w-4 h-4 text-primary" />
-          <span className="text-sm text-muted-foreground">{t('home.nextCard')}</span>
-          <span className="font-mono text-primary font-semibold">{timeLeft}</span>
-        </div>
+        <CountdownTimer />
 
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
@@ -133,7 +153,6 @@ const Index = () => {
           </div>
         ) : (
           <>
-            {/* Card */}
             <div className="relative mb-8" data-tour="card">
               <div className="absolute -inset-8 bg-gradient-radial from-primary/20 via-transparent to-transparent blur-2xl" />
               <MysteryCard 
@@ -141,10 +160,9 @@ const Index = () => {
                 isRevealed={isRevealed}
                 onReveal={handleReveal}
                 size="lg"
-                isNew={isCardNew(todayCard.id, userCards)}
+                isNew={isNewCard}
               />
             </div>
-
           </>
         )}
       </main>
@@ -154,12 +172,7 @@ const Index = () => {
         <Suspense fallback={null}>
           <div 
             className="fixed bottom-24 left-4 z-10 cursor-pointer"
-            onClick={() => { 
-              if (!isRunning) {
-                setIsRunning(true);
-                if (!catRunData) import('@/assets/lottie-cat-run.json').then(m => setCatRunData(m.default));
-              }
-            }}
+            onClick={handleCatClick}
           >
             <Lottie animationData={catData} loop className="w-28 h-28 sm:w-32 sm:h-32" />
           </div>
@@ -167,7 +180,7 @@ const Index = () => {
           {isRunning && catRunData && (
             <div 
               className="fixed z-50 top-1/2 -translate-y-1/2 animate-[catRun_2s_ease-in-out_forwards] pointer-events-none"
-              onAnimationEnd={() => setIsRunning(false)}
+              onAnimationEnd={handleCatAnimationEnd}
             >
               <Lottie animationData={catRunData} loop className="w-32 h-32 sm:w-40 sm:h-40" />
             </div>
