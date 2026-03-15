@@ -92,7 +92,13 @@ export const useClaimWinstreakReward = () => {
       const { data, error } = await invokeEdgeFunction('claim-winstreak-reward', {
         body: { rewardId, dayNumber }
       });
-      if (error) throw error;
+      if (error) {
+        // Extract message from FunctionsHttpError or relay raw context
+        const msg = typeof error === 'object' && error !== null && 'message' in error
+          ? (error as any).message
+          : JSON.stringify(error);
+        throw new Error(msg || 'Erreur serveur');
+      }
       if (data?.error) throw new Error(data.error);
       return data;
     },
