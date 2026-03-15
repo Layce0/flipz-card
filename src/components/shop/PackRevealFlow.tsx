@@ -36,7 +36,7 @@ export const PackRevealFlow = ({ cards, isOpen, onClose }: PackRevealFlowProps) 
   const prevOpenRef = useRef(false);
 
   useEffect(() => {
-    // Only reset when transitioning from closed to open (not on userCards changes)
+    // Only reset when transitioning from closed to open
     if (isOpen && !prevOpenRef.current) {
       const ownedIds = userCards
         .filter(c => c.count > 0)
@@ -50,7 +50,8 @@ export const PackRevealFlow = ({ cards, isOpen, onClose }: PackRevealFlowProps) 
       setDragY(0);
     }
     prevOpenRef.current = isOpen;
-  }, [isOpen, userCards]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   const goNext = useCallback(() => {
     const dirX = dragX !== 0 ? dragX : 0;
