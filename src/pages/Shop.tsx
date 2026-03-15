@@ -136,9 +136,9 @@ const Shop = () => {
     setPurchasedCards([]);
   };
 
-  const standardPacks = getPacksByType('standard');
-  const luckyPacks = getPacksByType('lucky');
-  const ultraPacks = getPacksByType('ultra');
+  const standardPacks = useMemo(() => getPacksByType('standard'), []);
+  const luckyPacks = useMemo(() => getPacksByType('lucky'), []);
+  const ultraPacks = useMemo(() => getPacksByType('ultra'), []);
 
   if (!user) {
     return (
