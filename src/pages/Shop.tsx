@@ -91,7 +91,7 @@ const Shop = () => {
     } finally {
       setLoadingPackId(null);
     }
-  };
+  }, [user, t]);
 
   const handleTrade = async (card: UserCardWithCount): Promise<any[]> => {
     if (!user) {
