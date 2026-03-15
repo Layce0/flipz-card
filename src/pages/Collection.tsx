@@ -1,15 +1,16 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Navigation } from '@/components/Navigation';
 import { CollectionBook } from '@/components/CollectionBook';
 import { RarityTabs } from '@/components/RarityTabs';
-import { CardDetailDialog } from '@/components/CardDetailDialog';
 import { GameCard, Rarity } from '@/types/card';
 import { BookOpen, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAllCards, useUserCards } from '@/hooks/useCards';
 import { useNewCardIndicator } from '@/hooks/useNewCardIndicator';
+
+const CardDetailDialog = lazy(() => import('@/components/CardDetailDialog').then(m => ({ default: m.CardDetailDialog })));
 
 const Collection = () => {
   const [activeRarity, setActiveRarity] = useState<Rarity | 'all'>('all');
