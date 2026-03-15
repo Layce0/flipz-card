@@ -13,9 +13,10 @@ interface PackRevealFlowProps {
   cards: GameCard[];
   isOpen: boolean;
   onClose: () => void;
+  initialOwnedCardIds?: Set<string>;
 }
 
-export const PackRevealFlow = ({ cards, isOpen, onClose }: PackRevealFlowProps) => {
+export const PackRevealFlow = ({ cards, isOpen, onClose, initialOwnedCardIds }: PackRevealFlowProps) => {
   const { user } = useAuth();
   const { data: userCards = [] } = useUserCards(user?.id);
   const [ownedSnapshot, setOwnedSnapshot] = useState<Set<string>>(new Set());

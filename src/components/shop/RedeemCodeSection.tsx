@@ -8,8 +8,13 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { GameCard } from '@/types/card';
 import { PackRevealFlow } from '@/components/shop/PackRevealFlow';
+import { UserCardWithCount } from '@/hooks/useCards';
 
-export const RedeemCodeSection = () => {
+interface RedeemCodeSectionProps {
+  userCards: UserCardWithCount[];
+}
+
+export const RedeemCodeSection = ({ userCards }: RedeemCodeSectionProps) => {
   const { user } = useAuth();
   const [code, setCode] = useState('');
   const [isRedeeming, setIsRedeeming] = useState(false);
