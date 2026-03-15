@@ -39,9 +39,9 @@ export const PackRevealFlow = ({ cards, isOpen, onClose, initialOwnedCardIds }: 
   useEffect(() => {
     // Only reset when transitioning from closed to open
     if (isOpen && !prevOpenRef.current) {
-      const ownedIds = userCards
-        .filter(c => c.count > 0)
-        .map(c => c.id);
+      const ownedIds = initialOwnedCardIds
+        ? Array.from(initialOwnedCardIds)
+        : userCards.filter(c => c.count > 0).map(c => c.id);
       setOwnedSnapshot(new Set(ownedIds));
       setShowPackAnimation(true);
       setCurrentCardIndex(0);

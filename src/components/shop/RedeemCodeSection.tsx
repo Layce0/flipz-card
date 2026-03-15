@@ -120,6 +120,7 @@ export const RedeemCodeSection = ({ userCards }: RedeemCodeSectionProps) => {
         cards={revealedCards}
         isOpen={isRevealing}
         onClose={handleCloseReveal}
+        initialOwnedCardIds={ownedSnapshotForReveal}
       />
     </>
   );

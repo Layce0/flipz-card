@@ -217,7 +217,7 @@ const Shop = () => {
           </>
         )}
 
-        <RedeemCodeSection />
+        <RedeemCodeSection userCards={userCards} />
       </main>
 
       {/* Purchase Reward - now uses PackRevealFlow with sachet animation */}
