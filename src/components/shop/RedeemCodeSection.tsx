@@ -32,6 +32,12 @@ export const RedeemCodeSection = ({ userCards }: RedeemCodeSectionProps) => {
 
     setIsRedeeming(true);
     try {
+      const ownedIdsBeforeRedeem = new Set(
+        userCards
+          .filter(card => card.count > 0)
+          .map(card => card.id)
+      );
+
       const { data, error } = await invokeEdgeFunction('redeem-code', {
         body: { code: code.trim() }
       });
@@ -48,6 +54,7 @@ export const RedeemCodeSection = ({ userCards }: RedeemCodeSectionProps) => {
       if (reward?.type === 'pack' || reward?.type === 'pack_lucky' || reward?.type === 'pack_ultra') {
         // Cards are now generated server-side and returned directly
         const cards = (reward.cards || []) as GameCard[];
+        setOwnedSnapshotForReveal(ownedIdsBeforeRedeem);
         setRevealedCards(cards);
         setIsRevealing(true);
         toast.success(data.message || 'Pack reçu !');
