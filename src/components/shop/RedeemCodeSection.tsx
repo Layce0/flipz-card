@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Ticket, Loader2, Check } from 'lucide-react';
@@ -18,9 +18,11 @@ export const RedeemCodeSection = () => {
   // Pack reveal state
   const [revealedCards, setRevealedCards] = useState<GameCard[]>([]);
   const [isRevealing, setIsRevealing] = useState(false);
+  const redeemingRef = useRef(false);
 
   const handleRedeem = async () => {
-    if (!code.trim() || !user) return;
+    if (!code.trim() || !user || redeemingRef.current) return;
+    redeemingRef.current = true;
 
     setIsRedeeming(true);
     try {
@@ -54,6 +56,7 @@ export const RedeemCodeSection = () => {
       toast.error('Erreur lors de l\'utilisation du code');
     } finally {
       setIsRedeeming(false);
+      redeemingRef.current = false;
     }
   };
 
