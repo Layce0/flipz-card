@@ -39,4 +39,6 @@ export const PackSection = memo(({
       </div>
     </section>
   );
-};
+});
+
+PackSection.displayName = 'PackSection';
