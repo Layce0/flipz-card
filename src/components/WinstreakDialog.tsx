@@ -62,26 +62,29 @@ export const WinstreakDialog = ({ open, onOpenChange, streak }: WinstreakDialogP
   // Reveal flow state
   const [revealedCards, setRevealedCards] = useState<GameCard[]>([]);
   const [isRevealing, setIsRevealing] = useState(false);
+  const claimingRef = useRef(false);
 
   const startDay = page * DAYS_PER_PAGE + 1;
   const days = Array.from({ length: DAYS_PER_PAGE }, (_, i) => startDay + i);
 
   const handleClaim = async (rewardId: string, dayNumber: number) => {
-    if (!user) return;
+    if (!user || claimingRef.current) return;
+    claimingRef.current = true;
     try {
       const result = await claimReward.mutateAsync({ userId: user.id, rewardId, dayNumber });
 
       const reward = result?.reward;
       if (reward?.cards && reward.cards.length > 0) {
-        // Trigger reveal flow for packs and card rewards
         setRevealedCards(reward.cards as GameCard[]);
         setIsRevealing(true);
-        onOpenChange(false); // Close winstreak dialog to show reveal
+        onOpenChange(false);
       }
 
       toast.success(result?.message || 'Récompense récupérée !');
     } catch (e: any) {
       toast.error(e?.message || 'Erreur lors de la récupération');
+    } finally {
+      claimingRef.current = false;
     }
   };
 
