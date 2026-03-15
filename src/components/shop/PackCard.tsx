@@ -71,7 +71,7 @@ export const PackCard = memo(({ pack, onPurchase, isLoading, disabled }: PackCar
     }
   };
 
-  const styles = getPackStyles();
+  const styles = useMemo(() => getPackStyles(), [pack.type]);
   const Icon = styles.icon;
 
   return (
