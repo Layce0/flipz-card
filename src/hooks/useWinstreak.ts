@@ -20,6 +20,55 @@ export interface UserStreak {
   updated_at: string;
 }
 
+const extractEdgeErrorDetails = async (error: unknown) => {
+  const fallbackMessage = error instanceof Error
+    ? error.message
+    : typeof error === 'string'
+      ? error
+      : 'Erreur serveur';
+
+  let status: number | undefined;
+  let rawBody: string | undefined;
+  let parsedBody: unknown;
+  let message = fallbackMessage;
+
+  const context =
+    error && typeof error === 'object' && 'context' in error
+      ? (error as { context?: unknown }).context
+      : undefined;
+
+  if (context && typeof context === 'object' && 'status' in context && 'text' in context) {
+    const response = context as Response;
+    status = response.status;
+
+    try {
+      rawBody = await response.clone().text();
+      if (rawBody) {
+        try {
+          parsedBody = JSON.parse(rawBody);
+        } catch {
+          parsedBody = rawBody;
+        }
+
+        if (parsedBody && typeof parsedBody === 'object') {
+          const payload = parsedBody as Record<string, unknown>;
+          if (typeof payload.error === 'string' && payload.error.trim()) {
+            message = payload.error;
+          } else if (typeof payload.message === 'string' && payload.message.trim()) {
+            message = payload.message;
+          }
+        } else if (typeof parsedBody === 'string' && parsedBody.trim()) {
+          message = parsedBody;
+        }
+      }
+    } catch {
+      // noop
+    }
+  }
+
+  return { message, status, rawBody, parsedBody, fallbackMessage };
+};
+
 export const useUserStreak = (userId: string | undefined) => {
   return useQuery({
     queryKey: ['user-streak', userId],
@@ -92,14 +141,36 @@ export const useClaimWinstreakReward = () => {
       const { data, error } = await invokeEdgeFunction('claim-winstreak-reward', {
         body: { rewardId, dayNumber }
       });
+
       if (error) {
-        // Extract message from FunctionsHttpError or relay raw context
-        const msg = typeof error === 'object' && error !== null && 'message' in error
-          ? (error as any).message
-          : JSON.stringify(error);
-        throw new Error(msg || 'Erreur serveur');
+        const details = await extractEdgeErrorDetails(error);
+        console.error('[claim-winstreak-reward] HTTP error response', {
+          userId,
+          rewardId,
+          dayNumber,
+          status: details.status,
+          rawBody: details.rawBody,
+          parsedBody: details.parsedBody,
+          sdkMessage: details.fallbackMessage,
+        });
+        throw new Error(details.message || 'Erreur serveur');
       }
-      if (data?.error) throw new Error(data.error);
+
+      if (data?.error) {
+        const dataError = typeof data.error === 'string'
+          ? data.error
+          : JSON.stringify(data.error);
+
+        console.error('[claim-winstreak-reward] Error payload in success response', {
+          userId,
+          rewardId,
+          dayNumber,
+          errorPayload: data.error,
+        });
+
+        throw new Error(dataError || 'Erreur serveur');
+      }
+
       return data;
     },
     onSuccess: () => {
