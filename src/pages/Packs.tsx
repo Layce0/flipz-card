@@ -320,12 +320,11 @@ const Packs = () => {
                     isRevealed={cardRevealed}
                     onReveal={handleRevealCard}
                     size="lg"
-                    isNew={(() => {
-                      const cardId = revealedCards[currentCardIndex].id;
-                      if (ownedSnapshot.has(cardId)) return false;
-                      const previouslyRevealed = revealedCards.slice(0, currentCardIndex).some(c => c.id === cardId);
-                      return !previouslyRevealed;
-                    })()}
+                    isNew={useMemo(() => {
+                      const cardId = revealedCards[currentCardIndex]?.id;
+                      if (!cardId || ownedSnapshot.has(cardId)) return false;
+                      return !revealedCards.slice(0, currentCardIndex).some(c => c.id === cardId);
+                    }, [revealedCards, currentCardIndex, ownedSnapshot])}
                   />
                 )}
               </div>

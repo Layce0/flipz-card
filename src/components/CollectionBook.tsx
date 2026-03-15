@@ -14,11 +14,10 @@ interface CollectionBookProps {
   onCardClick?: (card: GameCard, count: number) => void;
 }
 
-export const CollectionBook = ({ allCards, collectedCardIds, cardCountMap, obtainedAtMap, activeRarity, onCardClick }: CollectionBookProps) => {
+export const CollectionBook = memo(({ allCards, collectedCardIds, cardCountMap, obtainedAtMap, activeRarity, onCardClick }: CollectionBookProps) => {
   const [currentPage, setCurrentPage] = useState(0);
   const cardsPerPage = 4;
 
-  // Filter and sort cards - in "all" tab, show collected cards first ordered by obtained_at
   const filteredCards = useMemo(() => {
     const filtered = activeRarity === 'all' 
       ? allCards 
@@ -28,7 +27,7 @@ export const CollectionBook = ({ allCards, collectedCardIds, cardCountMap, obtai
       const collected = filtered.filter(c => collectedCardIds.has(c.id));
       const uncollected = filtered.filter(c => !collectedCardIds.has(c.id));
       
-      // Sort collected cards by obtained_at (earliest first)
+      // String comparison is faster than Date parsing
       collected.sort((a, b) => {
         const dateA = obtainedAtMap?.get(a.id) || '';
         const dateB = obtainedAtMap?.get(b.id) || '';
@@ -42,39 +41,36 @@ export const CollectionBook = ({ allCards, collectedCardIds, cardCountMap, obtai
   }, [allCards, activeRarity, collectedCardIds, obtainedAtMap]);
 
   const totalPages = Math.ceil(filteredCards.length / cardsPerPage);
-  const currentCards = filteredCards.slice(
-    currentPage * cardsPerPage,
-    (currentPage + 1) * cardsPerPage
+  
+  const currentCards = useMemo(() => 
+    filteredCards.slice(currentPage * cardsPerPage, (currentPage + 1) * cardsPerPage),
+    [filteredCards, currentPage, cardsPerPage]
   );
 
-  const nextPage = () => {
-    if (currentPage < totalPages - 1) {
-      setCurrentPage(prev => prev + 1);
-    }
-  };
+  const nextPage = useCallback(() => {
+    if (currentPage < totalPages - 1) setCurrentPage(prev => prev + 1);
+  }, [currentPage, totalPages]);
 
-  const prevPage = () => {
-    if (currentPage > 0) {
-      setCurrentPage(prev => prev - 1);
-    }
-  };
+  const prevPage = useCallback(() => {
+    if (currentPage > 0) setCurrentPage(prev => prev - 1);
+  }, [currentPage]);
 
-  // Reset page when filter changes
-  const handleRarityChange = () => {
-    setCurrentPage(0);
-  };
+  const handleCardClick = useCallback((card: GameCard, count: number) => {
+    onCardClick?.(card, count);
+  }, [onCardClick]);
+
+  // Pagination dots
+  const pageButtons = useMemo(() => {
+    const start = Math.max(0, Math.min(currentPage - 2, totalPages - 5));
+    return Array.from({ length: Math.min(5, totalPages) }, (_, i) => start + i).filter(p => p < totalPages);
+  }, [currentPage, totalPages]);
 
   return (
     <div className="relative">
-      {/* Book container */}
       <div className="relative bg-gradient-to-br from-amber-900/30 via-card to-amber-900/20 rounded-2xl border-2 border-amber-700/30 p-4 min-h-[500px] shadow-2xl">
-        {/* Book spine decoration */}
         <div className="absolute left-1/2 top-0 bottom-0 w-1 -translate-x-1/2 bg-gradient-to-b from-amber-700/50 via-amber-600/30 to-amber-700/50" />
-        
-        {/* Page texture */}
         <div className="absolute inset-2 bg-gradient-to-r from-amber-50/5 via-transparent to-amber-50/5 rounded-xl pointer-events-none" />
         
-        {/* Cards grid */}
         <div className="grid grid-cols-2 gap-4 relative z-10">
           {currentCards.map((card) => {
             const isCollected = collectedCardIds.has(card.id);
@@ -85,72 +81,55 @@ export const CollectionBook = ({ allCards, collectedCardIds, cardCountMap, obtai
                 card={card} 
                 isCollected={isCollected}
                 count={count}
-                onClick={() => isCollected && onCardClick?.(card, count)}
+                onClick={isCollected ? () => handleCardClick(card, count) : undefined}
               />
             );
           })}
           
-          {/* Empty slots */}
           {Array.from({ length: Math.max(0, cardsPerPage - currentCards.length) }).map((_, i) => (
             <EmptySlot key={`empty-${i}`} />
           ))}
         </div>
 
-        {/* Page number */}
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-muted-foreground text-sm font-display">
           Page {currentPage + 1} / {Math.max(1, totalPages)}
         </div>
       </div>
 
-      {/* Navigation */}
       <div className="flex justify-between items-center mt-4 px-4">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={prevPage}
-          disabled={currentPage === 0}
-          className="bg-card/50"
-        >
+        <Button variant="outline" size="icon" onClick={prevPage} disabled={currentPage === 0} className="bg-card/50">
           <ChevronLeft className="w-5 h-5" />
         </Button>
         
         <div className="flex gap-2">
-          {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
-            const pageIndex = Math.max(0, Math.min(currentPage - 2, totalPages - 5)) + i;
-            if (pageIndex >= totalPages) return null;
-            return (
-              <button
-                key={pageIndex}
-                onClick={() => setCurrentPage(pageIndex)}
-                className={cn(
-                  "w-8 h-8 rounded-lg text-sm font-medium transition-all",
-                  currentPage === pageIndex 
-                    ? "bg-primary text-primary-foreground" 
-                    : "bg-card/50 text-muted-foreground hover:bg-card"
-                )}
-              >
-                {pageIndex + 1}
-              </button>
-            );
-          })}
+          {pageButtons.map((pageIndex) => (
+            <button
+              key={pageIndex}
+              onClick={() => setCurrentPage(pageIndex)}
+              className={cn(
+                "w-8 h-8 rounded-lg text-sm font-medium transition-all",
+                currentPage === pageIndex 
+                  ? "bg-primary text-primary-foreground" 
+                  : "bg-card/50 text-muted-foreground hover:bg-card"
+              )}
+            >
+              {pageIndex + 1}
+            </button>
+          ))}
         </div>
 
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={nextPage}
-          disabled={currentPage >= totalPages - 1}
-          className="bg-card/50"
-        >
+        <Button variant="outline" size="icon" onClick={nextPage} disabled={currentPage >= totalPages - 1} className="bg-card/50">
           <ChevronRight className="w-5 h-5" />
         </Button>
       </div>
     </div>
   );
-};
+});
 
-// Card slot component
-const CardSlot = ({ card, isCollected, count, onClick }: { card: GameCard; isCollected: boolean; count: number; onClick?: () => void }) => {
+CollectionBook.displayName = 'CollectionBook';
+
+// Card slot component — memoized
+const CardSlot = memo(({ card, isCollected, count, onClick }: { card: GameCard; isCollected: boolean; count: number; onClick?: () => void }) => {
   const { getTitle } = useLocalizedCard();
   const rarityConfig = RARITY_CONFIG[card.rarity];
 
@@ -182,18 +161,17 @@ const CardSlot = ({ card, isCollected, count, onClick }: { card: GameCard; isCol
         className="relative rounded-xl overflow-hidden bg-card border-2 card-shadow aspect-[3/4]"
         style={{ borderColor: rarityConfig.color }}
       >
-        {/* Image */}
         <div className="absolute inset-0 overflow-hidden">
           <img 
             src={card.image_url} 
             alt={getTitle(card)}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             loading="lazy"
+            decoding="async"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-card via-card/20 to-transparent" />
         </div>
 
-        {/* Info overlay */}
         <div className="absolute bottom-0 left-0 right-0 p-3">
           <span 
             className={cn(
@@ -207,7 +185,6 @@ const CardSlot = ({ card, isCollected, count, onClick }: { card: GameCard; isCol
           <h4 className="font-display text-sm text-foreground truncate">{getTitle(card)}</h4>
         </div>
         
-        {/* Card count badge - always show */}
         <div className="absolute top-2 right-2 bg-primary text-primary-foreground px-2 py-1 rounded-full text-xs font-bold shadow-lg">
           ×{count}
         </div>
@@ -218,9 +195,13 @@ const CardSlot = ({ card, isCollected, count, onClick }: { card: GameCard; isCol
       </div>
     </div>
   );
-};
+});
 
-// Empty slot component
-const EmptySlot = () => (
+CardSlot.displayName = 'CardSlot';
+
+// Empty slot component — memoized
+const EmptySlot = memo(() => (
   <div className="aspect-[3/4] rounded-xl bg-card/20 border-2 border-dashed border-muted-foreground/10" />
-);
+));
+
+EmptySlot.displayName = 'EmptySlot';

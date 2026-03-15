@@ -1,3 +1,4 @@
+import { memo, useCallback } from 'react';
 import { Rarity, RARITY_CONFIG } from '@/types/card';
 import { cn } from '@/lib/utils';
 import { Sparkles, Star, Crown, Gem, Layers } from 'lucide-react';
@@ -19,7 +20,7 @@ const rarityIcons: Record<Rarity | 'all', React.ElementType> = {
 
 const rarities: (Rarity | 'all')[] = ['all', 'common', 'rare', 'epic', 'legendary'];
 
-export const RarityTabs = ({ activeRarity, onRarityChange, counts, collectedCounts }: RarityTabsProps) => {
+export const RarityTabs = memo(({ activeRarity, onRarityChange, counts, collectedCounts }: RarityTabsProps) => {
   return (
     <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
       {rarities.map((rarity) => {
@@ -69,4 +70,6 @@ export const RarityTabs = ({ activeRarity, onRarityChange, counts, collectedCoun
       })}
     </div>
   );
-};
+});
+
+RarityTabs.displayName = 'RarityTabs';

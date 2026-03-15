@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Home, BookOpen, Package, Shield, LogIn, Store, User } from 'lucide-react';
@@ -12,7 +12,7 @@ export const Navigation = memo(() => {
   const { t } = useTranslation();
   const { hasNewCards } = useNewCardIndicator();
 
-  const navItems = [
+  const navItems = useMemo(() => [
     { path: '/', icon: Home, labelKey: 'nav.home', show: true, badge: false, tour: 'nav-home' },
     { path: '/collection', icon: BookOpen, labelKey: 'nav.collection', show: true, badge: hasNewCards, tour: 'nav-collection' },
     { path: '/packs', icon: Package, labelKey: 'nav.packs', show: true, badge: false, tour: 'nav-packs' },
@@ -20,12 +20,14 @@ export const Navigation = memo(() => {
     { path: '/admin', icon: Shield, labelKey: 'nav.admin', show: isAdmin, badge: false, tour: '' },
     { path: '/profile', icon: User, labelKey: 'nav.profile', show: !!user, badge: false, tour: 'nav-profile' },
     { path: '/auth', icon: LogIn, labelKey: 'nav.login', show: !user, badge: false, tour: 'nav-login' },
-  ];
+  ], [user, isAdmin, hasNewCards]);
+
+  const visibleItems = useMemo(() => navItems.filter(item => item.show), [navItems]);
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/90 backdrop-blur-lg border-t border-border safe-area-bottom">
       <div className="flex items-center justify-around py-2 px-4 max-w-lg mx-auto">
-        {navItems.filter(item => item.show).map(({ path, icon: Icon, labelKey, badge, tour }) => {
+        {visibleItems.map(({ path, icon: Icon, labelKey, badge, tour }) => {
           const isActive = location.pathname === path;
           return (
             <Link
