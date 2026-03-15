@@ -57,6 +57,7 @@ export const useAllCards = () => {
 export const useUserCards = (userId: string | undefined) => {
   return useQuery({
     queryKey: ['user-cards', userId],
+    staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       if (!userId) return [];
       
