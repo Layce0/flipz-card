@@ -18,9 +18,11 @@ export const RedeemCodeSection = () => {
   // Pack reveal state
   const [revealedCards, setRevealedCards] = useState<GameCard[]>([]);
   const [isRevealing, setIsRevealing] = useState(false);
+  const redeemingRef = useRef(false);
 
   const handleRedeem = async () => {
-    if (!code.trim() || !user) return;
+    if (!code.trim() || !user || redeemingRef.current) return;
+    redeemingRef.current = true;
 
     setIsRedeeming(true);
     try {
