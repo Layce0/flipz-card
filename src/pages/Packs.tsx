@@ -31,6 +31,12 @@ const Packs = () => {
   const [ownedSnapshot, setOwnedSnapshot] = useState<Set<string>>(new Set());
   const queryClient = useQueryClient();
 
+  const currentCardIsNew = useMemo(() => {
+    const cardId = revealedCards[currentCardIndex]?.id;
+    if (!cardId || ownedSnapshot.has(cardId)) return false;
+    return !revealedCards.slice(0, currentCardIndex).some(c => c.id === cardId);
+  }, [revealedCards, currentCardIndex, ownedSnapshot]);
+
   const handleWatchAd = async () => {
     if (!user) {
       navigate('/auth');
