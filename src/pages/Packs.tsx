@@ -50,7 +50,7 @@ const Packs = () => {
     
     // Open pack via server-side RNG
     try {
-      const { data, error } = await supabase.functions.invoke('open-free-pack');
+      const { data, error } = await invokeEdgeFunction('open-free-pack');
       if (error) {
         console.error('Edge function invoke error:', error);
         toast.error(`Edge error: ${error.message || JSON.stringify(error)}`);

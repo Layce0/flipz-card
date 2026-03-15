@@ -77,7 +77,7 @@ const Shop = () => {
     setLoadingPackId(packId);
 
     try {
-      const { data, error } = await supabase.functions.invoke('create-pack-checkout', {
+      const { data, error } = await invokeEdgeFunction('create-pack-checkout', {
         body: { packId }
       });
 

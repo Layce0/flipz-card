@@ -24,7 +24,7 @@ export const RedeemCodeSection = () => {
 
     setIsRedeeming(true);
     try {
-      const { data, error } = await supabase.functions.invoke('redeem-code', {
+      const { data, error } = await invokeEdgeFunction('redeem-code', {
         body: { code: code.trim() }
       });
 

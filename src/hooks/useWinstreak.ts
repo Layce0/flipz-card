@@ -89,7 +89,7 @@ export const useClaimWinstreakReward = () => {
 
   return useMutation({
     mutationFn: async ({ userId, rewardId, dayNumber }: { userId: string; rewardId: string; dayNumber: number }) => {
-      const { data, error } = await supabase.functions.invoke('claim-winstreak-reward', {
+      const { data, error } = await invokeEdgeFunction('claim-winstreak-reward', {
         body: { rewardId, dayNumber }
       });
       if (error) throw error;
