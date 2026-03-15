@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Flame, Gift, Check, Lock, ChevronLeft, ChevronRight, Package, Sparkles, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
