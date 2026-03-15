@@ -68,7 +68,7 @@ const Shop = () => {
     }
   };
 
-  const handlePurchase = async (packId: string) => {
+  const handlePurchase = useCallback(async (packId: string) => {
     if (!user) {
       toast.error(t('shop.mustBeConnected'));
       return;
