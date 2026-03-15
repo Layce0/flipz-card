@@ -47,13 +47,20 @@ export const CollectionBook = memo(({ allCards, collectedCardIds, cardCountMap, 
     [filteredCards, currentPage, cardsPerPage]
   );
 
+  // Reset page when filter changes
+  const prevRarityRef = useMemo(() => ({ current: activeRarity }), []);
+  if (prevRarityRef.current !== activeRarity) {
+    prevRarityRef.current = activeRarity;
+    setCurrentPage(0);
+  }
+
   const nextPage = useCallback(() => {
-    if (currentPage < totalPages - 1) setCurrentPage(prev => prev + 1);
-  }, [currentPage, totalPages]);
+    setCurrentPage(prev => Math.min(prev + 1, totalPages - 1));
+  }, [totalPages]);
 
   const prevPage = useCallback(() => {
-    if (currentPage > 0) setCurrentPage(prev => prev - 1);
-  }, [currentPage]);
+    setCurrentPage(prev => Math.max(prev - 1, 0));
+  }, []);
 
   const handleCardClick = useCallback((card: GameCard, count: number) => {
     onCardClick?.(card, count);
