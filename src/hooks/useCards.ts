@@ -98,8 +98,8 @@ export const useUserCards = (userId: string | undefined) => {
         const existing = cardCountMap.get(cardId);
         if (existing) {
           existing.count += 1;
-          // Keep the earliest obtained_at
-          if (new Date(uc.obtained_at) < new Date(existing.obtained_at)) {
+          // Keep the most recent obtained_at (string compare is faster than Date parsing)
+          if (uc.obtained_at > existing.obtained_at) {
             existing.obtained_at = uc.obtained_at;
           }
         } else {

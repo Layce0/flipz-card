@@ -148,13 +148,17 @@ const Collection = () => {
         )}
       </main>
 
-      {/* Card detail dialog */}
-      <CardDetailDialog
-        card={selectedCard}
-        count={selectedCardCount}
-        open={detailOpen}
-        onOpenChange={setDetailOpen}
-      />
+      {/* Card detail dialog — lazy loaded */}
+      {detailOpen && (
+        <Suspense fallback={null}>
+          <CardDetailDialog
+            card={selectedCard}
+            count={selectedCardCount}
+            open={detailOpen}
+            onOpenChange={setDetailOpen}
+          />
+        </Suspense>
+      )}
 
       <Navigation />
     </div>

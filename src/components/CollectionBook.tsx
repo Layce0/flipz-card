@@ -1,4 +1,4 @@
-import { useState, useMemo, memo, useCallback } from 'react';
+import { useState, useMemo, memo, useCallback, useRef } from 'react';
 import { GameCard, Rarity, RARITY_CONFIG } from '@/types/card';
 import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight, HelpCircle, Lock } from 'lucide-react';
