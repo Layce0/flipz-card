@@ -76,6 +76,7 @@ export const RedeemCodeSection = ({ userCards }: RedeemCodeSectionProps) => {
   const handleCloseReveal = () => {
     setIsRevealing(false);
     setRevealedCards([]);
+    setOwnedSnapshotForReveal(new Set());
   };
 
   return (
