@@ -138,7 +138,7 @@ export const CollectionBook = memo(({ allCards, collectedCardIds, cardCountMap, 
 CollectionBook.displayName = 'CollectionBook';
 
 // Card slot component — memoized
-const CardSlot = memo(({ card, isCollected, count, onClick }: { card: GameCard; isCollected: boolean; count: number; onClick?: () => void }) => {
+const CardSlot = memo(({ card, isCollected, count, isNew, onClick }: { card: GameCard; isCollected: boolean; count: number; isNew?: boolean; onClick?: () => void }) => {
   const { getTitle } = useLocalizedCard();
   const rarityConfig = RARITY_CONFIG[card.rarity];
 
