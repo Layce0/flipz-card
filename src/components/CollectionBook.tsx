@@ -11,10 +11,11 @@ interface CollectionBookProps {
   cardCountMap: Map<string, number>;
   obtainedAtMap?: Map<string, string>;
   activeRarity: Rarity | 'all';
+  newCardIds?: Set<string>;
   onCardClick?: (card: GameCard, count: number) => void;
 }
 
-export const CollectionBook = memo(({ allCards, collectedCardIds, cardCountMap, obtainedAtMap, activeRarity, onCardClick }: CollectionBookProps) => {
+export const CollectionBook = memo(({ allCards, collectedCardIds, cardCountMap, obtainedAtMap, activeRarity, newCardIds, onCardClick }: CollectionBookProps) => {
   const [currentPage, setCurrentPage] = useState(0);
   const cardsPerPage = 4;
 
@@ -88,6 +89,7 @@ export const CollectionBook = memo(({ allCards, collectedCardIds, cardCountMap, 
                 card={card} 
                 isCollected={isCollected}
                 count={count}
+                isNew={newCardIds?.has(card.id) ?? false}
                 onClick={isCollected ? () => handleCardClick(card, count) : undefined}
               />
             );
@@ -136,7 +138,7 @@ export const CollectionBook = memo(({ allCards, collectedCardIds, cardCountMap, 
 CollectionBook.displayName = 'CollectionBook';
 
 // Card slot component — memoized
-const CardSlot = memo(({ card, isCollected, count, onClick }: { card: GameCard; isCollected: boolean; count: number; onClick?: () => void }) => {
+const CardSlot = memo(({ card, isCollected, count, isNew, onClick }: { card: GameCard; isCollected: boolean; count: number; isNew?: boolean; onClick?: () => void }) => {
   const { getTitle } = useLocalizedCard();
   const rarityConfig = RARITY_CONFIG[card.rarity];
 
@@ -198,6 +200,14 @@ const CardSlot = memo(({ card, isCollected, count, onClick }: { card: GameCard; 
 
         {card.rarity === 'legendary' && (
           <div className="shimmer absolute inset-0 pointer-events-none" />
+        )}
+
+        {isNew && (
+          <div className="absolute top-2 left-2 z-10">
+            <span className="px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold uppercase tracking-wider shadow-lg">
+              Nouveau
+            </span>
+          </div>
         )}
       </div>
     </div>
