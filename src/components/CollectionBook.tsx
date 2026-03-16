@@ -11,10 +11,11 @@ interface CollectionBookProps {
   cardCountMap: Map<string, number>;
   obtainedAtMap?: Map<string, string>;
   activeRarity: Rarity | 'all';
+  newCardIds?: Set<string>;
   onCardClick?: (card: GameCard, count: number) => void;
 }
 
-export const CollectionBook = memo(({ allCards, collectedCardIds, cardCountMap, obtainedAtMap, activeRarity, onCardClick }: CollectionBookProps) => {
+export const CollectionBook = memo(({ allCards, collectedCardIds, cardCountMap, obtainedAtMap, activeRarity, newCardIds, onCardClick }: CollectionBookProps) => {
   const [currentPage, setCurrentPage] = useState(0);
   const cardsPerPage = 4;
 
