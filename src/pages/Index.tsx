@@ -9,7 +9,7 @@ import { Navigation } from '@/components/Navigation';
 import { WinstreakBadge } from '@/components/WinstreakBadge';
 import { Clock, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTodayCard, useHasCollectedToday, useCollectCard, useUserCards, isCardNew } from '@/hooks/useCards';
+import { useTodayCard, useHasCollectedToday, useCollectCard, useUserCards, useAllCards, isCardNew } from '@/hooks/useCards';
 import { useUserStreak, useUpdateStreak } from '@/hooks/useWinstreak';
 import { toast } from 'sonner';
 const flipzLogo = '/flipz-logo-new.jpeg';
