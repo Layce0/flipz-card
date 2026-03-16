@@ -78,6 +78,9 @@ const Index = () => {
   const updateStreak = useUpdateStreak();
   const streakUpdatedRef = useRef(false);
 
+  // Prefetch collection data in background so it's ready when user navigates
+  useAllCards();
+
   // Auto-update streak on app launch — fire only once
   useEffect(() => {
     if (user && !authLoading && !streakUpdatedRef.current) {
