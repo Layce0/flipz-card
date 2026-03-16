@@ -201,6 +201,14 @@ const CardSlot = memo(({ card, isCollected, count, isNew, onClick }: { card: Gam
         {card.rarity === 'legendary' && (
           <div className="shimmer absolute inset-0 pointer-events-none" />
         )}
+
+        {isNew && (
+          <div className="absolute top-2 left-2 z-10">
+            <span className="px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold uppercase tracking-wider shadow-lg">
+              Nouveau
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
