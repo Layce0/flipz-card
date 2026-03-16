@@ -89,6 +89,7 @@ export const CollectionBook = memo(({ allCards, collectedCardIds, cardCountMap, 
                 card={card} 
                 isCollected={isCollected}
                 count={count}
+                isNew={newCardIds?.has(card.id) ?? false}
                 onClick={isCollected ? () => handleCardClick(card, count) : undefined}
               />
             );
