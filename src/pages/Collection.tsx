@@ -20,7 +20,7 @@ const Collection = () => {
   
   const { data: allCards = [], isLoading: cardsLoading } = useAllCards();
   const { data: userCards = [], isLoading: userCardsLoading } = useUserCards(user?.id);
-  const { markAsSeen } = useNewCardIndicator();
+  const { newCardIds, markAsSeen } = useNewCardIndicator();
 
   // Mark cards as seen when visiting collection
   useEffect(() => {
