@@ -143,6 +143,7 @@ const Collection = () => {
             cardCountMap={cardCountMap}
             obtainedAtMap={obtainedAtMap}
             activeRarity={activeRarity}
+            newCardIds={newCardIds}
             onCardClick={handleCardClick}
           />
         )}
