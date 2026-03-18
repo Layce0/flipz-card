@@ -400,7 +400,6 @@ const Profile = () => {
                     onClick={() => {
                       localStorage.removeItem('flipz_onboarding_done');
                       navigate('/');
-                      window.location.reload();
                     }}
                   >
                     <GraduationCap className="w-4 h-4 mr-2" />
