@@ -50,7 +50,7 @@ const App = () => (
           <div className="relative min-h-screen">
             <ParticlesBackground />
             <ActiveBoostsOverlay />
-            <OnboardingTutorial />
+            <Suspense fallback={null}><OnboardingTutorial /></Suspense>
             <GlobalGifsOverlay />
             <Suspense fallback={<PageLoader />}>
               <Routes>
