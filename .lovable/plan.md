@@ -2,40 +2,21 @@
 
 ## Diagnostic
 
-After a thorough analysis of the codebase, I identified **one critical bug** causing navigation to break:
+Le site déployé via Lovable n'a pas de fichier `_redirects` dans le dossier `public/`. Sans ce fichier, quand un utilisateur accède directement à une route comme `/collection` ou `/packs`, le serveur retourne une erreur 404 au lieu de servir `index.html` et laisser React Router gérer la route.
 
-### Bug: `OnboardingTutorial` is lazy-loaded but rendered outside any `<Suspense>` boundary
-
-In `App.tsx`:
-- Line 2: `const OnboardingTutorial = lazy(() => ...)`
-- Line 53: `<OnboardingTutorial />` is placed **before** the `<Suspense fallback={...}>` on line 55
-
-When the component hasn't finished loading yet (e.g. after a page reload with cache miss), React throws a fatal error because a `lazy` component **must** be inside a `Suspense`. This crashes the entire component tree, which kills routing and navigation.
-
-### Other findings (no issues)
-- All routes in `App.tsx` are correctly defined with `BrowserRouter > Routes > Route`
-- Navigation uses React Router `<Link>` components (no `<a href>`)
-- No `window.location.reload()` remains in the codebase
-- All page navigations use `useNavigate()` properly
-
----
+La preview fonctionne car le serveur de développement Vite gère automatiquement le fallback SPA.
 
 ## Plan
 
-### 1. Wrap `OnboardingTutorial` in its own `Suspense` boundary (App.tsx)
+### 1. Créer `public/_redirects`
 
-Move the `<OnboardingTutorial />` inside a `<Suspense fallback={null}>` wrapper so it loads gracefully without crashing the app:
+Ajouter un fichier `public/_redirects` avec la règle de redirection SPA standard :
 
-```tsx
-<Suspense fallback={null}>
-  <OnboardingTutorial />
-</Suspense>
+```
+/*    /index.html   200
 ```
 
-This is a single-line fix in `App.tsx` (around line 53). No other files need to change.
+Ce fichier sera copié dans le dossier `dist/` lors du build et indiquera au serveur de production de toujours servir `index.html` pour toutes les routes, permettant à React Router de prendre le relais côté client.
 
-### Why this fixes the bug
-- Without `Suspense`, a lazy component that hasn't loaded yet throws a promise that React can't catch, crashing the entire tree including the router
-- After a reload, the JS chunks may not be cached, triggering this crash consistently
-- Wrapping in `Suspense` allows React to show `null` while the tutorial loads, keeping the rest of the app functional
+C'est un changement d'un seul fichier.
 
