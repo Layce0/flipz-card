@@ -124,15 +124,14 @@ const Profile = () => {
     if (error) {
       toast.error(t('profile.saveError'));
     } else {
-      // Save language to localStorage before reload
+      // Save language to localStorage and apply via i18n (no reload needed)
       localStorage.setItem('app-language', profile.language);
       
       if (languageChanged) {
-        // Reload the app to apply language change globally
-        window.location.reload();
-      } else {
-        toast.success(t('profile.saveSuccess'));
+        const { default: i18n } = await import('@/i18n');
+        await i18n.changeLanguage(profile.language);
       }
+      toast.success(t('profile.saveSuccess'));
     }
   };
 
@@ -401,7 +400,6 @@ const Profile = () => {
                     onClick={() => {
                       localStorage.removeItem('flipz_onboarding_done');
                       navigate('/');
-                      window.location.reload();
                     }}
                   >
                     <GraduationCap className="w-4 h-4 mr-2" />
