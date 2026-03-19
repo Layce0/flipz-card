@@ -20,7 +20,7 @@ const Collection = () => {
   
   const { data: allCards = [], isLoading: cardsLoading } = useAllCards();
   const { data: userCards = [], isLoading: userCardsLoading } = useUserCards(user?.id);
-  const { newCardIds, markAsSeen } = useNewCardIndicator();
+  const { markAsSeen } = useNewCardIndicator();
 
   // Mark cards as seen when visiting collection
   useEffect(() => {
@@ -143,7 +143,6 @@ const Collection = () => {
             cardCountMap={cardCountMap}
             obtainedAtMap={obtainedAtMap}
             activeRarity={activeRarity}
-            newCardIds={newCardIds}
             onCardClick={handleCardClick}
           />
         )}
