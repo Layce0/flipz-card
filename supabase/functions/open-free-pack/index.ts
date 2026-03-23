@@ -109,6 +109,25 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Server-side daily cooldown
+    const { data: streakRow } = await supabaseAdmin
+      .from('user_streaks')
+      .select('last_free_pack_at')
+      .eq('user_id', userId)
+      .single();
+
+    const now = new Date();
+    const lastFreePackAt = streakRow?.last_free_pack_at ? new Date(streakRow.last_free_pack_at) : null;
+    if (lastFreePackAt) {
+      const diffMs = now.getTime() - lastFreePackAt.getTime();
+      if (diffMs < 24 * 3600 * 1000) {
+        const retryAfterSec = Math.ceil((24 * 3600 * 1000 - diffMs) / 1000);
+        return new Response(JSON.stringify({ error: 'Free pack already claimed today', retryAfter: retryAfterSec }), {
+          status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': String(retryAfterSec) }
+        });
+      }
+    }
+
     // Fetch cards
     const { data: cards, error: cardsError } = await supabaseAdmin.from('cards').select('*');
     if (cardsError) throw cardsError;
