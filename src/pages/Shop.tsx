@@ -16,7 +16,7 @@ import { RedeemCodeSection } from '@/components/shop/RedeemCodeSection';
 import { invokeEdgeFunction } from '@/lib/edgeFunctions';
 
 const Shop = () => {
-  const { user } = useAuth();
+  const { user, isModerator } = useAuth();
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const { data: userCards = [], isLoading: cardsLoading, refetch: refetchCards } = useUserCards(user?.id);
@@ -77,21 +77,37 @@ const Shop = () => {
     setLoadingPackId(packId);
 
     try {
-      const { data, error } = await invokeEdgeFunction('create-pack-checkout', {
-        body: { packId }
-      });
+      if (isModerator) {
+        // Moderators bypass Stripe — simulate payment directly
+        const { data, error } = await invokeEdgeFunction('simulate-payment', {
+          body: { packId }
+        });
 
-      if (error) throw error;
+        if (error) throw error;
 
-      if (data.url) {
-        window.open(data.url, '_blank');
+        if (data.cards && data.cards.length > 0) {
+          setPurchasedCards(data.cards);
+          setShowPurchaseReward(true);
+          toast.success(t('shop.cardsReceived', { count: data.cardCount }));
+          refetchCards();
+        }
+      } else {
+        const { data, error } = await invokeEdgeFunction('create-pack-checkout', {
+          body: { packId }
+        });
+
+        if (error) throw error;
+
+        if (data.url) {
+          window.open(data.url, '_blank');
+        }
       }
     } catch (error: any) {
       toast.error(t('shop.paymentError'));
     } finally {
       setLoadingPackId(null);
     }
-  }, [user, t]);
+  }, [user, isModerator, t, refetchCards]);
 
   const handleTrade = async (card: UserCardWithCount): Promise<any[]> => {
     if (!user) {

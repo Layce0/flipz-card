@@ -11,6 +11,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isAdmin: boolean;
+  isModerator: boolean;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -23,22 +24,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isModerator, setIsModerator] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   // Check admin status from database
-  const checkAdminRole = async (userId: string) => {
+  const checkRoles = async (userId: string) => {
     try {
       const { data: roleData } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', userId)
-        .eq('role', 'admin')
-        .single();
+        .eq('user_id', userId);
 
-      setIsAdmin(!!roleData);
+      setIsAdmin(roleData?.some(r => r.role === 'admin') ?? false);
+      setIsModerator(roleData?.some(r => r.role === 'moderator' || r.role === 'admin') ?? false);
     } catch {
-      // No admin role found
       setIsAdmin(false);
+      setIsModerator(false);
     }
   };
 
@@ -63,10 +64,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             if (nextSession?.user) {
               // Defer to avoid potential deadlocks with Supabase client
               setTimeout(() => {
-                void checkAdminRole(nextSession.user.id);
+                void checkRoles(nextSession.user.id);
               }, 0);
             } else {
               setIsAdmin(false);
+              setIsModerator(false);
             }
 
             markAuthBootstrapReady();
@@ -85,9 +87,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         void syncSessionToNativeStorage(initialSession);
 
         if (initialSession?.user) {
-          void checkAdminRole(initialSession.user.id);
+          void checkRoles(initialSession.user.id);
         } else {
           setIsAdmin(false);
+          setIsModerator(false);
         }
       } finally {
         markAuthBootstrapReady();
@@ -130,7 +133,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, isAdmin, isLoading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, isAdmin, isModerator, isLoading, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );

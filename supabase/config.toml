@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.update-streak]
 verify_jwt = false
+
+[functions.simulate-payment]
+verify_jwt = false
