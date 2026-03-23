@@ -68,7 +68,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               }, 0);
             } else {
               setIsAdmin(false);
-            }
+              setIsModerator(false);
 
             markAuthBootstrapReady();
             setIsLoading(false);
