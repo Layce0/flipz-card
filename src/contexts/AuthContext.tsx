@@ -64,7 +64,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             if (nextSession?.user) {
               // Defer to avoid potential deadlocks with Supabase client
               setTimeout(() => {
-                void checkAdminRole(nextSession.user.id);
+                void checkRoles(nextSession.user.id);
               }, 0);
             } else {
               setIsAdmin(false);
