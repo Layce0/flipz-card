@@ -1,0 +1,1 @@
+ALTER TABLE public.user_streaks ADD COLUMN IF NOT EXISTS last_free_pack_at timestamp with time zone;
