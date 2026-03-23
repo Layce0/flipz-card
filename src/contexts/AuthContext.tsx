@@ -86,10 +86,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         void syncSessionToNativeStorage(initialSession);
 
         if (initialSession?.user) {
-          void checkAdminRole(initialSession.user.id);
+          void checkRoles(initialSession.user.id);
         } else {
           setIsAdmin(false);
-        }
+          setIsModerator(false);
       } finally {
         markAuthBootstrapReady();
         if (isMounted) {
