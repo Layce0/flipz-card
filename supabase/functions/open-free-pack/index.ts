@@ -208,6 +208,11 @@ Deno.serve(async (req) => {
 
     if (insertError) throw insertError;
 
+    // Update daily cooldown timestamp
+    await supabaseAdmin
+      .from('user_streaks')
+      .upsert({ user_id: userId, last_free_pack_at: now.toISOString() }, { onConflict: 'user_id' });
+
     return new Response(JSON.stringify({ success: true, cards: selectedCards }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
