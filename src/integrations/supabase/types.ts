@@ -478,6 +478,7 @@ export type Database = {
         Row: {
           current_streak: number
           id: string
+          last_free_pack_at: string | null
           last_streak_date: string | null
           updated_at: string
           user_id: string
@@ -485,6 +486,7 @@ export type Database = {
         Insert: {
           current_streak?: number
           id?: string
+          last_free_pack_at?: string | null
           last_streak_date?: string | null
           updated_at?: string
           user_id: string
@@ -492,6 +494,7 @@ export type Database = {
         Update: {
           current_streak?: number
           id?: string
+          last_free_pack_at?: string | null
           last_streak_date?: string | null
           updated_at?: string
           user_id?: string
