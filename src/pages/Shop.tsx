@@ -16,7 +16,7 @@ import { RedeemCodeSection } from '@/components/shop/RedeemCodeSection';
 import { invokeEdgeFunction } from '@/lib/edgeFunctions';
 
 const Shop = () => {
-  const { user } = useAuth();
+  const { user, isModerator } = useAuth();
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const { data: userCards = [], isLoading: cardsLoading, refetch: refetchCards } = useUserCards(user?.id);
