@@ -28,19 +28,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   // Check admin status from database
-  const checkAdminRole = async (userId: string) => {
+  const checkRoles = async (userId: string) => {
     try {
       const { data: roleData } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', userId)
-        .eq('role', 'admin')
-        .single();
+        .eq('user_id', userId);
 
-      setIsAdmin(!!roleData);
+      setIsAdmin(roleData?.some(r => r.role === 'admin') ?? false);
+      setIsModerator(roleData?.some(r => r.role === 'moderator' || r.role === 'admin') ?? false);
     } catch {
-      // No admin role found
       setIsAdmin(false);
+      setIsModerator(false);
     }
   };
 
