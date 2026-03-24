@@ -1,0 +1,1 @@
+DROP POLICY "Users can collect cards" ON public.user_cards;
