@@ -141,7 +141,7 @@ Deno.serve(async (req) => {
     let luckMultiplier = 1;
     let bonusCards = 0;
     let cardMultiplier = 1;
-    const now = new Date().toISOString();
+    const nowIso = new Date().toISOString();
 
     // Helper to process boost entries
     const applyBoost = (rewardType: string, config: Record<string, any>) => {
@@ -159,7 +159,7 @@ Deno.serve(async (req) => {
       .from('code_redemptions')
       .select('code_id, boost_expires_at')
       .eq('user_id', userId)
-      .gt('boost_expires_at', now);
+      .gt('boost_expires_at', nowIso);
 
     if (activeRedemptions && activeRedemptions.length > 0) {
       const codeIds = activeRedemptions.map((r: any) => r.code_id);
@@ -178,7 +178,7 @@ Deno.serve(async (req) => {
       .from('winstreak_claims')
       .select('reward_id, boost_expires_at')
       .eq('user_id', userId)
-      .gt('boost_expires_at', now);
+      .gt('boost_expires_at', nowIso);
 
     if (wsClaims && wsClaims.length > 0) {
       const rewardIds = wsClaims.map((c: any) => c.reward_id);
@@ -211,7 +211,7 @@ Deno.serve(async (req) => {
     // Update daily cooldown timestamp
     await supabaseAdmin
       .from('user_streaks')
-      .upsert({ user_id: userId, last_free_pack_at: now.toISOString() }, { onConflict: 'user_id' });
+      .upsert({ user_id: userId, last_free_pack_at: nowIso }, { onConflict: 'user_id' });
 
     return new Response(JSON.stringify({ success: true, cards: selectedCards }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
