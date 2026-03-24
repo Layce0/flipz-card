@@ -550,6 +550,9 @@ const Admin = () => {
         {/* Global GIFs Manager */}
         <GlobalGifsManager />
 
+        {/* User Account Manager */}
+        <UserAccountManager />
+
 
         <section>
           <h2 className="font-display text-lg mb-4 text-foreground">
