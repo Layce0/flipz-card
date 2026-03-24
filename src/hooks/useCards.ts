@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { invokeEdgeFunction } from '@/lib/edgeFunctions';
 import { GameCard, Rarity } from '@/types/card';
 
 // Fetch all profiles (admin - to give cards)
@@ -408,11 +409,13 @@ export const useCollectCard = () => {
   
   return useMutation({
     mutationFn: async ({ userId, cardId }: { userId: string; cardId: string }) => {
-      const { error } = await supabase
-        .from('user_cards')
-        .insert({ user_id: userId, card_id: cardId });
+      const { data, error } = await invokeEdgeFunction('collect-daily-card', {
+        body: {},
+      });
       
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-cards'] });
