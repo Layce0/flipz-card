@@ -141,7 +141,7 @@ Deno.serve(async (req) => {
     let luckMultiplier = 1;
     let bonusCards = 0;
     let cardMultiplier = 1;
-    const now = new Date().toISOString();
+    const nowIso = new Date().toISOString();
 
     // Helper to process boost entries
     const applyBoost = (rewardType: string, config: Record<string, any>) => {
