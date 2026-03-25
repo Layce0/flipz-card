@@ -56,43 +56,29 @@ const Packs = () => {
     
     // Open pack via server-side RNG
     try {
-      const { data, error } = await invokeEdgeFunction('open-free-pack');
-      if (error) {
-        // Parse the error - FunctionsHttpError embeds the response body in message
-        let parsed: any = null;
-        try {
-          // Try parsing error.message as JSON (Supabase SDK sometimes puts body there)
-          parsed = JSON.parse(error.message);
-        } catch {
-          try {
-            // Try context as Response
-            const ctx = (error as any).context;
-            if (ctx && typeof ctx.json === 'function') {
-              parsed = await ctx.json();
-            }
-          } catch {}
-        }
+      const { data, error } = await invokeEdgeFunction<{
+        success?: boolean;
+        cards?: GameCard[];
+        error?: string;
+        retryAfter?: number;
+      }>('open-free-pack');
 
-        if (parsed?.error?.includes?.('already claimed') || parsed?.error?.includes?.('Free pack')) {
-          const hours = Math.ceil((parsed.retryAfter || 0) / 3600);
+      const parsedError = (error as any)?.parsed;
+      const payloadError = parsedError?.error || data?.error;
+      const retryAfter = parsedError?.retryAfter ?? data?.retryAfter ?? 0;
+      const status = (error as any)?.status;
+
+      if (payloadError) {
+        if (status === 429 || payloadError.includes('Free pack already claimed today')) {
+          const hours = Math.max(1, Math.ceil(retryAfter / 3600));
           toast.error(t('packs.alreadyClaimed', `Pack déjà réclamé ! Reviens dans ~${hours}h`));
           return;
         }
 
-        console.error('Edge function invoke error:', error);
-        toast.error(parsed?.error || t('packs.serverError', 'Erreur serveur, réessaie plus tard'));
+        toast.error(payloadError);
         return;
       }
-      if (data?.error) {
-        if (data.error === 'Free pack already claimed today') {
-          const hours = Math.ceil((data.retryAfter || 0) / 3600);
-          toast.error(t('packs.alreadyClaimed', `Pack déjà réclamé ! Reviens dans ~${hours}h`));
-          return;
-        }
-        toast.error(`${data.error}`);
-        return;
-      }
-      
+
       const cards = (data?.cards || []) as GameCard[];
       const ownedIds = userCards
         .filter(c => c.count > 0)
@@ -104,9 +90,8 @@ const Packs = () => {
 
       queryClient.invalidateQueries({ queryKey: ['user-cards'] });
       queryClient.invalidateQueries({ queryKey: ['user-card-stats'] });
-    } catch (error: any) {
-      console.error('Pack opening catch:', error);
-      toast.error(`Catch: ${error?.message || JSON.stringify(error)}`);
+    } catch {
+      toast.error(t('packs.serverError', 'Erreur serveur, réessaie plus tard'));
     }
   };
 

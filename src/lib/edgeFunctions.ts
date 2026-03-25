@@ -13,6 +13,52 @@ type EdgeInvokeOptions = {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+type ParsedEdgeError = {
+  error?: string;
+  retryAfter?: number;
+  detail?: string;
+  [key: string]: unknown;
+};
+
+const parseEdgeInvokeError = async (error: any): Promise<{ status?: number; parsed: ParsedEdgeError | null }> => {
+  const context = error?.context;
+  let status: number | undefined;
+  let parsed: ParsedEdgeError | null = null;
+
+  try {
+    if (context && typeof context.text === 'function') {
+      status = context.status;
+      const rawBody = await context.text();
+      if (rawBody) {
+        try {
+          parsed = JSON.parse(rawBody);
+        } catch {
+          parsed = { error: rawBody };
+        }
+      }
+    }
+  } catch {
+    // no-op: fallback parsing below
+  }
+
+  if (!parsed && typeof error?.message === 'string') {
+    const jsonStart = error.message.indexOf('{');
+    if (jsonStart >= 0) {
+      try {
+        parsed = JSON.parse(error.message.slice(jsonStart));
+      } catch {
+        parsed = null;
+      }
+    }
+  }
+
+  if (!parsed && typeof error?.message === 'string') {
+    parsed = { error: error.message };
+  }
+
+  return { status, parsed };
+};
+
 const getSessionForEdgeInvocation = async () => {
   await waitForAuthBootstrapReady();
   await hydrateSessionFromNativeStorage();
@@ -56,8 +102,22 @@ export const invokeEdgeFunction = async <T = any>(
     ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
   };
 
-  return supabase.functions.invoke<T>(functionName, {
-    ...options,
-    headers,
-  });
+  try {
+    return await supabase.functions.invoke<T>(functionName, {
+      ...options,
+      headers,
+    });
+  } catch (error: any) {
+    const { status, parsed } = await parseEdgeInvokeError(error);
+
+    return {
+      data: (parsed as T) ?? null,
+      error: {
+        ...(typeof error === 'object' && error !== null ? error : {}),
+        status,
+        parsed,
+        message: parsed?.error ?? error?.message ?? 'Edge function request failed',
+      },
+    };
+  }
 };
