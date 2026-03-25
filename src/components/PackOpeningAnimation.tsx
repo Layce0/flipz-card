@@ -144,6 +144,7 @@ export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free' }: 
             <div
               style={{
                 animation: 'tear-top 1.2s cubic-bezier(0.25, 0.1, 0.25, 1) forwards',
+                ...(isLucky ? { marginLeft: '2rem' } : {}),
               }}
             >
               <img
