@@ -22,7 +22,10 @@ const SHAKE_CONFIGS = [
 ];
 
 export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free' }: PackOpeningAnimationProps) => {
-  const sachetImg = packType === 'ultra' ? packUltraImg : packSachetImg;
+  const isUltra = packType === 'ultra';
+  const sachetImg = isUltra ? packUltraImg : packSachetImg;
+  const topImg = isUltra ? packUltraTopCapImg : packTopCapImg;
+  const bottomImg = isUltra ? packUltraBottomBodyImg : packBottomBodyImg;
   const [tapCount, setTapCount] = useState(0);
   const [isTearing, setIsTearing] = useState(false);
   const [showParticles, setShowParticles] = useState(false);
