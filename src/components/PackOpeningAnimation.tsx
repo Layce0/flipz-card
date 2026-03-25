@@ -124,7 +124,7 @@ export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free' }: 
       <div ref={imgRef} className="relative z-10 pointer-events-none">
         {!isTearing ? (
           <img
-            src={packSachetImg}
+            src={sachetImg}
             alt="Pack Flipz"
             className="w-64 h-auto select-none drop-shadow-2xl"
             draggable={false}
