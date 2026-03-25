@@ -89,7 +89,7 @@ const Shop = () => {
 
         if (data.cards && data.cards.length > 0) {
           setPurchasedCards(data.cards);
-          setPurchasedPackType(packType);
+          setPurchasedPackType(derivedPackType);
           setShowPurchaseReward(true);
           toast.success(t('shop.cardsReceived', { count: data.cardCount }));
           refetchCards();
