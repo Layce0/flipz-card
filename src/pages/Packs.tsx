@@ -58,28 +58,29 @@ const Packs = () => {
     try {
       const { data, error } = await invokeEdgeFunction('open-free-pack');
       if (error) {
-        // Try to parse the response body for structured errors (e.g. 429)
+        // Parse the error - FunctionsHttpError embeds the response body in message
         let parsed: any = null;
         try {
-          if (error.context?.body) {
-            parsed = JSON.parse(error.context.body);
-          } else if ((error as any).message) {
-            // Sometimes the body is embedded differently
-            const res = (error as any).context;
-            if (res && typeof res.json === 'function') {
-              parsed = await res.json();
+          // Try parsing error.message as JSON (Supabase SDK sometimes puts body there)
+          parsed = JSON.parse(error.message);
+        } catch {
+          try {
+            // Try context as Response
+            const ctx = (error as any).context;
+            if (ctx && typeof ctx.json === 'function') {
+              parsed = await ctx.json();
             }
-          }
-        } catch {}
+          } catch {}
+        }
 
-        if (parsed?.error === 'Free pack already claimed today') {
+        if (parsed?.error?.includes?.('already claimed') || parsed?.error?.includes?.('Free pack')) {
           const hours = Math.ceil((parsed.retryAfter || 0) / 3600);
           toast.error(t('packs.alreadyClaimed', `Pack déjà réclamé ! Reviens dans ~${hours}h`));
           return;
         }
 
         console.error('Edge function invoke error:', error);
-        toast.error(t('packs.serverError', 'Erreur serveur, réessaie plus tard'));
+        toast.error(parsed?.error || t('packs.serverError', 'Erreur serveur, réessaie plus tard'));
         return;
       }
       if (data?.error) {
