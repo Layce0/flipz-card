@@ -1,11 +1,15 @@
 import { useState, useCallback, useRef } from 'react';
 import packSachetImg from '@/assets/pack-sachet.png';
+import packUltraImg from '@/assets/pack-ultra.png';
 import packTopCapImg from '@/assets/pack-top-cap.png';
 import packBottomBodyImg from '@/assets/pack-bottom-body.png';
+
+export type PackAnimationType = 'standard' | 'lucky' | 'ultra' | 'free';
 
 interface PackOpeningAnimationProps {
   isOpen: boolean;
   onComplete: () => void;
+  packType?: PackAnimationType;
 }
 
 const SHAKE_CONFIGS = [
