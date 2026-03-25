@@ -19,7 +19,8 @@ const SHAKE_CONFIGS = [
   { displacement: 20, rotation: 7, duration: 450 },
 ];
 
-export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimationProps) => {
+export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free' }: PackOpeningAnimationProps) => {
+  const sachetImg = packType === 'ultra' ? packUltraImg : packSachetImg;
   const [tapCount, setTapCount] = useState(0);
   const [isTearing, setIsTearing] = useState(false);
   const [showParticles, setShowParticles] = useState(false);
