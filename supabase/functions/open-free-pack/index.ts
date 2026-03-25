@@ -104,17 +104,24 @@ Deno.serve(async (req) => {
     // Rate limit
     const rl = checkRateLimit(userId);
     if (!rl.allowed) {
-      return new Response(JSON.stringify({ error: 'Too many requests', retryAfter: rl.retryAfter }), {
-        status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': String(rl.retryAfter) }
+      return new Response(JSON.stringify({
+        success: false,
+        code: 'FREE_PACK_RATE_LIMIT',
+        error: 'Too many requests',
+        retryAfter: rl.retryAfter,
+      }), {
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': String(rl.retryAfter) }
       });
     }
 
-    // Server-side daily cooldown
-    const { data: streakRow } = await supabaseAdmin
+    // Server-side daily cooldown (strict 24h)
+    const { data: streakRow, error: streakError } = await supabaseAdmin
       .from('user_streaks')
       .select('last_free_pack_at')
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
+
+    if (streakError) throw streakError;
 
     const now = new Date();
     const lastFreePackAt = streakRow?.last_free_pack_at ? new Date(streakRow.last_free_pack_at) : null;
@@ -214,10 +221,12 @@ Deno.serve(async (req) => {
 
     if (insertError) throw insertError;
 
-    // Update daily cooldown timestamp
-    await supabaseAdmin
+    // Update daily cooldown timestamp (mandatory, fail hard if it can't persist)
+    const { error: streakUpdateError } = await supabaseAdmin
       .from('user_streaks')
       .upsert({ user_id: userId, last_free_pack_at: nowIso }, { onConflict: 'user_id' });
+
+    if (streakUpdateError) throw streakUpdateError;
 
     return new Response(JSON.stringify({ success: true, cards: selectedCards }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
