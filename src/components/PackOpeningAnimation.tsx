@@ -143,7 +143,7 @@ export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free' }: 
               }}
             >
               <img
-                src={packTopCapImg}
+                src={topImg}
                 alt=""
                 className="w-64 h-auto select-none"
                 draggable={false}
@@ -157,7 +157,7 @@ export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free' }: 
               }}
             >
               <img
-                src={packBottomBodyImg}
+                src={bottomImg}
                 alt=""
                 className="w-64 h-auto select-none"
                 draggable={false}
