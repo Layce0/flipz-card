@@ -1,11 +1,15 @@
 import { useState, useCallback, useRef } from 'react';
 import packSachetImg from '@/assets/pack-sachet.png';
+import packUltraImg from '@/assets/pack-ultra.png';
 import packTopCapImg from '@/assets/pack-top-cap.png';
 import packBottomBodyImg from '@/assets/pack-bottom-body.png';
+
+export type PackAnimationType = 'standard' | 'lucky' | 'ultra' | 'free';
 
 interface PackOpeningAnimationProps {
   isOpen: boolean;
   onComplete: () => void;
+  packType?: PackAnimationType;
 }
 
 const SHAKE_CONFIGS = [
@@ -15,7 +19,8 @@ const SHAKE_CONFIGS = [
   { displacement: 20, rotation: 7, duration: 450 },
 ];
 
-export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimationProps) => {
+export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free' }: PackOpeningAnimationProps) => {
+  const sachetImg = packType === 'ultra' ? packUltraImg : packSachetImg;
   const [tapCount, setTapCount] = useState(0);
   const [isTearing, setIsTearing] = useState(false);
   const [showParticles, setShowParticles] = useState(false);
@@ -119,7 +124,7 @@ export const PackOpeningAnimation = ({ isOpen, onComplete }: PackOpeningAnimatio
       <div ref={imgRef} className="relative z-10 pointer-events-none">
         {!isTearing ? (
           <img
-            src={packSachetImg}
+            src={sachetImg}
             alt="Pack Flipz"
             className="w-64 h-auto select-none drop-shadow-2xl"
             draggable={false}
