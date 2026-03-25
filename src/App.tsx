@@ -12,16 +12,14 @@ import { ActiveBoostsOverlay } from "@/components/ActiveBoostsOverlay";
 import { GlobalGifsOverlay } from "@/components/GlobalGifsOverlay";
 import { Loader2 } from "lucide-react";
 import Index from "./pages/Index";
-
-// Lazy load non-critical routes
-const Collection = lazy(() => import("./pages/Collection"));
-const Packs = lazy(() => import("./pages/Packs"));
-const Shop = lazy(() => import("./pages/Shop"));
-const Admin = lazy(() => import("./pages/Admin"));
-const Auth = lazy(() => import("./pages/Auth"));
-const ResetPassword = lazy(() => import("./pages/ResetPassword"));
-const Profile = lazy(() => import("./pages/Profile"));
-const NotFound = lazy(() => import("./pages/NotFound"));
+import Collection from "./pages/Collection";
+import Packs from "./pages/Packs";
+import Shop from "./pages/Shop";
+import Admin from "./pages/Admin";
+import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
+import Profile from "./pages/Profile";
+import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -52,19 +50,17 @@ const App = () => (
             <ActiveBoostsOverlay />
             <Suspense fallback={null}><OnboardingTutorial /></Suspense>
             <GlobalGifsOverlay />
-            <Suspense fallback={<PageLoader />}>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/collection" element={<Collection />} />
-                <Route path="/packs" element={<Packs />} />
-                <Route path="/shop" element={<Shop />} />
-                <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/collection" element={<Collection />} />
+              <Route path="/packs" element={<Packs />} />
+              <Route path="/shop" element={<Shop />} />
+              <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
           </div>
         </AuthProvider>
       </BrowserRouter>
