@@ -1,10 +1,13 @@
 import { useState, useCallback, useRef } from 'react';
 import packSachetImg from '@/assets/pack-sachet.png';
 import packUltraImg from '@/assets/pack-ultra.png';
+import packLuckyImg from '@/assets/pack-lucky.png';
 import packTopCapImg from '@/assets/pack-top-cap.png';
 import packBottomBodyImg from '@/assets/pack-bottom-body.png';
 import packUltraTopCapImg from '@/assets/pack-ultra-top-cap.png';
 import packUltraBottomBodyImg from '@/assets/pack-ultra-bottom-body.png';
+import packLuckyTopCapImg from '@/assets/pack-lucky-top-cap.png';
+import packLuckyBottomBodyImg from '@/assets/pack-lucky-bottom-body.png';
 
 export type PackAnimationType = 'standard' | 'lucky' | 'ultra' | 'free';
 
