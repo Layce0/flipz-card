@@ -3,6 +3,8 @@ import packSachetImg from '@/assets/pack-sachet.png';
 import packUltraImg from '@/assets/pack-ultra.png';
 import packTopCapImg from '@/assets/pack-top-cap.png';
 import packBottomBodyImg from '@/assets/pack-bottom-body.png';
+import packUltraTopCapImg from '@/assets/pack-ultra-top-cap.png';
+import packUltraBottomBodyImg from '@/assets/pack-ultra-bottom-body.png';
 
 export type PackAnimationType = 'standard' | 'lucky' | 'ultra' | 'free';
 
@@ -20,7 +22,10 @@ const SHAKE_CONFIGS = [
 ];
 
 export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free' }: PackOpeningAnimationProps) => {
-  const sachetImg = packType === 'ultra' ? packUltraImg : packSachetImg;
+  const isUltra = packType === 'ultra';
+  const sachetImg = isUltra ? packUltraImg : packSachetImg;
+  const topImg = isUltra ? packUltraTopCapImg : packTopCapImg;
+  const bottomImg = isUltra ? packUltraBottomBodyImg : packBottomBodyImg;
   const [tapCount, setTapCount] = useState(0);
   const [isTearing, setIsTearing] = useState(false);
   const [showParticles, setShowParticles] = useState(false);
@@ -138,7 +143,7 @@ export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free' }: 
               }}
             >
               <img
-                src={packTopCapImg}
+                src={topImg}
                 alt=""
                 className="w-64 h-auto select-none"
                 draggable={false}
@@ -152,7 +157,7 @@ export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free' }: 
               }}
             >
               <img
-                src={packBottomBodyImg}
+                src={bottomImg}
                 alt=""
                 className="w-64 h-auto select-none"
                 draggable={false}
