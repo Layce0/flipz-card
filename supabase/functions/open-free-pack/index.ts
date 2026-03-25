@@ -122,8 +122,14 @@ Deno.serve(async (req) => {
       const diffMs = now.getTime() - lastFreePackAt.getTime();
       if (diffMs < 24 * 3600 * 1000) {
         const retryAfterSec = Math.ceil((24 * 3600 * 1000 - diffMs) / 1000);
-        return new Response(JSON.stringify({ error: 'Free pack already claimed today', retryAfter: retryAfterSec }), {
-          status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': String(retryAfterSec) }
+        return new Response(JSON.stringify({
+          success: false,
+          code: 'FREE_PACK_COOLDOWN',
+          error: 'Free pack already claimed today',
+          retryAfter: retryAfterSec,
+        }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': String(retryAfterSec) }
         });
       }
     }
