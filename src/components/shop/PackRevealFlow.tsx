@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { MysteryCard } from '@/components/MysteryCard';
-import { PackOpeningAnimation } from '@/components/PackOpeningAnimation';
+import { PackOpeningAnimation, PackAnimationType } from '@/components/PackOpeningAnimation';
 import { Button } from '@/components/ui/button';
 import { X, Sparkles, ChevronLeft } from 'lucide-react';
 import { GameCard } from '@/types/card';
@@ -14,9 +14,10 @@ interface PackRevealFlowProps {
   isOpen: boolean;
   onClose: () => void;
   initialOwnedCardIds?: Set<string>;
+  packType?: PackAnimationType;
 }
 
-export const PackRevealFlow = ({ cards, isOpen, onClose, initialOwnedCardIds }: PackRevealFlowProps) => {
+export const PackRevealFlow = ({ cards, isOpen, onClose, initialOwnedCardIds, packType }: PackRevealFlowProps) => {
   const { user } = useAuth();
   const { data: userCards = [] } = useUserCards(user?.id);
   const [ownedSnapshot, setOwnedSnapshot] = useState<Set<string>>(new Set());
@@ -165,6 +166,7 @@ export const PackRevealFlow = ({ cards, isOpen, onClose, initialOwnedCardIds }: 
       <PackOpeningAnimation
         isOpen={true}
         onComplete={handlePackAnimationComplete}
+        packType={packType}
       />
     );
   }

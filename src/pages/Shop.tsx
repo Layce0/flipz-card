@@ -27,6 +27,7 @@ const Shop = () => {
   const [loadingPackId, setLoadingPackId] = useState<string | null>(null);
   const [isTrading, setIsTrading] = useState(false);
   const [purchasedCards, setPurchasedCards] = useState<any[]>([]);
+  const [purchasedPackType, setPurchasedPackType] = useState<string>('standard');
   const [showPurchaseReward, setShowPurchaseReward] = useState(false);
   const [verifyingPurchase, setVerifyingPurchase] = useState(false);
 
@@ -87,6 +88,7 @@ const Shop = () => {
 
         if (data.cards && data.cards.length > 0) {
           setPurchasedCards(data.cards);
+          setPurchasedPackType(packType);
           setShowPurchaseReward(true);
           toast.success(t('shop.cardsReceived', { count: data.cardCount }));
           refetchCards();
@@ -241,6 +243,7 @@ const Shop = () => {
         cards={purchasedCards}
         isOpen={showPurchaseReward}
         onClose={handleClosePurchaseReveal}
+        packType={purchasedPackType as any}
       />
 
       <Navigation />
