@@ -163,7 +163,7 @@ export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free' }: 
               <img
                 src={bottomImg}
                 alt=""
-                className="w-64 h-auto select-none"
+                className={`h-auto select-none ${isLucky ? 'w-72' : 'w-64'}`}
                 draggable={false}
               />
             </div>
