@@ -58,13 +58,37 @@ const Packs = () => {
     try {
       const { data, error } = await invokeEdgeFunction('open-free-pack');
       if (error) {
+        // Try to parse the response body for structured errors (e.g. 429)
+        let parsed: any = null;
+        try {
+          if (error.context?.body) {
+            parsed = JSON.parse(error.context.body);
+          } else if ((error as any).message) {
+            // Sometimes the body is embedded differently
+            const res = (error as any).context;
+            if (res && typeof res.json === 'function') {
+              parsed = await res.json();
+            }
+          }
+        } catch {}
+
+        if (parsed?.error === 'Free pack already claimed today') {
+          const hours = Math.ceil((parsed.retryAfter || 0) / 3600);
+          toast.error(t('packs.alreadyClaimed', `Pack déjà réclamé ! Reviens dans ~${hours}h`));
+          return;
+        }
+
         console.error('Edge function invoke error:', error);
-        toast.error(`Edge error: ${error.message || JSON.stringify(error)}`);
+        toast.error(t('packs.serverError', 'Erreur serveur, réessaie plus tard'));
         return;
       }
       if (data?.error) {
-        console.error('Edge function returned error:', data);
-        toast.error(`Server: ${data.error}${data.detail ? ' — ' + data.detail : ''}${data.retryAfter ? ' (retry ' + data.retryAfter + 's)' : ''}`);
+        if (data.error === 'Free pack already claimed today') {
+          const hours = Math.ceil((data.retryAfter || 0) / 3600);
+          toast.error(t('packs.alreadyClaimed', `Pack déjà réclamé ! Reviens dans ~${hours}h`));
+          return;
+        }
+        toast.error(`${data.error}`);
         return;
       }
       
