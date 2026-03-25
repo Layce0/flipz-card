@@ -123,23 +123,7 @@ Deno.serve(async (req) => {
 
     if (streakError) throw streakError;
 
-    const now = new Date();
-    const lastFreePackAt = streakRow?.last_free_pack_at ? new Date(streakRow.last_free_pack_at) : null;
-    if (lastFreePackAt) {
-      const diffMs = now.getTime() - lastFreePackAt.getTime();
-      if (diffMs < 24 * 3600 * 1000) {
-        const retryAfterSec = Math.ceil((24 * 3600 * 1000 - diffMs) / 1000);
-        return new Response(JSON.stringify({
-          success: false,
-          code: 'FREE_PACK_COOLDOWN',
-          error: 'Free pack already claimed today',
-          retryAfter: retryAfterSec,
-        }), {
-          status: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': String(retryAfterSec) }
-        });
-      }
-    }
+    // No daily cooldown — free packs are unlimited
 
     // Fetch cards
     const { data: cards, error: cardsError } = await supabaseAdmin.from('cards').select('*');
