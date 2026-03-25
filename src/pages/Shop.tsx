@@ -76,6 +76,7 @@ const Shop = () => {
     }
 
     setLoadingPackId(packId);
+    const derivedPackType = packId.split('_')[0] || 'standard';
 
     try {
       if (isModerator) {
