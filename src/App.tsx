@@ -10,7 +10,6 @@ import { AdminRoute } from "@/components/AdminRoute";
 import { ParticlesBackground } from "@/components/ParticlesBackground";
 import { ActiveBoostsOverlay } from "@/components/ActiveBoostsOverlay";
 import { GlobalGifsOverlay } from "@/components/GlobalGifsOverlay";
-import { Loader2 } from "lucide-react";
 import Index from "./pages/Index";
 import Collection from "./pages/Collection";
 import Packs from "./pages/Packs";
@@ -31,12 +30,6 @@ const queryClient = new QueryClient({
     },
   },
 });
-
-const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center">
-    <Loader2 className="w-8 h-8 animate-spin text-primary" />
-  </div>
-);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
