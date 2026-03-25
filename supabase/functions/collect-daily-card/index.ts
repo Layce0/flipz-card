@@ -91,9 +91,9 @@ Deno.serve(async (req) => {
 
     if (existing && existing.length > 0) {
       return new Response(
-        JSON.stringify({ error: "Carte déjà collectée aujourd'hui", card: todayCard }),
+        JSON.stringify({ success: false, code: 'ALREADY_COLLECTED', card: todayCard }),
         {
-          status: 409,
+          status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
