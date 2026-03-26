@@ -18,7 +18,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAllCards, useCreateCard, useDeleteCard, useUploadCardImage, useGiveCard, useAllProfiles } from '@/hooks/useCards';
 import { useUpdateCard } from '@/hooks/useUpdateCard';
-import { useDropRates, useUpdateDropRate } from '@/hooks/useDropRates';
+
 import { cn } from '@/lib/utils';
 
 const Admin = () => {
@@ -28,15 +28,11 @@ const Admin = () => {
   
   const { data: cards = [], isLoading: cardsLoading } = useAllCards();
   const { data: profiles = [], isLoading: profilesLoading } = useAllProfiles();
-  const { data: dropRates = [], isLoading: dropRatesLoading } = useDropRates();
   const createCard = useCreateCard();
   const deleteCard = useDeleteCard();
   const updateCard = useUpdateCard();
   const uploadImage = useUploadCardImage();
   const giveCard = useGiveCard();
-  const updateDropRate = useUpdateDropRate();
-
-  const [editedRates, setEditedRates] = useState<Record<string, number>>({});
   const [editingCard, setEditingCard] = useState<GameCard | null>(null);
   const [editFormData, setEditFormData] = useState({
     title: '',
@@ -464,82 +460,6 @@ const Admin = () => {
               )}
             </Button>
           </form>
-        </section>
-
-        {/* Drop rates editor */}
-        <section>
-          <h2 className="font-display text-lg mb-4 text-foreground">
-            Taux d'obtention
-          </h2>
-          {dropRatesLoading ? (
-            <div className="flex justify-center py-4">
-              <Loader2 className="w-6 h-6 animate-spin text-primary" />
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {Object.entries(RARITY_CONFIG).map(([key, config]) => {
-                const dbRate = dropRates.find(dr => dr.rarity === key);
-                const currentRate = editedRates[key] ?? dbRate?.rate ?? config.dropRate;
-                const hasChanged = editedRates[key] !== undefined && editedRates[key] !== dbRate?.rate;
-                
-                return (
-                  <div 
-                    key={key}
-                    className="p-4 rounded-xl bg-card border border-border"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span 
-                        className={cn(
-                          "px-2 py-0.5 rounded-full text-xs font-semibold uppercase shrink-0",
-                          config.bgClass
-                        )}
-                        style={{ color: key === 'legendary' ? 'hsl(240, 20%, 6%)' : 'white' }}
-                      >
-                        {config.label}
-                      </span>
-                      <div className="flex-1 flex items-center gap-2">
-                        <Input
-                          type="number"
-                          min={0}
-                          max={100}
-                          value={currentRate}
-                          onChange={(e) => setEditedRates(prev => ({ ...prev, [key]: parseInt(e.target.value) || 0 }))}
-                          className="w-20 bg-background"
-                        />
-                        <span className="text-muted-foreground">%</span>
-                      </div>
-                      {hasChanged && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={async () => {
-                            try {
-                              await updateDropRate.mutateAsync({ rarity: key, rate: editedRates[key] });
-                              setEditedRates(prev => {
-                                const next = { ...prev };
-                                delete next[key];
-                                return next;
-                              });
-                              toast.success(`Taux de ${config.label} mis à jour !`);
-                            } catch (error) {
-                              toast.error("Erreur lors de la mise à jour");
-                            }
-                          }}
-                          disabled={updateDropRate.isPending}
-                        >
-                          {updateDropRate.isPending ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Save className="w-4 h-4" />
-                          )}
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
         </section>
 
         {/* Pack Probabilities Manager */}

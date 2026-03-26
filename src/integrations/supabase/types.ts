@@ -88,30 +88,6 @@ export type Database = {
           },
         ]
       }
-      drop_rates: {
-        Row: {
-          created_at: string
-          id: string
-          rarity: string
-          rate: number
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          rarity: string
-          rate?: number
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          rarity?: string
-          rate?: number
-          updated_at?: string
-        }
-        Relationships: []
-      }
       event_logs: {
         Row: {
           action: string
