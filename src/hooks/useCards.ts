@@ -278,7 +278,7 @@ export const useRandomCards = () => {
 
       // Fetch probability tables from database
       const { data: probRows, error: probError } = await supabase
-        .from('pack_probability_tables' as any)
+        .from('pack_probability_tables')
         .select('*');
 
       if (probError) throw probError;
@@ -297,12 +297,15 @@ export const useRandomCards = () => {
 
       // Fallback hardcoded table in case DB is empty
       const FALLBACK: Record<string, number> = { common: 60, rare: 25, epic: 12, legendary: 3 };
-
-      // Select the right table based on pack type
       const effectiveLuck = luckMultiplier > 1 ? luckMultiplier : 1;
-      let tableKey = 'standard';
-      if (packType === 'lucky') tableKey = 'lucky';
-      else if (packType === 'ultra_lucky' || packType === 'ultra') tableKey = 'ultra_lucky';
+
+      // Map packType to database pack_type key
+      // Client-side useRandomCards is used for trades, which use "free" rates by default
+      let tableKey = 'free';
+      if (packType === 'standard') tableKey = 'free';
+      else if (packType === 'lucky') tableKey = 'free';
+      else if (packType === 'ultra_lucky' || packType === 'ultra') tableKey = 'free';
+      // Paid/code/winstreak packs use edge functions, not this client-side code
 
       const tableSet = allTables[tableKey] || {};
       const adjustedWeights: Record<string, number> = tableSet[effectiveLuck]
