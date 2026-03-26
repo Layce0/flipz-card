@@ -11,6 +11,7 @@ import { Shield, Plus, Trash2, Upload, Loader2, Gift, Save, Pencil } from 'lucid
 import { RewardCodesManager } from '@/components/admin/RewardCodesManager';
 import { WinstreakRewardsManager } from '@/components/admin/WinstreakRewardsManager';
 import { GlobalGifsManager } from '@/components/admin/GlobalGifsManager';
+import { PackProbabilitiesManager } from '@/components/admin/PackProbabilitiesManager';
 import { UserAccountManager } from '@/components/admin/UserAccountManager';
 import { Rarity, RARITY_CONFIG, GameCard } from '@/types/card';
 import { toast } from 'sonner';
@@ -540,6 +541,9 @@ const Admin = () => {
             </div>
           )}
         </section>
+
+        {/* Pack Probabilities Manager */}
+        <PackProbabilitiesManager />
 
         {/* Reward Codes Manager */}
         <RewardCodesManager />

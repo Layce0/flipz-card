@@ -276,45 +276,38 @@ export const useRandomCards = () => {
         applyBoost(reward.reward_type, (reward.reward_config as Record<string, any>) || {});
       });
 
-      // Fixed probability tables for luck boost multipliers
-      const LUCK_TABLES: Record<number, Record<string, number>> = {
-        1:   { common: 60, rare: 25, epic: 12, legendary: 3 },
-        1.5: { common: 30, rare: 47.5, epic: 16.5, legendary: 6 },
-        2:   { common: 30, rare: 40, epic: 22, legendary: 8 },
-        2.5: { common: 27, rare: 35.5, epic: 27.5, legendary: 10 },
-        3:   { common: 25, rare: 30, epic: 33, legendary: 12 },
-        3.5: { common: 20, rare: 27.5, epic: 38.5, legendary: 14 },
-        4:   { common: 10, rare: 30, epic: 44, legendary: 16 },
-      };
+      // Fetch probability tables from database
+      const { data: probRows, error: probError } = await supabase
+        .from('pack_probability_tables' as any)
+        .select('*');
 
-      const LUCKY_PACK_TABLES: Record<number, Record<string, number>> = {
-        1:   { common: 30, rare: 40, epic: 22, legendary: 8 },
-        1.5: { common: 20, rare: 35, epic: 33, legendary: 12 },
-        2:   { common: 15, rare: 25, epic: 44, legendary: 16 },
-        2.5: { common: 10, rare: 15, epic: 55, legendary: 20 },
-        3:   { common: 2.5, rare: 7.5, epic: 66, legendary: 24 },
-        3.5: { common: 2.5, rare: 2.5, epic: 67, legendary: 28 },
-        4:   { common: 0.5, rare: 0.5, epic: 67, legendary: 32 },
-      };
+      if (probError) throw probError;
 
-      const ULTRA_LUCKY_PACK_TABLES: Record<number, Record<string, number>> = {
-        1:   { common: 10, rare: 15, epic: 55, legendary: 20 },
-        1.5: { common: 2.5, rare: 5, epic: 62.5, legendary: 30 },
-        2:   { common: 1, rare: 1, epic: 58, legendary: 40 },
-        2.5: { common: 0.5, rare: 0.5, epic: 49, legendary: 50 },
-        3:   { common: 0.25, rare: 0.25, epic: 39.5, legendary: 60 },
-        3.5: { common: 0.1, rare: 0.1, epic: 29.8, legendary: 70 },
-        4:   { common: 0.05, rare: 0.05, epic: 19.9, legendary: 80 },
-      };
+      // Build lookup: { pack_type: { luck_multiplier: { rarity: rate } } }
+      const allTables: Record<string, Record<number, Record<string, number>>> = {};
+      ((probRows || []) as any[]).forEach((row: any) => {
+        if (!allTables[row.pack_type]) allTables[row.pack_type] = {};
+        allTables[row.pack_type][Number(row.luck_multiplier)] = {
+          common: Number(row.common_rate),
+          rare: Number(row.rare_rate),
+          epic: Number(row.epic_rate),
+          legendary: Number(row.legendary_rate),
+        };
+      });
+
+      // Fallback hardcoded table in case DB is empty
+      const FALLBACK: Record<string, number> = { common: 60, rare: 25, epic: 12, legendary: 3 };
 
       // Select the right table based on pack type
       const effectiveLuck = luckMultiplier > 1 ? luckMultiplier : 1;
-      let tableSet = LUCK_TABLES;
-      if (packType === 'lucky') tableSet = LUCKY_PACK_TABLES;
-      else if (packType === 'ultra_lucky' || packType === 'ultra') tableSet = ULTRA_LUCKY_PACK_TABLES;
+      let tableKey = 'standard';
+      if (packType === 'lucky') tableKey = 'lucky';
+      else if (packType === 'ultra_lucky' || packType === 'ultra') tableKey = 'ultra_lucky';
 
-      const adjustedWeights: Record<string, number> = tableSet[effectiveLuck] 
-        ?? tableSet[1];
+      const tableSet = allTables[tableKey] || {};
+      const adjustedWeights: Record<string, number> = tableSet[effectiveLuck]
+        ?? tableSet[1]
+        ?? FALLBACK;
 
       // Build weighted card pool
       const weightedCards: GameCard[] = [];

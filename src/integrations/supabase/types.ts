@@ -328,6 +328,42 @@ export type Database = {
           },
         ]
       }
+      pack_probability_tables: {
+        Row: {
+          common_rate: number
+          created_at: string
+          epic_rate: number
+          id: string
+          legendary_rate: number
+          luck_multiplier: number
+          pack_type: string
+          rare_rate: number
+          updated_at: string
+        }
+        Insert: {
+          common_rate?: number
+          created_at?: string
+          epic_rate?: number
+          id?: string
+          legendary_rate?: number
+          luck_multiplier?: number
+          pack_type: string
+          rare_rate?: number
+          updated_at?: string
+        }
+        Update: {
+          common_rate?: number
+          created_at?: string
+          epic_rate?: number
+          id?: string
+          legendary_rate?: number
+          luck_multiplier?: number
+          pack_type?: string
+          rare_rate?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
