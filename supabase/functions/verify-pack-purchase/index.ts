@@ -151,13 +151,6 @@ serve(async (req) => {
     if (cardsError) throw cardsError;
     if (!cards || cards.length === 0) throw new Error("No cards available");
 
-    // Get drop rates and active boosts from database
-    const { data: dropRates, error: ratesError } = await supabaseClient
-      .from('drop_rates')
-      .select('*');
-
-    if (ratesError) throw ratesError;
-
     // Check for active boosts (luck + pack) from codes AND winstreak
     let luckMultiplier = 1;
     let bonusCards = 0;
