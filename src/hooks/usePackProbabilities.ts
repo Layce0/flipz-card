@@ -56,7 +56,7 @@ export const usePackProbabilities = () => {
     queryKey: ['pack-probabilities'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('pack_probability_tables' as any)
+        .from('pack_probability_tables')
         .select('*')
         .order('pack_type')
         .order('luck_multiplier');
@@ -85,14 +85,14 @@ export const useUpdatePackProbability = () => {
       legendary_rate: number;
     }) => {
       const { error } = await supabase
-        .from('pack_probability_tables' as any)
+        .from('pack_probability_tables')
         .update({
           common_rate,
           rare_rate,
           epic_rate,
           legendary_rate,
           updated_at: new Date().toISOString(),
-        } as any)
+        })
         .eq('id', id);
 
       if (error) throw error;

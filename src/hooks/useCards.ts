@@ -278,7 +278,7 @@ export const useRandomCards = () => {
 
       // Fetch probability tables from database
       const { data: probRows, error: probError } = await supabase
-        .from('pack_probability_tables' as any)
+        .from('pack_probability_tables')
         .select('*');
 
       if (probError) throw probError;
