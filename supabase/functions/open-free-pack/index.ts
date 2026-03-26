@@ -209,6 +209,8 @@ Deno.serve(async (req) => {
     const effectiveLuck = luckMultiplier > 1 ? luckMultiplier : 1;
     const weights = dbTable[effectiveLuck] ?? dbTable[1] ?? FALLBACK_WEIGHTS;
 
+    const selectedCards = generateWeightedCards(cards, weights, finalCardCount);
+
     // Insert cards server-side
     const { error: insertError } = await supabaseAdmin
       .from('user_cards')
