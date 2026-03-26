@@ -542,6 +542,9 @@ const Admin = () => {
           )}
         </section>
 
+        {/* Pack Probabilities Manager */}
+        <PackProbabilitiesManager />
+
         {/* Reward Codes Manager */}
         <RewardCodesManager />
 
