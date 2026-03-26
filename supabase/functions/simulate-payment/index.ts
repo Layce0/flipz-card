@@ -97,6 +97,60 @@ serve(async (req) => {
     const cardCount = packConfig.cardCount;
     const packType = packConfig.type;
 
+    // Check for active boosts (luck + pack) from codes AND winstreak
+    let luckMultiplier = 1;
+    let bonusCards = 0;
+    let cardMultiplier = 1;
+    const now = new Date().toISOString();
+
+    const applyBoost = (rewardType: string, config: Record<string, any>) => {
+      if (rewardType === 'boost_luck' && config?.multiplier) {
+        luckMultiplier = Math.max(luckMultiplier, Number(config.multiplier));
+      }
+      if (rewardType === 'boost_pack') {
+        if (config?.bonus) bonusCards = Math.max(bonusCards, Number(config.bonus));
+        if (config?.multiplier) cardMultiplier = Math.max(cardMultiplier, Number(config.multiplier));
+      }
+    };
+
+    const { data: activeRedemptions } = await supabaseClient
+      .from('code_redemptions')
+      .select('code_id, boost_expires_at')
+      .eq('user_id', user.id)
+      .gt('boost_expires_at', now);
+
+    if (activeRedemptions && activeRedemptions.length > 0) {
+      const codeIds = activeRedemptions.map((r: any) => r.code_id);
+      const { data: codes } = await supabaseClient
+        .from('reward_codes')
+        .select('id, reward_type, reward_config')
+        .in('id', codeIds);
+
+      (codes || []).forEach((code: any) => {
+        applyBoost(code.reward_type, code.reward_config as Record<string, any>);
+      });
+    }
+
+    const { data: wsClaims } = await supabaseClient
+      .from('winstreak_claims')
+      .select('reward_id, boost_expires_at')
+      .eq('user_id', user.id)
+      .gt('boost_expires_at', now);
+
+    if (wsClaims && wsClaims.length > 0) {
+      const rewardIds = wsClaims.map((c: any) => c.reward_id);
+      const { data: rewards } = await supabaseClient
+        .from('winstreak_rewards')
+        .select('id, reward_type, reward_config')
+        .in('id', rewardIds);
+
+      (rewards || []).forEach((r: any) => {
+        applyBoost(r.reward_type, r.reward_config as Record<string, any>);
+      });
+    }
+
+    const finalCardCount = Math.round(cardCount * cardMultiplier) + bonusCards;
+
     // Fetch probability tables from database
     let dbPackType = 'paid_standard';
     if (packType === 'lucky') dbPackType = 'paid_lucky';
@@ -105,35 +159,62 @@ serve(async (req) => {
     const { data: probRows, error: probError } = await supabaseClient
       .from('pack_probability_tables')
       .select('*')
-      .eq('pack_type', dbPackType)
-      .eq('luck_multiplier', 1);
+      .eq('pack_type', dbPackType);
 
     if (probError) throw probError;
 
-    const weights: Record<string, number> = probRows && probRows.length > 0
-      ? {
-          common: Number(probRows[0].common_rate),
-          rare: Number(probRows[0].rare_rate),
-          epic: Number(probRows[0].epic_rate),
-          legendary: Number(probRows[0].legendary_rate),
-        }
-      : { common: 60, rare: 25, epic: 12, legendary: 3 };
-
-    const weightedCards: any[] = [];
-    cards.forEach(card => {
-      const weight = Math.round(weights[card.rarity] ?? 1);
-      for (let i = 0; i < weight; i++) {
-        weightedCards.push(card);
-      }
+    const dbTable: Record<number, Record<string, number>> = {};
+    (probRows || []).forEach((row: any) => {
+      dbTable[Number(row.luck_multiplier)] = {
+        common: Number(row.common_rate),
+        rare: Number(row.rare_rate),
+        epic: Number(row.epic_rate),
+        legendary: Number(row.legendary_rate),
+      };
     });
 
-    const selectedCards: any[] = [];
-    for (let i = 0; i < cardCount; i++) {
-      const randomIndex = Math.floor(Math.random() * weightedCards.length);
-      selectedCards.push(weightedCards[randomIndex]);
+    const FALLBACK: Record<string, number> = { common: 60, rare: 25, epic: 12, legendary: 3 };
+    const effectiveLuck = luckMultiplier > 1 ? luckMultiplier : 1;
+    const weights = dbTable[effectiveLuck] ?? dbTable[1] ?? FALLBACK;
+
+    const rarityOrder = ['common', 'rare', 'epic', 'legendary'];
+    const cardsByRarity = cards.reduce((acc: Record<string, any[]>, card: any) => {
+      const rarity = card.rarity as string;
+      if (!acc[rarity]) acc[rarity] = [];
+      acc[rarity].push(card);
+      return acc;
+    }, {});
+
+    const effectiveWeights: Record<string, number> = {};
+    rarityOrder.forEach((rarity) => {
+      effectiveWeights[rarity] = cardsByRarity[rarity]?.length ? Math.max(0, Number(weights[rarity] ?? 0)) : 0;
+    });
+
+    let totalWeight = rarityOrder.reduce((sum, rarity) => sum + effectiveWeights[rarity], 0);
+    if (totalWeight <= 0) {
+      rarityOrder.forEach((rarity) => {
+        if (cardsByRarity[rarity]?.length) effectiveWeights[rarity] = 1;
+      });
+      totalWeight = rarityOrder.reduce((sum, rarity) => sum + effectiveWeights[rarity], 0);
     }
 
-    logStep("Selected cards", { count: selectedCards.length });
+    const pickRarity = () => {
+      let roll = Math.random() * totalWeight;
+      for (const rarity of rarityOrder) {
+        roll -= effectiveWeights[rarity];
+        if (roll <= 0) return rarity;
+      }
+      return 'common';
+    };
+
+    const selectedCards: any[] = [];
+    for (let i = 0; i < finalCardCount; i++) {
+      const rarity = pickRarity();
+      const pool = cardsByRarity[rarity] ?? cards;
+      selectedCards.push(pool[Math.floor(Math.random() * pool.length)]);
+    }
+
+    logStep("Selected cards", { count: selectedCards.length, packType: dbPackType, effectiveLuck });
 
     // Insert cards into user_cards
     const cardsToInsert = selectedCards.map(card => ({
