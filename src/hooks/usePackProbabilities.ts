@@ -13,11 +13,41 @@ export interface PackProbabilityRow {
   updated_at: string;
 }
 
-export const PACK_TYPES = [
-  { value: 'standard', label: 'Standard (Gratuit)' },
-  { value: 'lucky', label: 'Chanceux' },
-  { value: 'ultra_lucky', label: 'Ultra Légendaire' },
+export const PACK_TYPE_GROUPS = [
+  {
+    label: '🎁 Pack Gratuit',
+    types: [
+      { value: 'free', label: 'Gratuit' },
+    ],
+  },
+  {
+    label: '💰 Packs Payants',
+    types: [
+      { value: 'paid_standard', label: 'Standard' },
+      { value: 'paid_lucky', label: 'Chanceux' },
+      { value: 'paid_ultra', label: 'Ultra Légendaire' },
+    ],
+  },
+  {
+    label: '🎟️ Packs Code Promo',
+    types: [
+      { value: 'code_standard', label: 'Standard' },
+      { value: 'code_lucky', label: 'Chanceux' },
+      { value: 'code_ultra', label: 'Ultra Légendaire' },
+    ],
+  },
+  {
+    label: '🔥 Packs Winstreak',
+    types: [
+      { value: 'winstreak_standard', label: 'Standard' },
+      { value: 'winstreak_lucky', label: 'Chanceux' },
+      { value: 'winstreak_ultra', label: 'Ultra Légendaire' },
+    ],
+  },
 ] as const;
+
+// Flat list for backward compat
+export const PACK_TYPES = PACK_TYPE_GROUPS.flatMap(g => [...g.types]) as { value: string; label: string }[];
 
 export const LUCK_MULTIPLIERS = [1, 1.5, 2, 2.5, 3, 3.5, 4] as const;
 

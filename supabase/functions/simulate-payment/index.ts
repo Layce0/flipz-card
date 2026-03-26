@@ -98,9 +98,9 @@ serve(async (req) => {
     const packType = packConfig.type;
 
     // Fetch probability tables from database
-    let dbPackType = 'standard';
-    if (packType === 'lucky') dbPackType = 'lucky';
-    else if (packType === 'ultra' || packType === 'ultra_lucky') dbPackType = 'ultra_lucky';
+    let dbPackType = 'paid_standard';
+    if (packType === 'lucky') dbPackType = 'paid_lucky';
+    else if (packType === 'ultra' || packType === 'ultra_lucky') dbPackType = 'paid_ultra';
 
     const { data: probRows, error: probError } = await supabaseClient
       .from('pack_probability_tables')
