@@ -238,19 +238,42 @@ serve(async (req) => {
 
     logStep("Calculated weights", { packType, multiplier, luckMultiplier, effectiveLuck, finalCardCount, normalizedWeights });
 
-    // Generate weighted random cards
-    const weightedCards: any[] = [];
-    cards.forEach(card => {
-      const weight = Math.round(normalizedWeights[card.rarity] ?? 1);
-      for (let i = 0; i < weight; i++) {
-        weightedCards.push(card);
-      }
+    // Generate random cards by rarity weights (rarity chance independent from card catalog size)
+    const rarityOrder = ['common', 'rare', 'epic', 'legendary'];
+    const cardsByRarity = cards.reduce((acc: Record<string, any[]>, card: any) => {
+      const rarity = card.rarity as string;
+      if (!acc[rarity]) acc[rarity] = [];
+      acc[rarity].push(card);
+      return acc;
+    }, {});
+
+    const effectiveWeights: Record<string, number> = {};
+    rarityOrder.forEach((rarity) => {
+      effectiveWeights[rarity] = cardsByRarity[rarity]?.length ? Math.max(0, Number(normalizedWeights[rarity] ?? 0)) : 0;
     });
+
+    let totalWeight = rarityOrder.reduce((sum, rarity) => sum + effectiveWeights[rarity], 0);
+    if (totalWeight <= 0) {
+      rarityOrder.forEach((rarity) => {
+        if (cardsByRarity[rarity]?.length) effectiveWeights[rarity] = 1;
+      });
+      totalWeight = rarityOrder.reduce((sum, rarity) => sum + effectiveWeights[rarity], 0);
+    }
+
+    const pickRarity = () => {
+      let roll = Math.random() * totalWeight;
+      for (const rarity of rarityOrder) {
+        roll -= effectiveWeights[rarity];
+        if (roll <= 0) return rarity;
+      }
+      return 'common';
+    };
 
     const selectedCards: any[] = [];
     for (let i = 0; i < finalCardCount; i++) {
-      const randomIndex = Math.floor(Math.random() * weightedCards.length);
-      selectedCards.push(weightedCards[randomIndex]);
+      const rarity = pickRarity();
+      const pool = cardsByRarity[rarity] ?? cards;
+      selectedCards.push(pool[Math.floor(Math.random() * pool.length)]);
     }
 
     logStep("Selected cards", { count: selectedCards.length });

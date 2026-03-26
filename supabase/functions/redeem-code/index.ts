@@ -236,15 +236,41 @@ Deno.serve(async (req) => {
       const effectiveLuck = luckMult > 1 ? luckMult : 1
       const weights: Record<string, number> = dbTable[effectiveLuck] ?? dbTable[1] ?? FALLBACK
 
-      // Build weighted pool and select cards
-      const pool: any[] = []
-      allCards.forEach((card: any) => {
-        const w = Math.round(weights[card.rarity] ?? 1)
-        for (let i = 0; i < w; i++) pool.push(card)
+      // Select by rarity weights (independent from catalog size)
+      const rarityOrder = ['common', 'rare', 'epic', 'legendary']
+      const cardsByRarity = allCards.reduce((acc: Record<string, any[]>, card: any) => {
+        const rarity = card.rarity as string
+        if (!acc[rarity]) acc[rarity] = []
+        acc[rarity].push(card)
+        return acc
+      }, {})
+
+      const effectiveWeights: Record<string, number> = {}
+      rarityOrder.forEach((rarity) => {
+        effectiveWeights[rarity] = cardsByRarity[rarity]?.length ? Math.max(0, Number(weights[rarity] ?? 0)) : 0
       })
+
+      let totalWeight = rarityOrder.reduce((sum, rarity) => sum + effectiveWeights[rarity], 0)
+      if (totalWeight <= 0) {
+        rarityOrder.forEach((rarity) => {
+          if (cardsByRarity[rarity]?.length) effectiveWeights[rarity] = 1
+        })
+        totalWeight = rarityOrder.reduce((sum, rarity) => sum + effectiveWeights[rarity], 0)
+      }
+
+      const pickRarity = () => {
+        let roll = Math.random() * totalWeight
+        for (const rarity of rarityOrder) {
+          roll -= effectiveWeights[rarity]
+          if (roll <= 0) return rarity
+        }
+        return 'common'
+      }
 
       const selectedCards: any[] = []
       for (let i = 0; i < finalCardCount; i++) {
+        const rarity = pickRarity()
+        const pool = cardsByRarity[rarity] ?? allCards
         selectedCards.push(pool[Math.floor(Math.random() * pool.length)])
       }
 

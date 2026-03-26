@@ -312,24 +312,48 @@ export const useRandomCards = () => {
         ?? tableSet[1]
         ?? FALLBACK;
 
-      // Build weighted card pool
-      const weightedCards: GameCard[] = [];
-      cards.forEach(card => {
-        const weight = adjustedWeights[card.rarity] ?? 1;
-        for (let i = 0; i < weight; i++) {
-          weightedCards.push(card as GameCard);
+      // Generate cards by rarity weights (rarity chance independent from card catalog size)
+      const cardsByRarity = cards.reduce((acc, card) => {
+        const rarity = card.rarity as string;
+        if (!acc[rarity]) acc[rarity] = [];
+        acc[rarity].push(card as GameCard);
+        return acc;
+      }, {} as Record<string, GameCard[]>);
+
+      const rarityOrder = ['common', 'rare', 'epic', 'legendary'];
+      const effectiveWeights = rarityOrder.reduce((acc, rarity) => {
+        acc[rarity] = cardsByRarity[rarity]?.length ? Math.max(0, Number(adjustedWeights[rarity] ?? 0)) : 0;
+        return acc;
+      }, {} as Record<string, number>);
+
+      let totalWeight = rarityOrder.reduce((sum, rarity) => sum + effectiveWeights[rarity], 0);
+      if (totalWeight <= 0) {
+        rarityOrder.forEach((rarity) => {
+          if (cardsByRarity[rarity]?.length) effectiveWeights[rarity] = 1;
+        });
+        totalWeight = rarityOrder.reduce((sum, rarity) => sum + effectiveWeights[rarity], 0);
+      }
+
+      const pickRarity = () => {
+        let roll = Math.random() * totalWeight;
+        for (const rarity of rarityOrder) {
+          roll -= effectiveWeights[rarity];
+          if (roll <= 0) return rarity;
         }
-      });
+        return 'common';
+      };
 
       // Apply pack bonuses to card count
       const finalCount = Math.max(1, Math.round(count * packMultiplier) + packBonusCards);
-      
+
       const result: GameCard[] = [];
       for (let i = 0; i < finalCount; i++) {
-        const randomIndex = Math.floor(Math.random() * weightedCards.length);
-        result.push(weightedCards[randomIndex]);
+        const rarity = pickRarity();
+        const pool = cardsByRarity[rarity] ?? cards;
+        const randomIndex = Math.floor(Math.random() * pool.length);
+        result.push(pool[randomIndex]);
       }
-      
+
       return result;
     },
   });
