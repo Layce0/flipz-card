@@ -97,13 +97,27 @@ serve(async (req) => {
     const cardCount = packConfig.cardCount;
     const packType = packConfig.type;
 
-    const LUCK_TABLES: Record<string, Record<string, number>> = {
-      standard: { common: 60, rare: 25, epic: 12, legendary: 3 },
-      lucky: { common: 30, rare: 40, epic: 22, legendary: 8 },
-      ultra: { common: 10, rare: 15, epic: 55, legendary: 20 },
-    };
+    // Fetch probability tables from database
+    let dbPackType = 'standard';
+    if (packType === 'lucky') dbPackType = 'lucky';
+    else if (packType === 'ultra' || packType === 'ultra_lucky') dbPackType = 'ultra_lucky';
 
-    const weights = LUCK_TABLES[packType] ?? LUCK_TABLES['standard'];
+    const { data: probRows, error: probError } = await supabaseClient
+      .from('pack_probability_tables')
+      .select('*')
+      .eq('pack_type', dbPackType)
+      .eq('luck_multiplier', 1);
+
+    if (probError) throw probError;
+
+    const weights: Record<string, number> = probRows && probRows.length > 0
+      ? {
+          common: Number(probRows[0].common_rate),
+          rare: Number(probRows[0].rare_rate),
+          epic: Number(probRows[0].epic_rate),
+          legendary: Number(probRows[0].legendary_rate),
+        }
+      : { common: 60, rare: 25, epic: 12, legendary: 3 };
 
     const weightedCards: any[] = [];
     cards.forEach(card => {
