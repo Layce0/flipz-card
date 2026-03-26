@@ -19,7 +19,7 @@ export const PackProbabilitiesManager = () => {
   const { data: rows = [], isLoading } = usePackProbabilities();
   const updateProb = useUpdatePackProbability();
   const [activeGroup, setActiveGroup] = useState(0);
-  const [activeSubType, setActiveSubType] = useState(PACK_TYPE_GROUPS[0].types[0].value);
+  const [activeSubType, setActiveSubType] = useState<string>(PACK_TYPE_GROUPS[0].types[0].value);
   const [editedRows, setEditedRows] = useState<
     Record<string, { common_rate: number; rare_rate: number; epic_rate: number; legendary_rate: number }>
   >({});
