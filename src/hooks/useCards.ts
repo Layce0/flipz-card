@@ -297,6 +297,7 @@ export const useRandomCards = () => {
 
       // Fallback hardcoded table in case DB is empty
       const FALLBACK: Record<string, number> = { common: 60, rare: 25, epic: 12, legendary: 3 };
+      const effectiveLuck = luckMultiplier > 1 ? luckMultiplier : 1;
 
       // Map packType to database pack_type key
       // Client-side useRandomCards is used for trades, which use "free" rates by default
