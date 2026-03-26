@@ -210,40 +210,31 @@ Deno.serve(async (req) => {
 
       const finalCardCount = Math.round(cardCount * cardMult) + bonusCards
 
-      // Pack type probability tables
-      const LUCK_TABLES: Record<number, Record<string, number>> = {
-        1: { common: 60, rare: 25, epic: 12, legendary: 3 },
-        1.5: { common: 30, rare: 47.5, epic: 16.5, legendary: 6 },
-        2: { common: 30, rare: 40, epic: 22, legendary: 8 },
-        2.5: { common: 27, rare: 35.5, epic: 27.5, legendary: 10 },
-        3: { common: 25, rare: 30, epic: 33, legendary: 12 },
-        3.5: { common: 20, rare: 27.5, epic: 38.5, legendary: 14 },
-        4: { common: 10, rare: 30, epic: 44, legendary: 16 },
-      }
-      const LUCKY_TABLES: Record<number, Record<string, number>> = {
-        1: { common: 30, rare: 40, epic: 22, legendary: 8 },
-        1.5: { common: 20, rare: 35, epic: 33, legendary: 12 },
-        2: { common: 15, rare: 25, epic: 44, legendary: 16 },
-        2.5: { common: 10, rare: 15, epic: 55, legendary: 20 },
-        3: { common: 2.5, rare: 7.5, epic: 66, legendary: 24 },
-        3.5: { common: 2.5, rare: 2.5, epic: 67, legendary: 28 },
-        4: { common: 0.5, rare: 0.5, epic: 67, legendary: 32 },
-      }
-      const ULTRA_TABLES: Record<number, Record<string, number>> = {
-        1: { common: 10, rare: 15, epic: 55, legendary: 20 },
-        1.5: { common: 2.5, rare: 5, epic: 62.5, legendary: 30 },
-        2: { common: 1, rare: 1, epic: 58, legendary: 40 },
-        2.5: { common: 0.5, rare: 0.5, epic: 49, legendary: 50 },
-        3: { common: 0.25, rare: 0.25, epic: 39.5, legendary: 60 },
-        3.5: { common: 0.1, rare: 0.1, epic: 29.8, legendary: 70 },
-        4: { common: 0.05, rare: 0.05, epic: 19.9, legendary: 80 },
-      }
+      // Fetch probability tables from database
+      let dbPackType = 'standard'
+      if (rewardType === 'pack_lucky') dbPackType = 'lucky'
+      else if (rewardType === 'pack_ultra') dbPackType = 'ultra_lucky'
 
+      const { data: probRows, error: probError } = await supabaseAdmin
+        .from('pack_probability_tables')
+        .select('*')
+        .eq('pack_type', dbPackType)
+
+      if (probError) throw probError
+
+      const dbTable: Record<number, Record<string, number>> = {}
+      ;(probRows || []).forEach((row: any) => {
+        dbTable[Number(row.luck_multiplier)] = {
+          common: Number(row.common_rate),
+          rare: Number(row.rare_rate),
+          epic: Number(row.epic_rate),
+          legendary: Number(row.legendary_rate),
+        }
+      })
+
+      const FALLBACK: Record<string, number> = { common: 60, rare: 25, epic: 12, legendary: 3 }
       const effectiveLuck = luckMult > 1 ? luckMult : 1
-      let tableSet = LUCK_TABLES
-      if (rewardType === 'pack_lucky') tableSet = LUCKY_TABLES
-      else if (rewardType === 'pack_ultra') tableSet = ULTRA_TABLES
-      const weights: Record<string, number> = tableSet[effectiveLuck] ?? tableSet[1]
+      const weights: Record<string, number> = dbTable[effectiveLuck] ?? dbTable[1] ?? FALLBACK
 
       // Build weighted pool and select cards
       const pool: any[] = []
