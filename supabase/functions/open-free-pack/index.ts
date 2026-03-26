@@ -191,7 +191,7 @@ Deno.serve(async (req) => {
     const { data: probRows, error: probError } = await supabaseAdmin
       .from('pack_probability_tables')
       .select('*')
-      .eq('pack_type', 'standard');
+      .eq('pack_type', 'free');
 
     if (probError) throw probError;
 

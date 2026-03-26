@@ -211,9 +211,9 @@ Deno.serve(async (req) => {
       const finalCardCount = Math.round(cardCount * cardMult) + bonusCards
 
       // Fetch probability tables from database
-      let dbPackType = 'standard'
-      if (rewardType === 'pack_lucky') dbPackType = 'lucky'
-      else if (rewardType === 'pack_ultra') dbPackType = 'ultra_lucky'
+      let dbPackType = 'code_standard'
+      if (rewardType === 'pack_lucky') dbPackType = 'code_lucky'
+      else if (rewardType === 'pack_ultra') dbPackType = 'code_ultra'
 
       const { data: probRows, error: probError } = await supabaseAdmin
         .from('pack_probability_tables')
