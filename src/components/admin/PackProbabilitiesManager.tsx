@@ -7,8 +7,7 @@ import { toast } from 'sonner';
 import {
   usePackProbabilities,
   useUpdatePackProbability,
-  PACK_TYPES,
-  LUCK_MULTIPLIERS,
+  PACK_TYPE_GROUPS,
   PackProbabilityRow,
 } from '@/hooks/usePackProbabilities';
 import { RARITY_CONFIG } from '@/types/card';
@@ -19,24 +18,23 @@ const RARITIES = ['common', 'rare', 'epic', 'legendary'] as const;
 export const PackProbabilitiesManager = () => {
   const { data: rows = [], isLoading } = usePackProbabilities();
   const updateProb = useUpdatePackProbability();
-  const [activePackType, setActivePackType] = useState('standard');
+  const [activeGroup, setActiveGroup] = useState(0);
+  const [activeSubType, setActiveSubType] = useState(PACK_TYPE_GROUPS[0].types[0].value);
   const [editedRows, setEditedRows] = useState<
     Record<string, { common_rate: number; rare_rate: number; epic_rate: number; legendary_rate: number }>
   >({});
 
-  // Group rows by pack_type
   const grouped = useMemo(() => {
     const map: Record<string, PackProbabilityRow[]> = {};
     rows.forEach((r) => {
       if (!map[r.pack_type]) map[r.pack_type] = [];
       map[r.pack_type].push(r);
     });
-    // Sort each group by luck_multiplier
     Object.values(map).forEach((arr) => arr.sort((a, b) => a.luck_multiplier - b.luck_multiplier));
     return map;
   }, [rows]);
 
-  const activeRows = grouped[activePackType] || [];
+  const activeRows = grouped[activeSubType] || [];
 
   const getEditedValue = (row: PackProbabilityRow, field: keyof typeof editedRows[string]) => {
     return editedRows[row.id]?.[field] ?? row[field];
@@ -92,6 +90,8 @@ export const PackProbabilitiesManager = () => {
     );
   }
 
+  const currentGroup = PACK_TYPE_GROUPS[activeGroup];
+
   return (
     <section>
       <h2 className="font-display text-lg mb-4 text-foreground flex items-center gap-2">
@@ -99,20 +99,40 @@ export const PackProbabilitiesManager = () => {
         Probabilités des packs
       </h2>
 
-      {/* Pack type tabs */}
-      <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
-        {PACK_TYPES.map((pt) => (
+      {/* Source group tabs */}
+      <div className="flex gap-2 mb-3 overflow-x-auto pb-1">
+        {PACK_TYPE_GROUPS.map((group, idx) => (
           <Button
-            key={pt.value}
-            variant={activePackType === pt.value ? 'default' : 'outline'}
+            key={idx}
+            variant={activeGroup === idx ? 'default' : 'outline'}
             size="sm"
-            onClick={() => setActivePackType(pt.value)}
-            className="whitespace-nowrap"
+            onClick={() => {
+              setActiveGroup(idx);
+              setActiveSubType(group.types[0].value);
+            }}
+            className="whitespace-nowrap text-xs"
           >
-            {pt.label}
+            {group.label}
           </Button>
         ))}
       </div>
+
+      {/* Sub-type tabs (if group has multiple types) */}
+      {currentGroup.types.length > 1 && (
+        <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
+          {currentGroup.types.map((pt) => (
+            <Button
+              key={pt.value}
+              variant={activeSubType === pt.value ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveSubType(pt.value)}
+              className="whitespace-nowrap text-xs"
+            >
+              {pt.label}
+            </Button>
+          ))}
+        </div>
+      )}
 
       {/* Probability table */}
       <div className="space-y-3">

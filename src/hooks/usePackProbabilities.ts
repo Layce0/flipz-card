@@ -47,7 +47,7 @@ export const PACK_TYPE_GROUPS = [
 ] as const;
 
 // Flat list for backward compat
-export const PACK_TYPES = PACK_TYPE_GROUPS.flatMap(g => g.types);
+export const PACK_TYPES = PACK_TYPE_GROUPS.flatMap(g => [...g.types]) as { value: string; label: string }[];
 
 export const LUCK_MULTIPLIERS = [1, 1.5, 2, 2.5, 3, 3.5, 4] as const;
 
