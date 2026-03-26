@@ -8,6 +8,7 @@ import { useWinstreakRewards, useWinstreakClaims, useClaimWinstreakReward } from
 import { toast } from 'sonner';
 import { GameCard } from '@/types/card';
 import { PackRevealFlow } from '@/components/shop/PackRevealFlow';
+import { PackAnimationType } from '@/components/PackOpeningAnimation';
 import packClassicImg from '@/assets/pack-classic-reward.png';
 
 interface WinstreakDialogProps {
@@ -62,6 +63,7 @@ export const WinstreakDialog = ({ open, onOpenChange, streak }: WinstreakDialogP
   // Reveal flow state
   const [revealedCards, setRevealedCards] = useState<GameCard[]>([]);
   const [isRevealing, setIsRevealing] = useState(false);
+  const [revealPackType, setRevealPackType] = useState<PackAnimationType>('free');
   const claimingRef = useRef(false);
 
   const startDay = page * DAYS_PER_PAGE + 1;
@@ -75,6 +77,9 @@ export const WinstreakDialog = ({ open, onOpenChange, streak }: WinstreakDialogP
 
       const reward = result?.reward;
       if (reward?.cards && reward.cards.length > 0) {
+        const rewardType = reward.type || 'pack';
+        const animType: PackAnimationType = rewardType === 'pack_ultra' ? 'ultra' : rewardType === 'pack_lucky' ? 'lucky' : 'standard';
+        setRevealPackType(animType);
         setRevealedCards(reward.cards as GameCard[]);
         setIsRevealing(true);
         onOpenChange(false);
@@ -225,6 +230,7 @@ export const WinstreakDialog = ({ open, onOpenChange, streak }: WinstreakDialogP
         cards={revealedCards}
         isOpen={isRevealing}
         onClose={handleCloseReveal}
+        packType={revealPackType}
       />
     </>
   );

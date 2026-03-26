@@ -24,6 +24,7 @@ export const RedeemCodeSection = ({ userCards }: RedeemCodeSectionProps) => {
   const [revealedCards, setRevealedCards] = useState<GameCard[]>([]);
   const [isRevealing, setIsRevealing] = useState(false);
   const [ownedSnapshotForReveal, setOwnedSnapshotForReveal] = useState<Set<string>>(new Set());
+  const [revealPackType, setRevealPackType] = useState<'standard' | 'lucky' | 'ultra' | 'free'>('free');
   const redeemingRef = useRef(false);
 
   const handleRedeem = async () => {
@@ -52,8 +53,9 @@ export const RedeemCodeSection = ({ userCards }: RedeemCodeSectionProps) => {
       const reward = data.reward;
 
       if (reward?.type === 'pack' || reward?.type === 'pack_lucky' || reward?.type === 'pack_ultra') {
-        // Cards are now generated server-side and returned directly
         const cards = (reward.cards || []) as GameCard[];
+        const animType = reward.type === 'pack_ultra' ? 'ultra' : reward.type === 'pack_lucky' ? 'lucky' : 'standard';
+        setRevealPackType(animType);
         setOwnedSnapshotForReveal(ownedIdsBeforeRedeem);
         setRevealedCards(cards);
         setIsRevealing(true);
@@ -121,6 +123,7 @@ export const RedeemCodeSection = ({ userCards }: RedeemCodeSectionProps) => {
         isOpen={isRevealing}
         onClose={handleCloseReveal}
         initialOwnedCardIds={ownedSnapshotForReveal}
+        packType={revealPackType}
       />
     </>
   );
