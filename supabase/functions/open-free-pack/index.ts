@@ -42,15 +42,9 @@ const checkRateLimit = (userId: string): { allowed: boolean; retryAfter?: number
   return { allowed: true };
 };
 
-const LUCK_TABLES: Record<number, Record<string, number>> = {
-  1:   { common: 60, rare: 25, epic: 12, legendary: 3 },
-  1.5: { common: 30, rare: 47.5, epic: 16.5, legendary: 6 },
-  2:   { common: 30, rare: 40, epic: 22, legendary: 8 },
-  2.5: { common: 27, rare: 35.5, epic: 27.5, legendary: 10 },
-  3:   { common: 25, rare: 30, epic: 33, legendary: 12 },
-  3.5: { common: 20, rare: 27.5, epic: 38.5, legendary: 14 },
-  4:   { common: 10, rare: 30, epic: 44, legendary: 16 },
-};
+// Probability tables are now fetched from the database (pack_probability_tables)
+// Fallback in case DB is empty
+const FALLBACK_WEIGHTS: Record<string, number> = { common: 60, rare: 25, epic: 12, legendary: 3 };
 
 function generateWeightedCards(cards: any[], weights: Record<string, number>, count: number): any[] {
   const weightedPool: any[] = [];
