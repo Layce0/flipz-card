@@ -187,10 +187,27 @@ Deno.serve(async (req) => {
     let finalCardCount = 3; // free pack = 3 cards
     finalCardCount = Math.round(finalCardCount * cardMultiplier) + bonusCards;
 
-    const effectiveLuck = luckMultiplier > 1 ? luckMultiplier : 1;
-    const weights = LUCK_TABLES[effectiveLuck] ?? LUCK_TABLES[1];
+    // Fetch probability tables from database
+    const { data: probRows, error: probError } = await supabaseAdmin
+      .from('pack_probability_tables')
+      .select('*')
+      .eq('pack_type', 'standard');
 
-    const selectedCards = generateWeightedCards(cards, weights, finalCardCount);
+    if (probError) throw probError;
+
+    // Build lookup: { luck_multiplier: { rarity: rate } }
+    const dbTable: Record<number, Record<string, number>> = {};
+    (probRows || []).forEach((row: any) => {
+      dbTable[Number(row.luck_multiplier)] = {
+        common: Number(row.common_rate),
+        rare: Number(row.rare_rate),
+        epic: Number(row.epic_rate),
+        legendary: Number(row.legendary_rate),
+      };
+    });
+
+    const effectiveLuck = luckMultiplier > 1 ? luckMultiplier : 1;
+    const weights = dbTable[effectiveLuck] ?? dbTable[1] ?? FALLBACK_WEIGHTS;
 
     // Insert cards server-side
     const { error: insertError } = await supabaseAdmin
