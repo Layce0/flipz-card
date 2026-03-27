@@ -1,16 +1,17 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Flame, Plus, Loader2, Trash2 } from 'lucide-react';
+import { Flame, Plus, Loader2, Trash2, Upload, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAllCards } from '@/hooks/useCards';
 import { useWinstreakRewards, useCreateWinstreakReward, useDeleteWinstreakReward } from '@/hooks/useWinstreak';
 import { RARITY_CONFIG, Rarity } from '@/types/card';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 
 type RewardType = 'pack' | 'pack_lucky' | 'pack_ultra' | 'card' | 'boost_luck' | 'boost_pack';
 
@@ -241,19 +242,42 @@ export const WinstreakRewardsManager = () => {
             )}
 
             <div className="space-y-2">
-              <Label>URL de l'icône (optionnel)</Label>
-              <Input
-                type="url"
-                placeholder="https://... (image URL)"
-                value={formData.icon_url}
-                onChange={(e) => setFormData({ ...formData, icon_url: e.target.value })}
-                className="bg-card border-border"
-              />
-              {formData.icon_url && (
-                <div className="flex items-center gap-2">
-                  <img src={formData.icon_url} alt="preview" className="w-10 h-10 rounded-lg object-cover border border-border" />
-                  <span className="text-xs text-muted-foreground">Aperçu</span>
+              <Label>Icône (optionnel)</Label>
+              {formData.icon_url ? (
+                <div className="flex items-center gap-3 p-2 rounded-lg border border-border bg-card">
+                  <img src={formData.icon_url} alt="icon" className="w-12 h-12 rounded-lg object-cover" />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => setFormData({ ...formData, icon_url: '' })}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
                 </div>
+              ) : (
+                <label className={cn(
+                  "flex flex-col items-center gap-2 p-4 rounded-lg border-2 border-dashed border-border",
+                  "cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-colors",
+                  isUploading && "opacity-50 pointer-events-none"
+                )}>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleFileUpload}
+                  />
+                  {isUploading ? (
+                    <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                  ) : (
+                    <Upload className="w-5 h-5 text-muted-foreground" />
+                  )}
+                  <span className="text-xs text-muted-foreground">
+                    {isUploading ? 'Upload...' : 'Cliquer pour déposer une image'}
+                  </span>
+                </label>
               )}
             </div>
 
