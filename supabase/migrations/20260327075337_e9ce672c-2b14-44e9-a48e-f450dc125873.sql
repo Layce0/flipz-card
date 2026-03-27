@@ -1,0 +1,1 @@
+ALTER TABLE public.winstreak_rewards ADD COLUMN icon_url text DEFAULT NULL;

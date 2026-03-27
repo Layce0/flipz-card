@@ -553,6 +553,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           day_number: number
+          icon_url: string | null
           id: string
           reward_config: Json
           reward_type: string
@@ -562,6 +563,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           day_number: number
+          icon_url?: string | null
           id?: string
           reward_config?: Json
           reward_type: string
@@ -571,6 +573,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           day_number?: number
+          icon_url?: string | null
           id?: string
           reward_config?: Json
           reward_type?: string

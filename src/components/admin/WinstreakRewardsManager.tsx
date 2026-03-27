@@ -53,6 +53,7 @@ export const WinstreakRewardsManager = () => {
     card_id: '',
     luck_multiplier: 2,
     pack_bonus: 'bonus_1',
+    icon_url: '',
   });
 
   const handleCreate = async () => {
@@ -75,6 +76,7 @@ export const WinstreakRewardsManager = () => {
         reward_type: formData.reward_type,
         reward_config,
         created_by: user?.id,
+        icon_url: formData.icon_url || null,
       });
       toast.success(`Récompense jour ${formData.day_number} créée !`);
       setShowCreate(false);
@@ -109,8 +111,12 @@ export const WinstreakRewardsManager = () => {
               key={r.id}
               className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border"
             >
-              <div className="w-10 h-10 rounded-lg bg-orange-400/10 flex items-center justify-center shrink-0">
-                <span className="text-sm font-bold text-orange-400">J{r.day_number}</span>
+              <div className="w-10 h-10 rounded-lg bg-orange-400/10 flex items-center justify-center shrink-0 overflow-hidden">
+                {r.icon_url ? (
+                  <img src={r.icon_url} alt={`J${r.day_number}`} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-sm font-bold text-orange-400">J{r.day_number}</span>
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-foreground">Jour {r.day_number}</p>
@@ -233,6 +239,23 @@ export const WinstreakRewardsManager = () => {
                 </Select>
               </div>
             )}
+
+            <div className="space-y-2">
+              <Label>URL de l'icône (optionnel)</Label>
+              <Input
+                type="url"
+                placeholder="https://... (image URL)"
+                value={formData.icon_url}
+                onChange={(e) => setFormData({ ...formData, icon_url: e.target.value })}
+                className="bg-card border-border"
+              />
+              {formData.icon_url && (
+                <div className="flex items-center gap-2">
+                  <img src={formData.icon_url} alt="preview" className="w-10 h-10 rounded-lg object-cover border border-border" />
+                  <span className="text-xs text-muted-foreground">Aperçu</span>
+                </div>
+              )}
+            </div>
 
             {formData.reward_type === 'boost_pack' && (
               <div className="space-y-2">
