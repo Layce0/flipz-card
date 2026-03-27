@@ -185,7 +185,7 @@ export const useClaimWinstreakReward = () => {
 export const useCreateWinstreakReward = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (reward: { day_number: number; reward_type: string; reward_config: Record<string, any>; created_by?: string }) => {
+    mutationFn: async (reward: { day_number: number; reward_type: string; reward_config: Record<string, any>; created_by?: string; icon_url?: string | null }) => {
       const { error } = await supabase
         .from('winstreak_rewards')
         .upsert(reward, { onConflict: 'day_number' });
