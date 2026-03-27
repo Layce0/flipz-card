@@ -46,6 +46,27 @@ export const WinstreakRewardsManager = () => {
   const createReward = useCreateWinstreakReward();
   const deleteReward = useDeleteWinstreakReward();
   const [showCreate, setShowCreate] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploading(true);
+    try {
+      const ext = file.name.split('.').pop();
+      const path = `${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage.from('winstreak-icons').upload(path, file);
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from('winstreak-icons').getPublicUrl(path);
+      setFormData(prev => ({ ...prev, icon_url: urlData.publicUrl }));
+    } catch (err: any) {
+      toast.error('Erreur upload : ' + (err.message || 'Erreur'));
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   const [formData, setFormData] = useState({
     day_number: 1,
