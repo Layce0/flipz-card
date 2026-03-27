@@ -157,6 +157,8 @@ export const WinstreakDialog = ({ open, onOpenChange, streak }: WinstreakDialogP
                       )}>
                         {isClaimed ? (
                           <Check className="w-3.5 h-3.5 text-green-400" />
+                        ) : (reward as any).icon_url ? (
+                          <img src={(reward as any).icon_url} alt={`J${day}`} className="w-full h-full object-cover" />
                         ) : reward.reward_type === 'pack' ? (
                           <img src={packClassicImg} alt="Pack" className="w-14 h-14 object-contain" />
                         ) : (
