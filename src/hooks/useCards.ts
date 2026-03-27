@@ -423,7 +423,7 @@ export const useHasCollectedToday = (userId: string | undefined, cardId: string 
   });
 };
 
-// Collect a card
+// Collect a card (daily card via edge function)
 export const useCollectCard = () => {
   const queryClient = useQueryClient();
   
@@ -440,6 +440,26 @@ export const useCollectCard = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-cards'] });
       queryClient.invalidateQueries({ queryKey: ['has-collected-today'] });
+      queryClient.invalidateQueries({ queryKey: ['user-card-stats'] });
+    },
+  });
+};
+
+// Insert cards directly into user_cards (for trades)
+export const useInsertUserCards = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ userId, cardIds }: { userId: string; cardIds: string[] }) => {
+      const rows = cardIds.map(cardId => ({ user_id: userId, card_id: cardId }));
+      const { error } = await supabase
+        .from('user_cards')
+        .insert(rows);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-cards'] });
       queryClient.invalidateQueries({ queryKey: ['user-card-stats'] });
     },
   });
