@@ -5,7 +5,7 @@ import { ArrowRightLeft, Package, Loader2 } from 'lucide-react';
 import { Rarity, RARITY_CONFIG } from '@/types/card';
 import { GameCard } from '@/types/card';
 import { TRADE_CONFIG } from '@/types/pack';
-import { UserCardWithCount, useDeleteUserCards, useRandomCards, useCollectCard } from '@/hooks/useCards';
+import { UserCardWithCount, useDeleteUserCards, useRandomCards, useInsertUserCards } from '@/hooks/useCards';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
@@ -25,7 +25,7 @@ export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => 
   
   const deleteUserCards = useDeleteUserCards();
   const getRandomCards = useRandomCards();
-  const collectCard = useCollectCard();
+  const insertUserCards = useInsertUserCards();
 
   const getEligibleCardsByRarity = (rarity: Rarity) => {
     const config = TRADE_CONFIG[rarity];
@@ -52,10 +52,8 @@ export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => 
       // Get reward cards
       const newCards = await getRandomCards.mutateAsync({ count: config.reward, userId: user.id, packType: 'standard' });
       
-      // Collect the new cards
-      for (const card of newCards) {
-        await collectCard.mutateAsync({ userId: user.id, cardId: card.id });
-      }
+      // Insert new cards directly
+      await insertUserCards.mutateAsync({ userId: user.id, cardIds: newCards.map(c => c.id) });
       
       toast.success(`Échange réussi ! ${config.reward} nouvelles cartes ajoutées.`);
       
