@@ -25,13 +25,21 @@ interface MysteryCardProps {
 export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'md', isNew = false }: MysteryCardProps) => {
   const { getTitle, getDescription } = useLocalizedCard();
   const [flipped, setFlipped] = useState(isRevealed);
+  const [skipTransition, setSkipTransition] = useState(false);
   const [showParticles, setShowParticles] = useState(false);
   const [particles, setParticles] = useState<Particle[]>([]);
   const [showLegendaryReveal, setShowLegendaryReveal] = useState(false);
   const [showRing, setShowRing] = useState(false);
 
   useEffect(() => {
-    if (isRevealed) setFlipped(true);
+    if (isRevealed && !flipped) {
+      // Card was already collected — skip flip animation
+      setSkipTransition(true);
+      setFlipped(true);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setSkipTransition(false));
+      });
+    }
   }, [isRevealed]);
 
   const rarityConfig = RARITY_CONFIG[card.rarity];
@@ -100,10 +108,13 @@ export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'm
         </div>
       )}
 
-      <div className={cn(
-        "flip-card-inner relative w-full h-full",
-        flipped && "flipped"
-      )}>
+      <div
+        className={cn(
+          "flip-card-inner relative w-full h-full",
+          flipped && "flipped"
+        )}
+        style={skipTransition ? { transition: 'none' } : undefined}
+      >
         {/* Card Back */}
         <div className={cn(
           "flip-card-front absolute inset-0 rounded-2xl overflow-hidden card-shadow",
