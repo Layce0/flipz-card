@@ -108,10 +108,13 @@ export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'm
         </div>
       )}
 
-      <div className={cn(
-        "flip-card-inner relative w-full h-full",
-        flipped && "flipped"
-      )}>
+      <div
+        className={cn(
+          "flip-card-inner relative w-full h-full",
+          flipped && "flipped"
+        )}
+        style={skipTransition ? { transition: 'none' } : undefined}
+      >
         {/* Card Back */}
         <div className={cn(
           "flip-card-front absolute inset-0 rounded-2xl overflow-hidden card-shadow",
