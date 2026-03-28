@@ -25,20 +25,20 @@ interface MysteryCardProps {
 export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'md', isNew = false }: MysteryCardProps) => {
   const { getTitle, getDescription } = useLocalizedCard();
   const [flipped, setFlipped] = useState(isRevealed);
+  const [skipTransition, setSkipTransition] = useState(false);
   const [showParticles, setShowParticles] = useState(false);
   const [particles, setParticles] = useState<Particle[]>([]);
   const [showLegendaryReveal, setShowLegendaryReveal] = useState(false);
   const [showRing, setShowRing] = useState(false);
-  const wasAlreadyRevealed = useRef(isRevealed);
 
   useEffect(() => {
     if (isRevealed && !flipped) {
-      // Skip flip animation if the card was already collected (returning to page)
-      if (wasAlreadyRevealed.current) {
-        setFlipped(true);
-      } else {
-        setFlipped(true);
-      }
+      // Card was already collected — skip flip animation
+      setSkipTransition(true);
+      setFlipped(true);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setSkipTransition(false));
+      });
     }
   }, [isRevealed]);
 
