@@ -29,9 +29,17 @@ export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'm
   const [particles, setParticles] = useState<Particle[]>([]);
   const [showLegendaryReveal, setShowLegendaryReveal] = useState(false);
   const [showRing, setShowRing] = useState(false);
+  const wasAlreadyRevealed = useRef(isRevealed);
 
   useEffect(() => {
-    if (isRevealed) setFlipped(true);
+    if (isRevealed && !flipped) {
+      // Skip flip animation if the card was already collected (returning to page)
+      if (wasAlreadyRevealed.current) {
+        setFlipped(true);
+      } else {
+        setFlipped(true);
+      }
+    }
   }, [isRevealed]);
 
   const rarityConfig = RARITY_CONFIG[card.rarity];
