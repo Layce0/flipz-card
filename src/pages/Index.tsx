@@ -135,7 +135,7 @@ const Index = () => {
             <WinstreakBadge streak={streakData.current_streak} />
           </div>
         )}
-        <div className="mb-[-10rem]" data-tour="logo">
+        <div className="mb-[-10rem] mt-[-20px]" data-tour="logo">
           <img src={flipzLogo} alt="FLIPZ" className="w-[42rem] sm:w-[50rem] mx-auto" fetchPriority="high" />
         </div>
         <p className="text-muted-foreground text-sm relative z-10 mb-3">{t('home.subtitle')}</p>
