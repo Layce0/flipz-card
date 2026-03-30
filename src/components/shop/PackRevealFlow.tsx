@@ -191,12 +191,6 @@ export const PackRevealFlow = ({ cards, isOpen, onClose, initialOwnedCardIds, pa
         <X className="w-5 h-5" />
       </Button>
 
-      <div className="flex items-center gap-2 mb-6">
-        <Sparkles className="w-5 h-5 text-primary" />
-        <h2 className="font-display text-lg text-foreground">
-          {t('packs.title', 'Pack')}
-        </h2>
-      </div>
 
       {/* Card with swipe */}
       <div
