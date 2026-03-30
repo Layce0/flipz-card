@@ -445,18 +445,19 @@ export const useCollectCard = () => {
   });
 };
 
-// Insert cards directly into user_cards (for trades)
-export const useInsertUserCards = () => {
+// Trade cards via secure edge function
+export const useTradeCards = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ userId, cardIds }: { userId: string; cardIds: string[] }) => {
-      const rows = cardIds.map(cardId => ({ user_id: userId, card_id: cardId }));
-      const { error } = await supabase
-        .from('user_cards')
-        .insert(rows);
+    mutationFn: async ({ cardId, rarity }: { cardId: string; rarity: string }) => {
+      const { data, error } = await invokeEdgeFunction('trade-cards', {
+        body: { cardId, rarity },
+      });
       
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data as { success: boolean; cards: GameCard[]; deletedCount: number; rewardCount: number };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-cards'] });

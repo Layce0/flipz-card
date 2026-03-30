@@ -11,7 +11,7 @@ import { getPacksByType, TRADE_CONFIG } from '@/types/pack';
 import { Rarity } from '@/types/card';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import { useUserCards, useDeleteUserCards, useRandomCards, useInsertUserCards, UserCardWithCount } from '@/hooks/useCards';
+import { useUserCards, useTradeCards, UserCardWithCount } from '@/hooks/useCards';
 import { RedeemCodeSection } from '@/components/shop/RedeemCodeSection';
 import { invokeEdgeFunction } from '@/lib/edgeFunctions';
 
@@ -20,9 +20,7 @@ const Shop = () => {
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const { data: userCards = [], isLoading: cardsLoading, refetch: refetchCards } = useUserCards(user?.id);
-  const deleteCards = useDeleteUserCards();
-  const getRandomCards = useRandomCards();
-  const insertUserCards = useInsertUserCards();
+  const tradeCards = useTradeCards();
 
   const [loadingPackId, setLoadingPackId] = useState<string | null>(null);
   const [isTrading, setIsTrading] = useState(false);
@@ -127,19 +125,10 @@ const Shop = () => {
     setIsTrading(true);
 
     try {
-      const cardsToDelete = config.required - config.keep;
-      await deleteCards.mutateAsync({
-        userId: user.id,
-        cardId: card.id,
-        count: cardsToDelete,
-      });
+      const result = await tradeCards.mutateAsync({ cardId: card.id, rarity: card.rarity });
 
-      const newCards = await getRandomCards.mutateAsync({ count: config.reward, userId: user.id, packType: 'standard' });
-
-      await insertUserCards.mutateAsync({ userId: user.id, cardIds: newCards.map(c => c.id) });
-
-      toast.success(t('trade.tradeSuccess', { count: config.reward }));
-      return newCards;
+      toast.success(t('trade.tradeSuccess', { count: result.rewardCount }));
+      return result.cards;
     } catch (error) {
       toast.error(t('trade.tradeError'));
       return [];

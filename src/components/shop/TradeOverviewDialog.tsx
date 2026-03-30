@@ -2,10 +2,9 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ArrowRightLeft, Package, Loader2 } from 'lucide-react';
-import { Rarity, RARITY_CONFIG } from '@/types/card';
-import { GameCard } from '@/types/card';
+import { Rarity, RARITY_CONFIG, GameCard } from '@/types/card';
 import { TRADE_CONFIG } from '@/types/pack';
-import { UserCardWithCount, useDeleteUserCards, useRandomCards, useInsertUserCards } from '@/hooks/useCards';
+import { UserCardWithCount, useTradeCards } from '@/hooks/useCards';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
@@ -23,9 +22,7 @@ export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => 
   const [ownedIdsSnapshot, setOwnedIdsSnapshot] = useState<Set<string>>(new Set());
   const { user } = useAuth();
   
-  const deleteUserCards = useDeleteUserCards();
-  const getRandomCards = useRandomCards();
-  const insertUserCards = useInsertUserCards();
+  const tradeCards = useTradeCards();
 
   const getEligibleCardsByRarity = (rarity: Rarity) => {
     const config = TRADE_CONFIG[rarity];
@@ -37,29 +34,15 @@ export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => 
   const handleTrade = async (cardId: string, rarity: Rarity) => {
     if (!user) return;
     
-    const config = TRADE_CONFIG[rarity];
     setTradingCardId(cardId);
-    // Snapshot owned card IDs BEFORE the trade so reveal can detect new cards
     setOwnedIdsSnapshot(new Set(userCards.map(c => c.id)));
     try {
-      // Delete the required number of cards
-      await deleteUserCards.mutateAsync({ 
-        userId: user.id, 
-        cardId, 
-        count: config.required - config.keep 
-      });
+      const result = await tradeCards.mutateAsync({ cardId, rarity });
       
-      // Get reward cards
-      const newCards = await getRandomCards.mutateAsync({ count: config.reward, userId: user.id, packType: 'standard' });
+      toast.success(`Échange réussi ! ${result.rewardCount} nouvelles cartes ajoutées.`);
       
-      // Insert new cards directly
-      await insertUserCards.mutateAsync({ userId: user.id, cardIds: newCards.map(c => c.id) });
-      
-      toast.success(`Échange réussi ! ${config.reward} nouvelles cartes ajoutées.`);
-      
-      // Close trade dialog, then show reveal
       setOpen(false);
-      setRevealCards(newCards);
+      setRevealCards(result.cards);
       setShowReveal(true);
     } catch (error) {
       console.error('Trade error:', error);
