@@ -5,7 +5,7 @@ import { ArrowRightLeft, Package, Loader2 } from 'lucide-react';
 import { Rarity, RARITY_CONFIG } from '@/types/card';
 import { GameCard } from '@/types/card';
 import { TRADE_CONFIG } from '@/types/pack';
-import { UserCardWithCount, useDeleteUserCards, useRandomCards, useInsertUserCards } from '@/hooks/useCards';
+import { UserCardWithCount, useTradeCards } from '@/hooks/useCards';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
