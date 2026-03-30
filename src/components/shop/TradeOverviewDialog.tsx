@@ -23,9 +23,7 @@ export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => 
   const [ownedIdsSnapshot, setOwnedIdsSnapshot] = useState<Set<string>>(new Set());
   const { user } = useAuth();
   
-  const deleteUserCards = useDeleteUserCards();
-  const getRandomCards = useRandomCards();
-  const insertUserCards = useInsertUserCards();
+  const tradeCards = useTradeCards();
 
   const getEligibleCardsByRarity = (rarity: Rarity) => {
     const config = TRADE_CONFIG[rarity];
