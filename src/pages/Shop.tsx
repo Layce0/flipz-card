@@ -127,19 +127,10 @@ const Shop = () => {
     setIsTrading(true);
 
     try {
-      const cardsToDelete = config.required - config.keep;
-      await deleteCards.mutateAsync({
-        userId: user.id,
-        cardId: card.id,
-        count: cardsToDelete,
-      });
+      const result = await tradeCards.mutateAsync({ cardId: card.id, rarity: card.rarity });
 
-      const newCards = await getRandomCards.mutateAsync({ count: config.reward, userId: user.id, packType: 'standard' });
-
-      await insertUserCards.mutateAsync({ userId: user.id, cardIds: newCards.map(c => c.id) });
-
-      toast.success(t('trade.tradeSuccess', { count: config.reward }));
-      return newCards;
+      toast.success(t('trade.tradeSuccess', { count: result.rewardCount }));
+      return result.cards;
     } catch (error) {
       toast.error(t('trade.tradeError'));
       return [];
