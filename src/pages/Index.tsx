@@ -136,7 +136,7 @@ const Index = () => {
           </div>
         )}
         <div className="translate-y-[50px]" data-tour="logo">
-          <img src={flipzLogo} alt="FLIPZ" className="w-[42rem] sm:w-[50rem] mx-auto" fetchPriority="high" />
+          <img src={flipzLogo} alt="FLIPZ" className="w-[calc(42rem+25px)] sm:w-[calc(50rem+25px)] mx-auto scale-100" fetchPriority="high" />
         </div>
         <p className="text-muted-foreground text-sm relative z-10 mb-3">{t('home.subtitle')}</p>
       </header>
