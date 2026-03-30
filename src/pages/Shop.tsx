@@ -20,8 +20,6 @@ const Shop = () => {
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const { data: userCards = [], isLoading: cardsLoading, refetch: refetchCards } = useUserCards(user?.id);
-  const deleteCards = useDeleteUserCards();
-  const getRandomCards = useRandomCards();
   const tradeCards = useTradeCards();
 
   const [loadingPackId, setLoadingPackId] = useState<string | null>(null);
