@@ -12,7 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTodayCard, useHasCollectedToday, useCollectCard, useUserCards, useAllCards, isCardNew } from '@/hooks/useCards';
 import { useUserStreak, useUpdateStreak } from '@/hooks/useWinstreak';
 import { toast } from 'sonner';
-const flipzLogo = '/flipz-logo-new.jpeg';
+const flipzLogo = '/flipz-logo-new.png';
 
 // Isolated timer component to avoid re-rendering the entire page every second
 const CountdownTimer = () => {
