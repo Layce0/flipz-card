@@ -159,7 +159,7 @@ const Auth = () => {
         <div className="flex flex-col items-center mb-6">
           <div className="relative w-full">
             <div className="absolute -inset-4 bg-gradient-radial from-primary/30 via-primary/10 to-transparent blur-xl rounded-full" />
-            <img src={flipzLogo} alt="FLIPZ" className="w-full rounded-2xl relative z-10" width={1257} height={510} fetchPriority="high" />
+            <img src={flipzLogo} alt="FLIPZ" className="w-full rounded-2xl relative z-10" fetchPriority="high" />
           </div>
           {catData && (
             <div className="w-20 h-20 sm:w-24 sm:h-24 mt-2">
