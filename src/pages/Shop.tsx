@@ -22,7 +22,7 @@ const Shop = () => {
   const { data: userCards = [], isLoading: cardsLoading, refetch: refetchCards } = useUserCards(user?.id);
   const deleteCards = useDeleteUserCards();
   const getRandomCards = useRandomCards();
-  const insertUserCards = useInsertUserCards();
+  const tradeCards = useTradeCards();
 
   const [loadingPackId, setLoadingPackId] = useState<string | null>(null);
   const [isTrading, setIsTrading] = useState(false);
