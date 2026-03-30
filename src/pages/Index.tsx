@@ -109,7 +109,7 @@ const Index = () => {
     }
   }, [user, todayCard, navigate, collectCard, updateStreak, t]);
 
-  const isLoading = cardLoading || collectedLoading;
+  const isLoading = (cardLoading && !todayCard) || (collectedLoading && hasCollected === undefined);
   const isRevealed = hasCollected === true;
 
   const isNewCard = useMemo(() => {
