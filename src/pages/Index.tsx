@@ -129,7 +129,7 @@ const Index = () => {
   return (
     <div className="min-h-screen pb-24">
       {/* Header */}
-      <header className="pt-8 pb-0 px-4 text-center relative">
+      <header className="pt-2 pb-0 px-4 text-center relative">
         {streakData && streakData.current_streak > 0 && (
           <div className="absolute top-20 right-4 z-20">
             <WinstreakBadge streak={streakData.current_streak} />
