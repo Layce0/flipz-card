@@ -11,7 +11,7 @@ import { getPacksByType, TRADE_CONFIG } from '@/types/pack';
 import { Rarity } from '@/types/card';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import { useUserCards, useDeleteUserCards, useRandomCards, useInsertUserCards, UserCardWithCount } from '@/hooks/useCards';
+import { useUserCards, useDeleteUserCards, useRandomCards, useTradeCards, UserCardWithCount } from '@/hooks/useCards';
 import { RedeemCodeSection } from '@/components/shop/RedeemCodeSection';
 import { invokeEdgeFunction } from '@/lib/edgeFunctions';
 

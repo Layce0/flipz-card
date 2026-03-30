@@ -35,29 +35,15 @@ export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => 
   const handleTrade = async (cardId: string, rarity: Rarity) => {
     if (!user) return;
     
-    const config = TRADE_CONFIG[rarity];
     setTradingCardId(cardId);
-    // Snapshot owned card IDs BEFORE the trade so reveal can detect new cards
     setOwnedIdsSnapshot(new Set(userCards.map(c => c.id)));
     try {
-      // Delete the required number of cards
-      await deleteUserCards.mutateAsync({ 
-        userId: user.id, 
-        cardId, 
-        count: config.required - config.keep 
-      });
+      const result = await tradeCards.mutateAsync({ cardId, rarity });
       
-      // Get reward cards
-      const newCards = await getRandomCards.mutateAsync({ count: config.reward, userId: user.id, packType: 'standard' });
+      toast.success(`Échange réussi ! ${result.rewardCount} nouvelles cartes ajoutées.`);
       
-      // Insert new cards directly
-      await insertUserCards.mutateAsync({ userId: user.id, cardIds: newCards.map(c => c.id) });
-      
-      toast.success(`Échange réussi ! ${config.reward} nouvelles cartes ajoutées.`);
-      
-      // Close trade dialog, then show reveal
       setOpen(false);
-      setRevealCards(newCards);
+      setRevealCards(result.cards);
       setShowReveal(true);
     } catch (error) {
       console.error('Trade error:', error);
