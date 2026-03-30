@@ -100,9 +100,6 @@ export const CollectionBook = memo(({ allCards, collectedCardIds, cardCountMap, 
           ))}
         </div>
 
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-muted-foreground text-sm font-display">
-          Page {currentPage + 1} / {Math.max(1, totalPages)}
-        </div>
       </div>
 
       <div className="flex justify-between items-center mt-4 px-4">
