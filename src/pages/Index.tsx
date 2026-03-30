@@ -42,7 +42,7 @@ const CountdownTimer = () => {
   }, []);
 
   return (
-    <div data-tour="timer" className="relative flex items-center gap-2 bg-card/80 px-5 py-2.5 rounded-full mb-8 timer-glow-border">
+    <div data-tour="timer" className="relative flex items-center gap-2 bg-card/80 px-5 py-2.5 rounded-full mb-4 mt-[-0.5rem] timer-glow-border">
       <Clock className="w-4 h-4 text-primary" />
       <span className="text-sm text-muted-foreground">{t('home.nextCard')}</span>
       <span ref={timerRef} className="font-mono text-primary font-semibold">00:00:00</span>
@@ -129,16 +129,16 @@ const Index = () => {
   return (
     <div className="min-h-screen pb-24">
       {/* Header */}
-      <header className="pt-12 pb-6 px-4 text-center relative">
+      <header className="pt-8 pb-0 px-4 text-center relative">
         {streakData && streakData.current_streak > 0 && (
-          <div className="absolute top-12 right-4">
+          <div className="absolute top-8 right-4">
             <WinstreakBadge streak={streakData.current_streak} />
           </div>
         )}
-        <div className="mb-2" data-tour="logo">
+        <div className="mb-[-2rem]" data-tour="logo">
           <img src={flipzLogo} alt="FLIPZ" className="w-[22rem] sm:w-[28rem] mx-auto" fetchPriority="high" />
         </div>
-        <p className="text-muted-foreground text-sm">{t('home.subtitle')}</p>
+        <p className="text-muted-foreground text-sm relative z-10">{t('home.subtitle')}</p>
       </header>
 
       {/* Daily card section */}
