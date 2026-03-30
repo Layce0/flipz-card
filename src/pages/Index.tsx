@@ -42,7 +42,7 @@ const CountdownTimer = () => {
   }, []);
 
   return (
-    <div data-tour="timer" className="relative flex items-center gap-2 bg-card/80 px-5 py-2.5 rounded-full mb-8 timer-glow-border">
+    <div data-tour="timer" className="relative flex items-center gap-2 bg-card/80 px-5 py-2.5 rounded-full mb-4 mt-[-0.5rem] timer-glow-border">
       <Clock className="w-4 h-4 text-primary" />
       <span className="text-sm text-muted-foreground">{t('home.nextCard')}</span>
       <span ref={timerRef} className="font-mono text-primary font-semibold">00:00:00</span>
