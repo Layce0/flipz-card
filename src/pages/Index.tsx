@@ -131,12 +131,12 @@ const Index = () => {
       {/* Header */}
       <header className="pt-8 pb-0 px-4 text-center relative">
         {streakData && streakData.current_streak > 0 && (
-          <div className="absolute top-8 right-4">
+          <div className="absolute top-24 right-4 z-20">
             <WinstreakBadge streak={streakData.current_streak} />
           </div>
         )}
-        <div className="mb-[-5rem]" data-tour="logo">
-          <img src={flipzLogo} alt="FLIPZ" className="w-[28rem] sm:w-[36rem] mx-auto" fetchPriority="high" />
+        <div className="mb-[-8rem]" data-tour="logo">
+          <img src={flipzLogo} alt="FLIPZ" className="w-[36rem] sm:w-[44rem] mx-auto" fetchPriority="high" />
         </div>
         <p className="text-muted-foreground text-sm relative z-10 mb-3">{t('home.subtitle')}</p>
       </header>
