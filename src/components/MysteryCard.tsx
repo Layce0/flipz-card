@@ -70,7 +70,7 @@ export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'm
     if (!flipped && onReveal) {
       try {
         const audio = new Audio('/sounds/card-reveal.mp3');
-        audio.volume = 0.9;
+        audio.volume = 1.0;
         audio.play();
       } catch (_) {}
       setFlipped(true);
