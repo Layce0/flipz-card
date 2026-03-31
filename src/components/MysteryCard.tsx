@@ -72,7 +72,7 @@ export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'm
       spawnParticles();
       try {
         const audio = new Audio('/sounds/card-reveal.mp3');
-        audio.volume = 0.6;
+        audio.volume = 0.9;
         audio.play();
       } catch (_) {}
       onReveal();
