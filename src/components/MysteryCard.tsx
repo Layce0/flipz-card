@@ -69,8 +69,13 @@ export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'm
   const handleClick = () => {
     if (!flipped && onReveal) {
       try {
+        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
         const audio = new Audio('/sounds/card-reveal.mp3');
-        audio.volume = 1.0;
+        const source = audioCtx.createMediaElementSource(audio);
+        const gainNode = audioCtx.createGain();
+        gainNode.gain.value = 3.0;
+        source.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
         audio.play();
       } catch (_) {}
       setFlipped(true);
