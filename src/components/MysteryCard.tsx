@@ -68,13 +68,13 @@ export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'm
 
   const handleClick = () => {
     if (!flipped && onReveal) {
-      setFlipped(true);
-      spawnParticles();
       try {
         const audio = new Audio('/sounds/card-reveal.mp3');
         audio.volume = 0.9;
         audio.play();
       } catch (_) {}
+      setFlipped(true);
+      spawnParticles();
       onReveal();
     }
   };
