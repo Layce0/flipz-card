@@ -23,12 +23,13 @@ interface MysteryCardProps {
   persistFlip?: boolean;
 }
 
-export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'md', isNew = false }: MysteryCardProps) => {
+export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'md', isNew = false, persistFlip = false }: MysteryCardProps) => {
   const { getTitle, getDescription } = useLocalizedCard();
-  // Persist flip state for the current day so it survives navigation & app reloads
-  const dayKey = `daily-card-flipped:${new Date().toISOString().slice(0, 10)}`;
-  const [flipped, setFlipped] = useState(() => isRevealed || localStorage.getItem(dayKey) === '1');
-  const [skipTransition, setSkipTransition] = useState(() => isRevealed || localStorage.getItem(dayKey) === '1');
+  // Persist flip state for the current day so it survives navigation & app reloads (daily card only)
+  const dayKey = persistFlip ? `daily-card-flipped:${new Date().toISOString().slice(0, 10)}` : null;
+  const wasPersistedFlip = dayKey ? localStorage.getItem(dayKey) === '1' : false;
+  const [flipped, setFlipped] = useState(() => isRevealed || wasPersistedFlip);
+  const [skipTransition, setSkipTransition] = useState(() => isRevealed || wasPersistedFlip);
   const [showParticles, setShowParticles] = useState(false);
   const [particles, setParticles] = useState<Particle[]>([]);
   const [showLegendaryReveal, setShowLegendaryReveal] = useState(false);
