@@ -20,6 +20,7 @@ interface MysteryCardProps {
   onReveal?: () => void;
   size?: 'sm' | 'md' | 'lg';
   isNew?: boolean;
+  persistFlip?: boolean;
 }
 
 export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'md', isNew = false }: MysteryCardProps) => {
