@@ -164,6 +164,7 @@ const Index = () => {
                 onReveal={handleReveal}
                 size="lg"
                 isNew={isNewCard}
+                persistFlip
               />
             </div>
           </>
