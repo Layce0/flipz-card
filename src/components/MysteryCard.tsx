@@ -31,6 +31,32 @@ export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'm
   const [showLegendaryReveal, setShowLegendaryReveal] = useState(false);
   const [showRing, setShowRing] = useState(false);
 
+  // Preload audio in background so it plays instantly on click
+  const audioRef = useRef<{ ctx: AudioContext; audio: HTMLAudioElement; gain: GainNode } | null>(null);
+
+  useEffect(() => {
+    if (!isRevealed && !flipped) {
+      try {
+        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const audio = new Audio('/sounds/card-reveal-new.mp4');
+        audio.preload = 'auto';
+        audio.load();
+        const source = ctx.createMediaElementSource(audio);
+        const gain = ctx.createGain();
+        gain.gain.value = 5.0;
+        source.connect(gain);
+        gain.connect(ctx.destination);
+        audioRef.current = { ctx, audio, gain };
+      } catch (_) {}
+    }
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.ctx.close().catch(() => {});
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
   useEffect(() => {
     if (isRevealed && !flipped) {
       // Card was already collected — skip flip animation
