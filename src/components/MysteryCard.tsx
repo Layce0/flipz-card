@@ -35,9 +35,14 @@ export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'm
 
   useEffect(() => {
     if (isRevealed && !flipped) {
-      // Card was already collected — skip flip animation
       setSkipTransition(true);
       setFlipped(true);
+      localStorage.setItem(dayKey, '1');
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setSkipTransition(false));
+      });
+    } else if (skipTransition) {
+      // Clear skip flag after initial mount
       requestAnimationFrame(() => {
         requestAnimationFrame(() => setSkipTransition(false));
       });
