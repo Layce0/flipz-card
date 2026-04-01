@@ -71,6 +71,7 @@ export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'm
   const handleClick = () => {
     if (!flipped && onReveal) {
       setFlipped(true);
+      localStorage.setItem(dayKey, '1');
       spawnParticles();
       onReveal();
     }
