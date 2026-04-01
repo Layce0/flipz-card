@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, memo, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, memo, useRef } from 'react';
 import { GameCard, RARITY_CONFIG } from '@/types/card';
 import { cn } from '@/lib/utils';
 import cardBackImage from '@/assets/card-back.png';
@@ -30,32 +30,6 @@ export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'm
   const [particles, setParticles] = useState<Particle[]>([]);
   const [showLegendaryReveal, setShowLegendaryReveal] = useState(false);
   const [showRing, setShowRing] = useState(false);
-
-  // Preload audio in background so it plays instantly on click
-  const audioRef = useRef<{ ctx: AudioContext; audio: HTMLAudioElement; gain: GainNode } | null>(null);
-
-  useEffect(() => {
-    if (!isRevealed && !flipped) {
-      try {
-        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const audio = new Audio('/sounds/card-reveal-new.mp4');
-        audio.preload = 'auto';
-        audio.load();
-        const source = ctx.createMediaElementSource(audio);
-        const gain = ctx.createGain();
-        gain.gain.value = 5.0;
-        source.connect(gain);
-        gain.connect(ctx.destination);
-        audioRef.current = { ctx, audio, gain };
-      } catch (_) {}
-    }
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.ctx.close().catch(() => {});
-        audioRef.current = null;
-      }
-    };
-  }, []);
 
   useEffect(() => {
     if (isRevealed && !flipped) {
@@ -94,15 +68,6 @@ export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'm
 
   const handleClick = () => {
     if (!flipped && onReveal) {
-      try {
-        if (audioRef.current) {
-          if (audioRef.current.ctx.state === 'suspended') {
-            audioRef.current.ctx.resume();
-          }
-          audioRef.current.audio.currentTime = 0;
-          audioRef.current.audio.play();
-        }
-      } catch (_) {}
       setFlipped(true);
       spawnParticles();
       onReveal();
