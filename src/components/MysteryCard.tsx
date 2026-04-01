@@ -39,7 +39,7 @@ export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'm
     if (isRevealed && !flipped) {
       setSkipTransition(true);
       setFlipped(true);
-      localStorage.setItem(dayKey, '1');
+      if (dayKey) localStorage.setItem(dayKey, '1');
       requestAnimationFrame(() => {
         requestAnimationFrame(() => setSkipTransition(false));
       });
