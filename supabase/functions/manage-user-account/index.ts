@@ -148,8 +148,9 @@ Deno.serve(async (req) => {
       }
     );
   } catch (err) {
+    console.error("manage-user-account error:", err);
     return new Response(
-      JSON.stringify({ error: err.message }),
+      JSON.stringify({ error: "Erreur serveur" }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
