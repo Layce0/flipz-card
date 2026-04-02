@@ -202,7 +202,7 @@ Deno.serve(async (req) => {
 
   } catch (error: any) {
     console.error('Trade error:', error);
-    return new Response(JSON.stringify({ error: error.message || 'Internal server error' }), {
+    return new Response(JSON.stringify({ error: 'Erreur serveur' }), {
       status: 500, headers: { ...getCorsHeaders(req.headers.get('origin')), 'Content-Type': 'application/json' }
     });
   }
