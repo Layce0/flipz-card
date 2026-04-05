@@ -1,0 +1,2 @@
+DROP POLICY IF EXISTS "Anyone can view pack probabilities" ON public.pack_probability_tables;
+CREATE POLICY "Authenticated users can view pack probabilities" ON public.pack_probability_tables FOR SELECT TO authenticated USING (true);
