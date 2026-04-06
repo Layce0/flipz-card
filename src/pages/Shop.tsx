@@ -14,6 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useUserCards, useTradeCards, UserCardWithCount } from '@/hooks/useCards';
 import { RedeemCodeSection } from '@/components/shop/RedeemCodeSection';
 import { invokeEdgeFunction } from '@/lib/edgeFunctions';
+import { useGoogleBilling } from '@/hooks/useGoogleBilling';
 
 const Shop = () => {
   const { user, isModerator } = useAuth();
