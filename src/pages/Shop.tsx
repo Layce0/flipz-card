@@ -215,24 +215,24 @@ const Shop = () => {
               description={t('shop.standardPacksDesc')}
               packs={standardPacks}
               onPurchase={handlePurchase}
-              isLoading={!!loadingPackId}
-              loadingPackId={loadingPackId}
+              isLoading={!!loadingPackId || googleBilling.loading}
+              loadingPackId={loadingPackId || googleBilling.loadingPackId}
             />
             <PackSection
               title={t('shop.luckyPacks')}
               description={t('shop.luckyPacksDesc')}
               packs={luckyPacks}
               onPurchase={handlePurchase}
-              isLoading={!!loadingPackId}
-              loadingPackId={loadingPackId}
+              isLoading={!!loadingPackId || googleBilling.loading}
+              loadingPackId={loadingPackId || googleBilling.loadingPackId}
             />
             <PackSection
               title={t('shop.ultraPacks')}
               description={t('shop.ultraPacksDesc')}
               packs={ultraPacks}
               onPurchase={handlePurchase}
-              isLoading={!!loadingPackId}
-              loadingPackId={loadingPackId}
+              isLoading={!!loadingPackId || googleBilling.loading}
+              loadingPackId={loadingPackId || googleBilling.loadingPackId}
             />
           </>
         )}
