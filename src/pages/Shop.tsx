@@ -75,12 +75,24 @@ const Shop = () => {
       return;
     }
 
-    setLoadingPackId(packId);
     const derivedPackType = packId.split('_')[0] || 'standard';
+
+    // Native Android: use Google Play Billing
+    if (googleBilling.isNative) {
+      await googleBilling.purchase(packId, (cards, packType) => {
+        setPurchasedCards(cards);
+        setPurchasedPackType(packType);
+        setShowPurchaseReward(true);
+        refetchCards();
+      });
+      return;
+    }
+
+    // Web / Moderator flow
+    setLoadingPackId(packId);
 
     try {
       if (isModerator) {
-        // Moderators bypass Stripe — simulate payment directly
         const { data, error } = await invokeEdgeFunction('simulate-payment', {
           body: { packId }
         });
@@ -110,7 +122,7 @@ const Shop = () => {
     } finally {
       setLoadingPackId(null);
     }
-  }, [user, isModerator, t, refetchCards]);
+  }, [user, isModerator, t, refetchCards, googleBilling]);
 
   const handleTrade = async (card: UserCardWithCount): Promise<any[]> => {
     if (!user) {
