@@ -14,6 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useUserCards, useTradeCards, UserCardWithCount } from '@/hooks/useCards';
 import { RedeemCodeSection } from '@/components/shop/RedeemCodeSection';
 import { invokeEdgeFunction } from '@/lib/edgeFunctions';
+import { useGoogleBilling } from '@/hooks/useGoogleBilling';
 
 const Shop = () => {
   const { user, isModerator } = useAuth();
@@ -21,6 +22,7 @@ const Shop = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { data: userCards = [], isLoading: cardsLoading, refetch: refetchCards } = useUserCards(user?.id);
   const tradeCards = useTradeCards();
+  const googleBilling = useGoogleBilling();
 
   const [loadingPackId, setLoadingPackId] = useState<string | null>(null);
   const [isTrading, setIsTrading] = useState(false);
@@ -73,12 +75,24 @@ const Shop = () => {
       return;
     }
 
-    setLoadingPackId(packId);
     const derivedPackType = packId.split('_')[0] || 'standard';
+
+    // Native Android: use Google Play Billing
+    if (googleBilling.isNative) {
+      await googleBilling.purchase(packId, (cards, packType) => {
+        setPurchasedCards(cards);
+        setPurchasedPackType(packType);
+        setShowPurchaseReward(true);
+        refetchCards();
+      });
+      return;
+    }
+
+    // Web / Moderator flow
+    setLoadingPackId(packId);
 
     try {
       if (isModerator) {
-        // Moderators bypass Stripe — simulate payment directly
         const { data, error } = await invokeEdgeFunction('simulate-payment', {
           body: { packId }
         });
@@ -108,7 +122,7 @@ const Shop = () => {
     } finally {
       setLoadingPackId(null);
     }
-  }, [user, isModerator, t, refetchCards]);
+  }, [user, isModerator, t, refetchCards, googleBilling]);
 
   const handleTrade = async (card: UserCardWithCount): Promise<any[]> => {
     if (!user) {
@@ -201,24 +215,24 @@ const Shop = () => {
               description={t('shop.standardPacksDesc')}
               packs={standardPacks}
               onPurchase={handlePurchase}
-              isLoading={!!loadingPackId}
-              loadingPackId={loadingPackId}
+              isLoading={!!loadingPackId || googleBilling.loading}
+              loadingPackId={loadingPackId || googleBilling.loadingPackId}
             />
             <PackSection
               title={t('shop.luckyPacks')}
               description={t('shop.luckyPacksDesc')}
               packs={luckyPacks}
               onPurchase={handlePurchase}
-              isLoading={!!loadingPackId}
-              loadingPackId={loadingPackId}
+              isLoading={!!loadingPackId || googleBilling.loading}
+              loadingPackId={loadingPackId || googleBilling.loadingPackId}
             />
             <PackSection
               title={t('shop.ultraPacks')}
               description={t('shop.ultraPacksDesc')}
               packs={ultraPacks}
               onPurchase={handlePurchase}
-              isLoading={!!loadingPackId}
-              loadingPackId={loadingPackId}
+              isLoading={!!loadingPackId || googleBilling.loading}
+              loadingPackId={loadingPackId || googleBilling.loadingPackId}
             />
           </>
         )}

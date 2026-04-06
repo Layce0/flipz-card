@@ -1,0 +1,101 @@
+import { useState, useCallback } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/contexts/AuthContext';
+import { invokeEdgeFunction } from '@/lib/edgeFunctions';
+
+interface BillingResult {
+  purchaseToken: string;
+  productId: string;
+  orderId: string;
+}
+
+// Maps packId (from PACK_CONFIGS) to Google Play product ID
+const PACK_TO_PRODUCT: Record<string, string> = {
+  standard_5: 'pack_standard_5',
+  standard_10: 'pack_standard_10',
+  standard_20: 'pack_standard_20',
+  standard_50: 'pack_standard_50',
+  lucky_5: 'pack_lucky_5',
+  lucky_10: 'pack_lucky_10',
+  lucky_20: 'pack_lucky_20',
+  lucky_50: 'pack_lucky_50',
+  ultra_5: 'pack_ultra_5',
+  ultra_10: 'pack_ultra_10',
+  ultra_20: 'pack_ultra_20',
+  ultra_50: 'pack_ultra_50',
+};
+
+export const useGoogleBilling = () => {
+  const { user } = useAuth();
+  const { t } = useTranslation();
+  const [loading, setLoading] = useState(false);
+  const [loadingPackId, setLoadingPackId] = useState<string | null>(null);
+
+  const isNative = Capacitor.isNativePlatform();
+
+  const purchase = useCallback(async (
+    packId: string,
+    onSuccess: (cards: any[], packType: string) => void,
+  ) => {
+    if (!user) {
+      toast.error(t('shop.mustBeConnected'));
+      return;
+    }
+
+    const productId = PACK_TO_PRODUCT[packId];
+    if (!productId) {
+      toast.error('Produit inconnu');
+      return;
+    }
+
+    setLoading(true);
+    setLoadingPackId(packId);
+
+    try {
+      // Call native BillingPlugin
+      const BillingPlugin = (Capacitor as any).Plugins?.BillingPlugin;
+      if (!BillingPlugin) {
+        throw new Error('BillingPlugin not available');
+      }
+
+      const result: BillingResult = await BillingPlugin.purchaseProduct({ productId });
+
+      // Verify purchase on backend
+      const { data, error } = await invokeEdgeFunction('verify-google-purchase', {
+        body: {
+          packId,
+          purchaseToken: result.purchaseToken,
+          productId: result.productId,
+          userId: user.id,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.alreadyProcessed) {
+        toast.info(t('shop.alreadyProcessed', 'Achat déjà traité'));
+        return;
+      }
+
+      if (data?.cards && data.cards.length > 0) {
+        const derivedPackType = packId.split('_')[0] || 'standard';
+        toast.success(t('shop.cardsReceived', { count: data.cardCount }));
+        onSuccess(data.cards, derivedPackType);
+      }
+    } catch (err: any) {
+      if (err?.message?.includes('USER_CANCELED')) {
+        toast.error(t('shop.purchaseCanceled'));
+      } else {
+        console.error('Google Billing error:', err);
+        toast.error(t('shop.paymentError'));
+      }
+    } finally {
+      setLoading(false);
+      setLoadingPackId(null);
+    }
+  }, [user, t]);
+
+  return { purchase, loading, loadingPackId, isNative };
+};
