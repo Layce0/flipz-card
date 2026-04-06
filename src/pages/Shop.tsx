@@ -22,6 +22,7 @@ const Shop = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { data: userCards = [], isLoading: cardsLoading, refetch: refetchCards } = useUserCards(user?.id);
   const tradeCards = useTradeCards();
+  const googleBilling = useGoogleBilling();
 
   const [loadingPackId, setLoadingPackId] = useState<string | null>(null);
   const [isTrading, setIsTrading] = useState(false);
