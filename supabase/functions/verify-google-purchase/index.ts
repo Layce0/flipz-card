@@ -3,6 +3,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const ALLOWED_ORIGINS = [
   'https://daily-card-quest.lovable.app',
+  'https://id-preview--292d3511-a5af-422b-bf8b-81ad9534130a.lovable.app',
+  'https://292d3511-a5af-422b-bf8b-81ad9534130a.lovableproject.com',
   'http://localhost',
   'https://localhost',
   'capacitor://localhost',
@@ -12,7 +14,7 @@ const getCorsHeaders = (origin: string | null) => {
   const allowedOrigin = origin && ALLOWED_ORIGINS.some(a => origin === a) ? origin : ALLOWED_ORIGINS[0];
   return {
     "Access-Control-Allow-Origin": allowedOrigin,
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
   };
 };
 
@@ -31,25 +33,9 @@ const PACK_CONFIGS: Record<string, { cardCount: number; type: string }> = {
   pack_ultra_50:    { cardCount: 50, type: "ultra" },
 };
 
-const LUCK_TABLES: Record<number, Record<string, number>> = {
-  1: { common: 60, rare: 25, epic: 12, legendary: 3 },
-  2: { common: 30, rare: 40, epic: 22, legendary: 8 },
-  3: { common: 25, rare: 30, epic: 33, legendary: 12 },
-  4: { common: 10, rare: 30, epic: 44, legendary: 16 },
-};
-
-const LUCKY_PACK_TABLES: Record<number, Record<string, number>> = {
-  1: { common: 30, rare: 40, epic: 22, legendary: 8 },
-  2: { common: 15, rare: 25, epic: 44, legendary: 16 },
-  3: { common: 2.5, rare: 7.5, epic: 66, legendary: 24 },
-  4: { common: 0.5, rare: 0.5, epic: 67, legendary: 32 },
-};
-
-const ULTRA_PACK_TABLES: Record<number, Record<string, number>> = {
-  1: { common: 10, rare: 15, epic: 55, legendary: 20 },
-  2: { common: 1, rare: 1, epic: 58, legendary: 40 },
-  3: { common: 0.25, rare: 0.25, epic: 39.5, legendary: 60 },
-  4: { common: 0.05, rare: 0.05, epic: 19.9, legendary: 80 },
+const logStep = (step: string, details?: any) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[VERIFY-GOOGLE-PURCHASE] ${step}${detailsStr}`);
 };
 
 serve(async (req) => {
@@ -66,19 +52,24 @@ serve(async (req) => {
   );
 
   try {
+    logStep("Function started");
+
     const { packId, purchaseToken, productId, userId } = await req.json();
 
     if (!packId || !purchaseToken || !productId || !userId) {
       throw new Error("Paramètres manquants");
     }
 
+    // Authenticate user
     const authHeader = req.headers.get("Authorization")!;
     const token = authHeader.replace("Bearer ", "");
     const { data: userData } = await supabase.auth.getUser(token);
     if (!userData.user || userData.user.id !== userId) {
       throw new Error("Utilisateur non authentifié");
     }
+    logStep("User authenticated", { userId });
 
+    // Idempotency check
     const { data: existing } = await supabase
       .from('purchase_transactions')
       .select('id')
@@ -86,6 +77,7 @@ serve(async (req) => {
       .single();
 
     if (existing) {
+      logStep("Already processed", { purchaseToken });
       return new Response(JSON.stringify({ success: true, alreadyProcessed: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
@@ -97,12 +89,27 @@ serve(async (req) => {
 
     const { cardCount, type: packType } = packConfig;
 
+    // Get all cards
     const { data: cards, error: cardsError } = await supabase.from('cards').select('*');
     if (cardsError || !cards || cards.length === 0) throw new Error("Aucune carte disponible");
 
+    // Aggregate boosts (same logic as verify-pack-purchase)
     let luckMultiplier = 1;
+    let bonusCards = 0;
+    let cardMultiplier = 1;
     const now = new Date().toISOString();
 
+    const applyBoost = (rewardType: string, config: Record<string, any>) => {
+      if (rewardType === 'boost_luck' && config?.multiplier) {
+        luckMultiplier = Math.max(luckMultiplier, config.multiplier);
+      }
+      if (rewardType === 'boost_pack') {
+        if (config?.bonus) bonusCards = Math.max(bonusCards, config.bonus);
+        if (config?.multiplier) cardMultiplier = Math.max(cardMultiplier, config.multiplier);
+      }
+    };
+
+    // 1. Code redemption boosts
     const { data: activeRedemptions } = await supabase
       .from('code_redemptions')
       .select('code_id')
@@ -113,52 +120,131 @@ serve(async (req) => {
       const codeIds = activeRedemptions.map((r: any) => r.code_id);
       const { data: codes } = await supabase
         .from('reward_codes')
-        .select('reward_type, reward_config')
+        .select('id, reward_type, reward_config')
         .in('id', codeIds);
 
       (codes || []).forEach((code: any) => {
-        if (code.reward_type === 'boost_luck' && code.reward_config?.multiplier) {
-          luckMultiplier = Math.max(luckMultiplier, code.reward_config.multiplier);
-        }
+        applyBoost(code.reward_type, code.reward_config as Record<string, any>);
       });
     }
 
-    const effectiveLuck = Math.min(Math.round(luckMultiplier), 4);
-    let tableSet = LUCK_TABLES;
-    if (packType === 'lucky') tableSet = LUCKY_PACK_TABLES;
-    else if (packType === 'ultra') tableSet = ULTRA_PACK_TABLES;
+    // 2. Winstreak boosts
+    const { data: wsClaims } = await supabase
+      .from('winstreak_claims')
+      .select('reward_id, boost_expires_at')
+      .eq('user_id', userId)
+      .gt('boost_expires_at', now);
 
-    const weights = tableSet[effectiveLuck] ?? tableSet[1];
+    if (wsClaims && wsClaims.length > 0) {
+      const rewardIds = wsClaims.map((c: any) => c.reward_id);
+      const { data: rewards } = await supabase
+        .from('winstreak_rewards')
+        .select('id, reward_type, reward_config')
+        .in('id', rewardIds);
 
-    const weightedCards: any[] = [];
-    cards.forEach((card: any) => {
-      const weight = Math.round(weights[card.rarity] ?? 1);
-      for (let i = 0; i < weight; i++) weightedCards.push(card);
-    });
-
-    const selectedCards: any[] = [];
-    for (let i = 0; i < cardCount; i++) {
-      const idx = Math.floor(Math.random() * weightedCards.length);
-      selectedCards.push(weightedCards[idx]);
+      (rewards || []).forEach((r: any) => {
+        applyBoost(r.reward_type, r.reward_config as Record<string, any>);
+      });
     }
 
+    // Apply pack boost to card count
+    const finalCardCount = Math.round(cardCount * cardMultiplier) + bonusCards;
+
+    // Fetch probability tables from database
+    let dbPackType = 'paid_standard';
+    if (packType === 'lucky') dbPackType = 'paid_lucky';
+    else if (packType === 'ultra') dbPackType = 'paid_ultra';
+
+    const { data: probRows, error: probError } = await supabase
+      .from('pack_probability_tables')
+      .select('*')
+      .eq('pack_type', dbPackType);
+
+    if (probError) throw probError;
+
+    const dbTable: Record<number, Record<string, number>> = {};
+    (probRows || []).forEach((row: any) => {
+      dbTable[Number(row.luck_multiplier)] = {
+        common: Number(row.common_rate),
+        rare: Number(row.rare_rate),
+        epic: Number(row.epic_rate),
+        legendary: Number(row.legendary_rate),
+      };
+    });
+
+    const FALLBACK: Record<string, number> = { common: 60, rare: 25, epic: 12, legendary: 3 };
+    const effectiveLuck = luckMultiplier > 1 ? luckMultiplier : 1;
+    const normalizedWeights = dbTable[effectiveLuck] ?? dbTable[1] ?? FALLBACK;
+
+    logStep("Calculated weights", { packType, luckMultiplier, effectiveLuck, finalCardCount, normalizedWeights });
+
+    // Rarity-first card generation (same as verify-pack-purchase)
+    const rarityOrder = ['common', 'rare', 'epic', 'legendary'];
+    const cardsByRarity = cards.reduce((acc: Record<string, any[]>, card: any) => {
+      const rarity = card.rarity as string;
+      if (!acc[rarity]) acc[rarity] = [];
+      acc[rarity].push(card);
+      return acc;
+    }, {});
+
+    const effectiveWeights: Record<string, number> = {};
+    rarityOrder.forEach((rarity) => {
+      effectiveWeights[rarity] = cardsByRarity[rarity]?.length ? Math.max(0, Number(normalizedWeights[rarity] ?? 0)) : 0;
+    });
+
+    let totalWeight = rarityOrder.reduce((sum, r) => sum + effectiveWeights[r], 0);
+    if (totalWeight <= 0) {
+      rarityOrder.forEach((r) => {
+        if (cardsByRarity[r]?.length) effectiveWeights[r] = 1;
+      });
+      totalWeight = rarityOrder.reduce((sum, r) => sum + effectiveWeights[r], 0);
+    }
+
+    const pickRarity = () => {
+      let roll = Math.random() * totalWeight;
+      for (const rarity of rarityOrder) {
+        roll -= effectiveWeights[rarity];
+        if (roll <= 0) return rarity;
+      }
+      return 'common';
+    };
+
+    const selectedCards: any[] = [];
+    for (let i = 0; i < finalCardCount; i++) {
+      const rarity = pickRarity();
+      const pool = cardsByRarity[rarity] ?? cards;
+      selectedCards.push(pool[Math.floor(Math.random() * pool.length)]);
+    }
+
+    logStep("Selected cards", { count: selectedCards.length });
+
+    // Insert cards
     const { error: insertError } = await supabase
       .from('user_cards')
       .insert(selectedCards.map((card: any) => ({ user_id: userId, card_id: card.id })));
 
     if (insertError) throw insertError;
 
-    await supabase.from('purchase_transactions').insert({
-      session_id: purchaseToken,
-      user_id: userId,
-      card_count: selectedCards.length,
-      pack_type: packType
-    });
+    // Record transaction
+    const { error: txError } = await supabase
+      .from('purchase_transactions')
+      .insert({
+        session_id: purchaseToken,
+        user_id: userId,
+        card_count: selectedCards.length,
+        pack_type: packType,
+      });
+
+    if (txError) {
+      logStep("Warning: Failed to record transaction", { error: txError.message });
+    }
+
+    logStep("Cards added to user collection");
 
     return new Response(JSON.stringify({
       success: true,
       cards: selectedCards,
-      cardCount: selectedCards.length
+      cardCount: selectedCards.length,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
@@ -166,6 +252,7 @@ serve(async (req) => {
 
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
+    logStep("ERROR", { message: msg });
     return new Response(JSON.stringify({ error: msg }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
