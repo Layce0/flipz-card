@@ -1,15 +1,9 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { invokeEdgeFunction } from '@/lib/edgeFunctions';
-
-interface BillingResult {
-  purchaseToken: string;
-  productId: string;
-  orderId: string;
-}
 
 // Maps packId (from PACK_CONFIGS) to Google Play product ID
 const PACK_TO_PRODUCT: Record<string, string> = {
@@ -27,13 +21,112 @@ const PACK_TO_PRODUCT: Record<string, string> = {
   ultra_50: 'pack_ultra_50',
 };
 
+const ALL_PRODUCT_IDS = Object.values(PACK_TO_PRODUCT);
+
 export const useGoogleBilling = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [loadingPackId, setLoadingPackId] = useState<string | null>(null);
+  const storeInitialized = useRef(false);
+  const pendingCallback = useRef<((cards: any[], packType: string) => void) | null>(null);
+  const pendingPackId = useRef<string | null>(null);
 
   const isNative = Capacitor.isNativePlatform();
+
+  // Initialize CdvPurchase store on native
+  useEffect(() => {
+    if (!isNative || storeInitialized.current) return;
+
+    const initStore = () => {
+      const CdvPurchase = (window as any).CdvPurchase;
+      if (!CdvPurchase?.store) {
+        console.warn('CdvPurchase.store not available yet');
+        return;
+      }
+
+      const store = CdvPurchase.store;
+      storeInitialized.current = true;
+
+      // Register all products
+      ALL_PRODUCT_IDS.forEach((productId) => {
+        store.register({
+          id: productId,
+          platform: CdvPurchase.Platform.GOOGLE_PLAY,
+          type: CdvPurchase.ProductType.CONSUMABLE,
+        });
+      });
+
+      // Listen for approved transactions → verify on backend
+      store.when().approved(async (transaction: any) => {
+        const receipt = transaction.parentReceipt;
+        const purchaseToken = receipt?.purchaseToken || transaction.purchaseToken || transaction.nativePurchase?.purchaseToken;
+        const productId = transaction.products?.[0]?.id || transaction.productId;
+        const packId = pendingPackId.current;
+
+        if (!purchaseToken || !productId || !packId) {
+          console.error('Missing purchase data', { purchaseToken, productId, packId });
+          transaction.finish();
+          setLoading(false);
+          setLoadingPackId(null);
+          return;
+        }
+
+        try {
+          const { data, error } = await invokeEdgeFunction('verify-google-purchase', {
+            body: {
+              packId,
+              purchaseToken,
+              productId,
+              userId: user?.id,
+            },
+          });
+
+          if (error) throw error;
+
+          if (data?.alreadyProcessed) {
+            toast.info(t('shop.alreadyProcessed', 'Achat déjà traité'));
+          } else if (data?.cards && data.cards.length > 0) {
+            const derivedPackType = packId.split('_')[0] || 'standard';
+            toast.success(t('shop.cardsReceived', { count: data.cardCount }));
+            pendingCallback.current?.(data.cards, derivedPackType);
+          }
+        } catch (err) {
+          console.error('verify-google-purchase error:', err);
+          toast.error(t('shop.paymentError'));
+        } finally {
+          transaction.finish();
+          setLoading(false);
+          setLoadingPackId(null);
+          pendingCallback.current = null;
+          pendingPackId.current = null;
+        }
+      });
+
+      // Listen for cancelled / error
+      store.when().cancelled(() => {
+        toast.error(t('shop.purchaseCanceled'));
+        setLoading(false);
+        setLoadingPackId(null);
+        pendingCallback.current = null;
+        pendingPackId.current = null;
+      });
+
+      store.error((err: any) => {
+        console.error('CdvPurchase error:', err);
+        // Don't toast on every error – some are informational
+      });
+
+      store.initialize([CdvPurchase.Platform.GOOGLE_PLAY]);
+    };
+
+    // CdvPurchase may load after deviceready
+    if ((window as any).CdvPurchase?.store) {
+      initStore();
+    } else {
+      document.addEventListener('deviceready', initStore, { once: true });
+    }
+  }, [isNative, user, t]);
 
   const purchase = useCallback(async (
     packId: string,
@@ -50,50 +143,31 @@ export const useGoogleBilling = () => {
       return;
     }
 
+    const CdvPurchase = (window as any).CdvPurchase;
+    if (!CdvPurchase?.store) {
+      toast.error('Store non disponible');
+      return;
+    }
+
     setLoading(true);
     setLoadingPackId(packId);
+    pendingCallback.current = onSuccess;
+    pendingPackId.current = packId;
 
     try {
-      // Call native BillingPlugin
-      const BillingPlugin = (Capacitor as any).Plugins?.BillingPlugin;
-      if (!BillingPlugin) {
-        throw new Error('BillingPlugin not available');
+      const offer = CdvPurchase.store.get(productId, CdvPurchase.Platform.GOOGLE_PLAY)?.getOffer();
+      if (!offer) {
+        throw new Error(`Offer not found for ${productId}`);
       }
-
-      const result: BillingResult = await BillingPlugin.purchaseProduct({ productId });
-
-      // Verify purchase on backend
-      const { data, error } = await invokeEdgeFunction('verify-google-purchase', {
-        body: {
-          packId,
-          purchaseToken: result.purchaseToken,
-          productId: result.productId,
-          userId: user.id,
-        },
-      });
-
-      if (error) throw error;
-
-      if (data?.alreadyProcessed) {
-        toast.info(t('shop.alreadyProcessed', 'Achat déjà traité'));
-        return;
-      }
-
-      if (data?.cards && data.cards.length > 0) {
-        const derivedPackType = packId.split('_')[0] || 'standard';
-        toast.success(t('shop.cardsReceived', { count: data.cardCount }));
-        onSuccess(data.cards, derivedPackType);
-      }
+      await CdvPurchase.store.order(offer);
+      // The approved listener handles the rest
     } catch (err: any) {
-      if (err?.message?.includes('USER_CANCELED')) {
-        toast.error(t('shop.purchaseCanceled'));
-      } else {
-        console.error('Google Billing error:', err);
-        toast.error(t('shop.paymentError'));
-      }
-    } finally {
+      console.error('Google Billing order error:', err);
+      toast.error(t('shop.paymentError'));
       setLoading(false);
       setLoadingPackId(null);
+      pendingCallback.current = null;
+      pendingPackId.current = null;
     }
   }, [user, t]);
 
