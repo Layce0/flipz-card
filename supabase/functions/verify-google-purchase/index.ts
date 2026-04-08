@@ -33,6 +33,26 @@ const PACK_CONFIGS: Record<string, { cardCount: number; type: string }> = {
   pack_ultra_50:    { cardCount: 50, type: "ultra" },
 };
 
+// In-memory rate limiter
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const RATE_LIMIT_MAX_REQUESTS = 20;
+
+const checkRateLimit = (userId: string): { allowed: boolean; remaining: number; retryAfter?: number } => {
+  const now = Date.now();
+  const userLimit = rateLimitMap.get(userId);
+  if (!userLimit || now > userLimit.resetTime) {
+    rateLimitMap.set(userId, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1 };
+  }
+  if (userLimit.count >= RATE_LIMIT_MAX_REQUESTS) {
+    const retryAfter = Math.ceil((userLimit.resetTime - now) / 1000);
+    return { allowed: false, remaining: 0, retryAfter };
+  }
+  userLimit.count++;
+  return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - userLimit.count };
+};
+
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[VERIFY-GOOGLE-PURCHASE] ${step}${detailsStr}`);
