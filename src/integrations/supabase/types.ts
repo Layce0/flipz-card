@@ -340,6 +340,41 @@ export type Database = {
         }
         Relationships: []
       }
+      pending_gifts: {
+        Row: {
+          card_id: string
+          created_at: string
+          gifted_by: string | null
+          id: string
+          seen: boolean
+          user_id: string
+        }
+        Insert: {
+          card_id: string
+          created_at?: string
+          gifted_by?: string | null
+          id?: string
+          seen?: boolean
+          user_id: string
+        }
+        Update: {
+          card_id?: string
+          created_at?: string
+          gifted_by?: string | null
+          id?: string
+          seen?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pending_gifts_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null

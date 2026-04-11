@@ -10,6 +10,7 @@ import { AdminRoute } from "@/components/AdminRoute";
 import { ParticlesBackground } from "@/components/ParticlesBackground";
 import { ActiveBoostsOverlay } from "@/components/ActiveBoostsOverlay";
 import { GlobalGifsOverlay } from "@/components/GlobalGifsOverlay";
+import { GiftRevealPopup } from "@/components/GiftRevealPopup";
 import Index from "./pages/Index";
 import Collection from "./pages/Collection";
 import Packs from "./pages/Packs";
@@ -43,6 +44,7 @@ const App = () => (
             <ActiveBoostsOverlay />
             <Suspense fallback={null}><OnboardingTutorial /></Suspense>
             <GlobalGifsOverlay />
+            <GiftRevealPopup />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/collection" element={<Collection />} />

@@ -30,6 +30,11 @@ export const useGiveCard = () => {
         .insert({ user_id: userId, card_id: cardId });
       
       if (error) throw error;
+
+      // Also insert into pending_gifts so recipient sees a reveal popup
+      await supabase
+        .from('pending_gifts')
+        .insert({ user_id: userId, card_id: cardId, gifted_by: (await supabase.auth.getUser()).data.user?.id });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-cards'] });
