@@ -44,6 +44,12 @@ export const PACK_TYPE_GROUPS = [
       { value: 'winstreak_ultra', label: 'Ultra Légendaire' },
     ],
   },
+  {
+    label: '♻️ Échanges',
+    types: [
+      { value: 'trade', label: 'Échange' },
+    ],
+  },
 ] as const;
 
 // Flat list for backward compat
