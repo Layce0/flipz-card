@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.verify-google-purchase]
 verify_jwt = false
+
+[functions.manage-user-account]
+verify_jwt = false
