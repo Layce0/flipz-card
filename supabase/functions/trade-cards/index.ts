@@ -159,11 +159,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch probability tables for "free" pack type
+    // Fetch probability tables for "trade" pack type
     const { data: probRows } = await supabaseAdmin
       .from('pack_probability_tables')
       .select('*')
-      .eq('pack_type', 'free');
+      .eq('pack_type', 'trade');
 
     let weights = FALLBACK_WEIGHTS;
     if (probRows && probRows.length > 0) {
