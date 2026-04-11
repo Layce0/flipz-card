@@ -147,6 +147,16 @@ Deno.serve(async (req) => {
           .from('user_cards')
           .insert({ user_id: userId, card_id: cardId })
         rewardDetails.card_id = cardId
+
+        // Fetch full card data for reveal popup
+        const { data: cardData } = await supabaseAdmin
+          .from('cards')
+          .select('*')
+          .eq('id', cardId)
+          .single()
+        if (cardData) {
+          rewardDetails.cards = [cardData]
+        }
       }
     } else if (rewardType === 'pack' || rewardType === 'pack_lucky' || rewardType === 'pack_ultra') {
       // SERVER-SIDE card generation for pack rewards

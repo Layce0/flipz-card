@@ -52,14 +52,14 @@ export const RedeemCodeSection = ({ userCards }: RedeemCodeSectionProps) => {
 
       const reward = data.reward;
 
-      if (reward?.type === 'pack' || reward?.type === 'pack_lucky' || reward?.type === 'pack_ultra') {
+      if (reward?.type === 'pack' || reward?.type === 'pack_lucky' || reward?.type === 'pack_ultra' || (reward?.type === 'card' && reward?.cards?.length)) {
         const cards = (reward.cards || []) as GameCard[];
-        const animType = reward.type === 'pack_ultra' ? 'ultra' : reward.type === 'pack_lucky' ? 'lucky' : 'standard';
+        const animType = reward.type === 'pack_ultra' ? 'ultra' : reward.type === 'pack_lucky' ? 'lucky' : reward.type === 'card' ? 'free' : 'standard';
         setRevealPackType(animType);
         setOwnedSnapshotForReveal(ownedIdsBeforeRedeem);
         setRevealedCards(cards);
         setIsRevealing(true);
-        toast.success(data.message || 'Pack reçu !');
+        toast.success(data.message || (reward.type === 'card' ? 'Carte reçue !' : 'Pack reçu !'));
       } else {
         toast.success(data.message || 'Code utilisé avec succès !');
       }
