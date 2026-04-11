@@ -44,6 +44,7 @@ const App = () => (
             <ActiveBoostsOverlay />
             <Suspense fallback={null}><OnboardingTutorial /></Suspense>
             <GlobalGifsOverlay />
+            <GiftRevealPopup />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/collection" element={<Collection />} />
