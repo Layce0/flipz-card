@@ -110,6 +110,7 @@ export default {
         "fade-in": "fade-in 0.5s ease-out",
         "scale-in": "scale-in 0.3s ease-out",
         "glow-pulse": "glow-pulse 2s ease-in-out infinite",
+        "shimmer": "shimmer 2s ease-in-out infinite",
       },
     },
   },
