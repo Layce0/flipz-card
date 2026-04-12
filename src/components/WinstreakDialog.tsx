@@ -52,6 +52,102 @@ const getRewardLabel = (type: string, config: Record<string, any>) => {
   }
 };
 
+const DayCell = ({
+  day,
+  reward,
+  isClaimed,
+  isCurrentDay,
+  isPast,
+  isFuture,
+  canClaim,
+  isPending,
+  onClaim,
+}: {
+  day: number;
+  reward: any;
+  isClaimed: boolean;
+  isCurrentDay: boolean;
+  isPast: boolean;
+  isFuture: boolean;
+  canClaim: boolean;
+  isPending: boolean;
+  onClaim: () => void;
+}) => {
+  const RewardIcon = reward ? getRewardIcon(reward.reward_type) : null;
+
+  return (
+    <button
+      onClick={() => canClaim && onClaim()}
+      disabled={!canClaim || isPending}
+      className={cn(
+        "relative flex flex-col items-center gap-1.5 p-2 rounded-2xl border-2 transition-all min-h-[80px] justify-center overflow-hidden",
+        // Current day — pulsing glow
+        isCurrentDay && !isClaimed && "border-orange-400/70 bg-gradient-to-b from-orange-400/15 to-amber-500/10 shadow-[0_0_16px_hsl(25_100%_50%_/_0.25)]",
+        isCurrentDay && isClaimed && "border-emerald-400/60 bg-gradient-to-b from-emerald-400/10 to-emerald-500/5",
+        // Past
+        isPast && !isClaimed && "border-border/60 bg-card/40 opacity-40",
+        isPast && isClaimed && "border-emerald-500/30 bg-emerald-500/5",
+        // Future
+        isFuture && "border-border/30 bg-card/20 opacity-30",
+        // Interactions
+        canClaim && "cursor-pointer hover:scale-105 hover:shadow-[0_0_24px_hsl(25_100%_50%_/_0.4)] active:scale-95",
+        !canClaim && "cursor-default"
+      )}
+    >
+      {/* Shimmer effect on claimable */}
+      {canClaim && (
+        <span className="absolute inset-0 bg-gradient-to-r from-transparent via-orange-400/10 to-transparent animate-shimmer pointer-events-none" />
+      )}
+
+      {/* Day label */}
+      <span className={cn(
+        "text-[10px] font-bold uppercase tracking-wider z-10",
+        isCurrentDay ? "text-orange-300" : isClaimed ? "text-emerald-400/80" : "text-muted-foreground/70"
+      )}>
+        J{day}
+      </span>
+
+      {/* Reward icon */}
+      {reward && RewardIcon ? (
+        (reward as any).icon_url && !isClaimed ? (
+          <img src={(reward as any).icon_url} alt={`J${day}`} className="absolute inset-0 w-full h-full object-cover rounded-xl" />
+        ) : (
+          <div className={cn(
+            "w-8 h-8 rounded-xl flex items-center justify-center z-10 transition-all",
+            isClaimed
+              ? "bg-emerald-500/20 ring-1 ring-emerald-400/30"
+              : isCurrentDay
+              ? "bg-orange-400/20 ring-1 ring-orange-400/30"
+              : "bg-muted/60"
+          )}>
+            {isClaimed ? (
+              <Check className="w-4 h-4 text-emerald-400" />
+            ) : reward.reward_type === 'pack' ? (
+              <img src={packClassicImg} alt="Pack" className="w-12 h-12 object-contain" />
+            ) : (
+              <RewardIcon className={cn(
+                "w-4 h-4",
+                isCurrentDay ? "text-orange-300" : "text-muted-foreground/70"
+              )} />
+            )}
+          </div>
+        )
+      ) : (
+        <div className={cn(
+          "w-8 h-8 rounded-xl flex items-center justify-center z-10",
+          isPast || isCurrentDay ? "bg-muted/40" : "bg-muted/20"
+        )}>
+          {isPast || isCurrentDay ? (
+            <Flame className="w-3.5 h-3.5 text-muted-foreground/40" />
+          ) : (
+            <Lock className="w-3.5 h-3.5 text-muted-foreground/20" />
+          )}
+        </div>
+      )}
+    </button>
+  );
+};
+
 export const WinstreakDialog = ({ open, onOpenChange, streak }: WinstreakDialogProps) => {
   const { user } = useAuth();
   const { data: rewards = [] } = useWinstreakRewards();
@@ -60,7 +156,6 @@ export const WinstreakDialog = ({ open, onOpenChange, streak }: WinstreakDialogP
   const [page, setPage] = useState(() => Math.floor((streak - 1) / DAYS_PER_PAGE));
   const totalPages = Math.ceil(MAX_DAYS / DAYS_PER_PAGE);
 
-  // Reveal flow state
   const [revealedCards, setRevealedCards] = useState<GameCard[]>([]);
   const [isRevealing, setIsRevealing] = useState(false);
   const [revealPackType, setRevealPackType] = useState<PackAnimationType>('free');
@@ -74,7 +169,6 @@ export const WinstreakDialog = ({ open, onOpenChange, streak }: WinstreakDialogP
     claimingRef.current = true;
     try {
       const result = await claimReward.mutateAsync({ userId: user.id, rewardId, dayNumber });
-
       const reward = result?.reward;
       if (reward?.cards && reward.cards.length > 0) {
         const rewardType = reward.type || 'pack';
@@ -84,7 +178,6 @@ export const WinstreakDialog = ({ open, onOpenChange, streak }: WinstreakDialogP
         setIsRevealing(true);
         onOpenChange(false);
       }
-
       toast.success(result?.message || 'Récompense récupérée !');
     } catch (e: any) {
       toast.error(e?.message || 'Erreur lors de la récupération');
@@ -98,21 +191,43 @@ export const WinstreakDialog = ({ open, onOpenChange, streak }: WinstreakDialogP
     setRevealedCards([]);
   };
 
+  // Progress within current page
+  const pageProgress = Math.min(Math.max(((streak - startDay + 1) / DAYS_PER_PAGE) * 100, 0), 100);
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-sm p-0 overflow-hidden bg-background border-border">
-          {/* Header */}
-          <div className="px-5 pt-5 pb-3">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-lg">
-                <Flame className="w-5 h-5 text-orange-400" />
-                Série de {streak} jour{streak > 1 ? 's' : ''}
+        <DialogContent className="max-w-sm p-0 overflow-hidden bg-background/95 backdrop-blur-xl border-orange-400/20 shadow-[0_0_40px_hsl(25_100%_50%_/_0.15)]">
+          {/* Header with flame gradient */}
+          <div className="relative px-5 pt-5 pb-4 overflow-hidden">
+            {/* Background glow */}
+            <div className="absolute inset-0 bg-gradient-to-b from-orange-400/10 via-transparent to-transparent pointer-events-none" />
+            
+            <DialogHeader className="relative z-10">
+              <DialogTitle className="flex items-center gap-2.5 text-lg">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-amber-600 flex items-center justify-center shadow-[0_0_16px_hsl(25_100%_50%_/_0.4)]">
+                  <Flame className="w-4 h-4 text-background" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-foreground font-bold">
+                    {streak} jour{streak > 1 ? 's' : ''}
+                  </span>
+                  <span className="text-[11px] text-muted-foreground font-normal -mt-0.5">
+                    Série en cours
+                  </span>
+                </div>
               </DialogTitle>
             </DialogHeader>
-            <p className="text-xs text-muted-foreground mt-1">
-              Connectez-vous chaque jour pour débloquer des récompenses
-            </p>
+
+            {/* Progress bar */}
+            <div className="relative mt-3 z-10">
+              <div className="h-1.5 w-full rounded-full bg-muted/50 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-orange-400 to-amber-500 transition-all duration-500 ease-out"
+                  style={{ width: `${pageProgress}%` }}
+                />
+              </div>
+            </div>
           </div>
 
           {/* Days grid */}
@@ -124,62 +239,21 @@ export const WinstreakDialog = ({ open, onOpenChange, streak }: WinstreakDialogP
                 const isCurrentDay = day === streak;
                 const isPast = day < streak;
                 const isFuture = day > streak;
-                const canClaim = isCurrentDay && reward && !isClaimed;
-                const RewardIcon = reward ? getRewardIcon(reward.reward_type) : null;
+                const canClaim = isCurrentDay && !!reward && !isClaimed;
 
                 return (
-                  <button
+                  <DayCell
                     key={day}
-                    onClick={() => canClaim && handleClaim(reward!.id, day)}
-                    disabled={!canClaim || claimReward.isPending}
-                    className={cn(
-                      "relative flex flex-col items-center gap-1 p-2 rounded-xl border transition-all min-h-[72px] justify-center",
-                      isCurrentDay && !isClaimed && "border-orange-400/60 bg-orange-400/10 ring-1 ring-orange-400/30",
-                      isCurrentDay && isClaimed && "border-green-500/60 bg-green-500/10",
-                      isPast && !isClaimed && "border-border bg-card/50 opacity-50",
-                      isPast && isClaimed && "border-green-500/40 bg-green-500/5",
-                      isFuture && "border-border bg-card/30 opacity-40",
-                      canClaim && "cursor-pointer hover:bg-orange-400/20 active:scale-95",
-                      !canClaim && "cursor-default"
-                    )}
-                  >
-                    <span className={cn(
-                      "text-[10px] font-semibold",
-                      isCurrentDay ? "text-orange-400" : "text-muted-foreground"
-                    )}>
-                      J{day}
-                    </span>
-
-                    {reward && RewardIcon ? (
-                      (reward as any).icon_url && !isClaimed ? (
-                        <img src={(reward as any).icon_url} alt={`J${day}`} className="absolute inset-0 w-full h-full object-cover rounded-xl" />
-                      ) : (
-                        <div className={cn(
-                          "w-7 h-7 rounded-full flex items-center justify-center overflow-hidden",
-                          isClaimed ? "bg-green-500/20" : isCurrentDay ? "bg-orange-400/20" : "bg-muted"
-                        )}>
-                          {isClaimed ? (
-                            <Check className="w-3.5 h-3.5 text-green-400" />
-                          ) : reward.reward_type === 'pack' ? (
-                            <img src={packClassicImg} alt="Pack" className="w-14 h-14 object-contain" />
-                          ) : (
-                            <RewardIcon className={cn(
-                              "w-3.5 h-3.5",
-                              isCurrentDay ? "text-orange-400" : "text-muted-foreground"
-                            )} />
-                          )}
-                        </div>
-                      )
-                    ) : (
-                      <div className="w-7 h-7 rounded-full bg-muted/50 flex items-center justify-center">
-                        {isPast || isCurrentDay ? (
-                          <Flame className="w-3 h-3 text-muted-foreground/50" />
-                        ) : (
-                          <Lock className="w-3 h-3 text-muted-foreground/30" />
-                        )}
-                      </div>
-                    )}
-                  </button>
+                    day={day}
+                    reward={reward}
+                    isClaimed={isClaimed}
+                    isCurrentDay={isCurrentDay}
+                    isPast={isPast}
+                    isFuture={isFuture}
+                    canClaim={canClaim}
+                    isPending={claimReward.isPending}
+                    onClaim={() => handleClaim(reward!.id, day)}
+                  />
                 );
               })}
             </div>
@@ -191,8 +265,10 @@ export const WinstreakDialog = ({ open, onOpenChange, streak }: WinstreakDialogP
               const isClaimed = claims.some(c => c.day_number === streak);
               return (
                 <div className={cn(
-                  "mt-3 p-2.5 rounded-lg text-xs text-center",
-                  isClaimed ? "bg-green-500/10 text-green-400" : "bg-orange-400/10 text-orange-400"
+                  "mt-3 p-3 rounded-xl text-xs text-center font-medium border transition-all",
+                  isClaimed
+                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-400/20"
+                    : "bg-gradient-to-r from-orange-400/10 via-amber-500/10 to-orange-400/10 text-orange-300 border-orange-400/20"
                 )}>
                   {isClaimed
                     ? '✓ Récompense du jour récupérée'
@@ -204,25 +280,25 @@ export const WinstreakDialog = ({ open, onOpenChange, streak }: WinstreakDialogP
           </div>
 
           {/* Pagination */}
-          <div className="flex items-center justify-between px-5 py-3 border-t border-border bg-card/50">
+          <div className="flex items-center justify-between px-5 py-3 border-t border-border/50 bg-card/30">
             <Button
               variant="ghost"
               size="sm"
               disabled={page === 0}
               onClick={() => setPage(p => p - 1)}
-              className="h-8 px-2"
+              className="h-8 w-8 p-0 rounded-full hover:bg-orange-400/10"
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
-            <span className="text-xs text-muted-foreground">
-              Jours {startDay}-{Math.min(startDay + DAYS_PER_PAGE - 1, MAX_DAYS)}
+            <span className="text-xs text-muted-foreground font-mono tabular-nums">
+              {startDay}–{Math.min(startDay + DAYS_PER_PAGE - 1, MAX_DAYS)}
             </span>
             <Button
               variant="ghost"
               size="sm"
               disabled={page >= totalPages - 1}
               onClick={() => setPage(p => p + 1)}
-              className="h-8 px-2"
+              className="h-8 w-8 p-0 rounded-full hover:bg-orange-400/10"
             >
               <ChevronRight className="w-4 h-4" />
             </Button>
