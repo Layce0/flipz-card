@@ -11,6 +11,8 @@ import { ParticlesBackground } from "@/components/ParticlesBackground";
 import { ActiveBoostsOverlay } from "@/components/ActiveBoostsOverlay";
 import { GlobalGifsOverlay } from "@/components/GlobalGifsOverlay";
 import { GiftRevealPopup } from "@/components/GiftRevealPopup";
+import { ForceUpdateDialog } from "@/components/ForceUpdateDialog";
+import { useForceUpdate } from "@/hooks/useForceUpdate";
 import Index from "./pages/Index";
 import Collection from "./pages/Collection";
 import Packs from "./pages/Packs";
