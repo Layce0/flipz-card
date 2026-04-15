@@ -34,6 +34,32 @@ const queryClient = new QueryClient({
   },
 });
 
+const AppContent = () => {
+  const { updateRequired, storeUrl } = useForceUpdate();
+
+  return (
+    <div className="relative min-h-screen">
+      <ForceUpdateDialog open={updateRequired} storeUrl={storeUrl} />
+      <ParticlesBackground />
+      <ActiveBoostsOverlay />
+      <Suspense fallback={null}><OnboardingTutorial /></Suspense>
+      <GlobalGifsOverlay />
+      <GiftRevealPopup />
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/collection" element={<Collection />} />
+        <Route path="/packs" element={<Packs />} />
+        <Route path="/shop" element={<Shop />} />
+        <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </div>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -41,24 +67,7 @@ const App = () => (
       <Sonner position="top-center" theme="dark" />
       <BrowserRouter>
         <AuthProvider>
-          <div className="relative min-h-screen">
-            <ParticlesBackground />
-            <ActiveBoostsOverlay />
-            <Suspense fallback={null}><OnboardingTutorial /></Suspense>
-            <GlobalGifsOverlay />
-            <GiftRevealPopup />
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/collection" element={<Collection />} />
-              <Route path="/packs" element={<Packs />} />
-              <Route path="/shop" element={<Shop />} />
-              <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </div>
+          <AppContent />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
