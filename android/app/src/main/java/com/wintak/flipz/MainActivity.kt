@@ -1,6 +1,10 @@
 package com.wintak.flipz
 
+import android.os.Build
 import android.os.Bundle
+import android.view.View
+import android.view.WindowInsets
+import android.view.WindowInsetsController
 import com.getcapacitor.BridgeActivity
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -15,7 +19,6 @@ class MainActivity : BridgeActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
         checkForAppUpdate()
         
         hideSystemUI()
