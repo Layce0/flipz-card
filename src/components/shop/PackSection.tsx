@@ -9,19 +9,20 @@ interface PackSectionProps {
   onPurchase: (packId: string) => void;
   isLoading: boolean;
   loadingPackId: string | null;
+  localPrices?: Record<string, string>;
 }
 
-export const PackSection = memo(({ 
-  title, 
-  description, 
-  packs, 
-  onPurchase, 
+export const PackSection = memo(({
+  title,
+  description,
+  packs,
+  onPurchase,
   isLoading,
-  loadingPackId 
+  loadingPackId,
+  localPrices = {},
 }: PackSectionProps) => {
   return (
     <section className="space-y-4">
-      
       <div className="grid grid-cols-2 gap-3">
         {packs.map((pack) => (
           <PackCard
@@ -30,6 +31,7 @@ export const PackSection = memo(({
             onPurchase={onPurchase}
             isLoading={isLoading && loadingPackId === pack.id}
             disabled={isLoading && loadingPackId !== pack.id}
+            localPrice={localPrices[pack.id]}
           />
         ))}
       </div>

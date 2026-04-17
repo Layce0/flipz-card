@@ -1,20 +1,21 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Capacitor } from '@capacitor/core';
+import { useAuth } from '@/contexts/AuthContext';
 import { AdMob, InterstitialAdPluginEvents } from '@capacitor-community/admob';
 import type { AdOptions } from '@capacitor-community/admob';
 
 // Production ad unit ID for interstitials
-const INTERSTITIAL_AD_ID = 'ca-app-pub-1812377454430177/5961368412';
+const INTERSTITIAL_AD_ID = 'ca-app-pub-3940256099942544/1033173712';
 
 let admobInitialized = false;
 
-const initializeAdMob = async () => {
+const initializeAdMob = async (isTesting: boolean) => {
   if (admobInitialized) return;
   if (!Capacitor.isNativePlatform()) return;
   
   try {
     await AdMob.initialize({
-      initializeForTesting: false,
+      initializeForTesting: isTesting,
     });
     admobInitialized = true;
   } catch (error) {
@@ -25,10 +26,11 @@ const initializeAdMob = async () => {
 export const useAdMob = () => {
   const [isLoading, setIsLoading] = useState(false);
   const isNative = Capacitor.isNativePlatform();
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     if (isNative) {
-      initializeAdMob();
+      initializeAdMob(isAdmin ?? true);
     }
   }, [isNative]);
 
@@ -71,7 +73,7 @@ export const useAdMob = () => {
     try {
       const options: AdOptions = {
         adId: INTERSTITIAL_AD_ID,
-        isTesting: false,
+        isTesting: isAdmin ?? true,
       };
 
       await AdMob.prepareInterstitial(options);
