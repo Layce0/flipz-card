@@ -38,7 +38,12 @@ const AppContent = () => {
   const { updateRequired, storeUrl } = useForceUpdate();
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-screen pt-[env(safe-area-inset-top,24px)]">
+      {/* Black Top Banner for Safe Area */}
+      <div 
+        className="fixed top-0 left-0 right-0 bg-[#0a0a0a] z-[100]" 
+        style={{ height: 'env(safe-area-inset-top, 24px)' }} 
+      />
       <ForceUpdateDialog open={updateRequired} storeUrl={storeUrl} />
       <ParticlesBackground />
       <ActiveBoostsOverlay />

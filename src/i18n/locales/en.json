@@ -41,7 +41,8 @@
     "nextCard": "Next card in",
     "noCard": "No card available today",
     "comeBackTomorrow": "Come back tomorrow!",
-    "cardAdded": "Card added to your collection!"
+    "cardAdded": "Card added to your collection!",
+    "alreadyCollected": "You have already collected this card!"
   },
   "profile": {
     "title": "Profile",

@@ -174,27 +174,33 @@ export const useUserCardStats = (userId: string | undefined) => {
   });
 };
 
-// Get today's card - random per user based on date + userId
+// Get today's card - random per user based on date + userId + 12h UTC period
 export const useTodayCard = (userId: string | undefined) => {
   return useQuery({
     queryKey: ['today-card', userId],
     queryFn: async () => {
-      const today = new Date().toISOString().split('T')[0];
-      
+      const now = new Date();
+      const today = now.toISOString().split('T')[0];
+      // 12h UTC period: 0 = 00:00–11:59, 1 = 12:00–23:59
+      const period = now.getUTCHours() < 12 ? 0 : 1;
+
       // Get all available cards
       const { data: cards, error } = await supabase
         .from('cards')
         .select('*')
-        .lte('release_date', today);
+        .lte('release_date', today)
+        .order('id');
       
       if (error) throw error;
       if (!cards || cards.length === 0) return null;
       
-      // Use a seeded random based on date + userId to get consistent card per user per day
-      const seed = `${today}-${userId || 'anonymous'}`;
-      const hash = seed.split('').reduce((acc, char) => {
-        return ((acc << 5) - acc) + char.charCodeAt(0);
-      }, 0);
+      // Seeded random: date + period + userId — consistent for the full 12h window
+      const seed = `${today}-${period}-${userId || 'anonymous'}`;
+      let hash = 0;
+      for (let i = 0; i < seed.length; i++) {
+        hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+        hash |= 0; // force 32-bit
+      }
       const index = Math.abs(hash) % cards.length;
       
       return cards[index] as GameCard;
@@ -399,26 +405,28 @@ export const useDeleteUserCards = () => {
   });
 };
 
-// Check if user has collected today's card (today only)
+// Check if user has collected the card in the current 12h UTC window
 export const useHasCollectedToday = (userId: string | undefined, cardId: string | undefined) => {
   return useQuery({
     queryKey: ['has-collected-today', userId, cardId],
     queryFn: async () => {
       if (!userId || !cardId) return false;
-      
-      // Get today's date boundaries
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      // Determine the current 12h UTC window boundaries
+      const now = new Date();
+      const period = now.getUTCHours() < 12 ? 0 : 1;
+      const windowStart = new Date(now);
+      windowStart.setUTCHours(period === 0 ? 0 : 12, 0, 0, 0);
+      const windowEnd = new Date(windowStart);
+      windowEnd.setUTCHours(windowStart.getUTCHours() + 12);
       
       const { data, error } = await supabase
         .from('user_cards')
         .select('id')
         .eq('user_id', userId)
         .eq('card_id', cardId)
-        .gte('obtained_at', today.toISOString())
-        .lt('obtained_at', tomorrow.toISOString())
+        .gte('obtained_at', windowStart.toISOString())
+        .lt('obtained_at', windowEnd.toISOString())
         .limit(1);
       
       if (error) throw error;

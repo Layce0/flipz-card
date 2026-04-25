@@ -41,7 +41,8 @@
     "nextCard": "Próxima carta en",
     "noCard": "No hay carta disponible hoy",
     "comeBackTomorrow": "¡Vuelve mañana!",
-    "cardAdded": "¡Carta añadida a tu colección!"
+    "cardAdded": "¡Carta añadida a tu colección!",
+    "alreadyCollected": "¡Ya has coleccionado esta carta!"
   },
   "profile": {
     "title": "Perfil",

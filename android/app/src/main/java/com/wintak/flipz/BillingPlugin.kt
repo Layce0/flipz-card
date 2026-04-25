@@ -17,7 +17,7 @@ class BillingPlugin : Plugin() {
     override fun load() {
         billingClient = BillingClient.newBuilder(context)
             .setListener(purchasesUpdatedListener)
-            .enablePendingPurchases()
+            .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().build())
             .build()
 
         billingClient?.startConnection(object : BillingClientStateListener {
@@ -90,14 +90,16 @@ class BillingPlugin : Plugin() {
             .setProductList(productList)
             .build()
 
-        client.queryProductDetailsAsync(params) { billingResult, productDetailsList ->
-            if (billingResult.responseCode != BillingClient.BillingResponseCode.OK || productDetailsList.isEmpty()) {
-                pendingCall = null
-                call.reject("PRODUCT_NOT_FOUND", "Product not found: $productId")
-                return@queryProductDetailsAsync
-            }
+        client.queryProductDetailsAsync(params, object : ProductDetailsResponseListener {
+            override fun onProductDetailsResponse(billingResult: BillingResult, productDetailsResult: QueryProductDetailsResult) {
+                val productDetailsList = productDetailsResult.productDetailsList
+                if (billingResult.responseCode != BillingClient.BillingResponseCode.OK || productDetailsList == null || productDetailsList.isEmpty()) {
+                    pendingCall = null
+                    call.reject("PRODUCT_NOT_FOUND", "Product not found: $productId")
+                    return
+                }
 
-            val productDetails = productDetailsList[0]
+                val productDetails = productDetailsList[0]
             val flowParams = BillingFlowParams.newBuilder()
                 .setProductDetailsParamsList(
                     listOf(
@@ -108,13 +110,14 @@ class BillingPlugin : Plugin() {
                 )
                 .build()
 
-            val activity = activity
-            if (activity != null) {
-                client.launchBillingFlow(activity, flowParams)
-            } else {
-                pendingCall = null
-                call.reject("NO_ACTIVITY", "No activity available")
+                val activity = activity
+                if (activity != null) {
+                    client.launchBillingFlow(activity, flowParams)
+                } else {
+                    pendingCall = null
+                    call.reject("NO_ACTIVITY", "No activity available")
+                }
             }
-        }
+        })
     }
 }

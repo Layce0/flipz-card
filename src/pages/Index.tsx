@@ -11,6 +11,7 @@ import { Clock, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTodayCard, useHasCollectedToday, useCollectCard, useUserCards, useAllCards, isCardNew } from '@/hooks/useCards';
 import { useUserStreak, useUpdateStreak } from '@/hooks/useWinstreak';
+import { useNotifications } from '@/hooks/useNotifications';
 import { toast } from 'sonner';
 const flipzLogo = '/flipz-logo-new.png';
 
@@ -22,15 +23,19 @@ const CountdownTimer = () => {
   useEffect(() => {
     const updateTimer = () => {
       const now = new Date();
-      const tomorrow = new Date(now);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(0, 0, 0, 0);
-      
-      const diff = tomorrow.getTime() - now.getTime();
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-      
+      const utcHour = now.getUTCHours();
+      const utcMin = now.getUTCMinutes();
+      const utcSec = now.getUTCSeconds();
+
+      // Time elapsed since last 12h boundary (UTC)
+      const elapsedInPeriod = ((utcHour % 12) * 3600) + (utcMin * 60) + utcSec;
+      const secondsInPeriod = 12 * 60 * 60; // 43200s
+      const remaining = secondsInPeriod - elapsedInPeriod;
+
+      const hours = Math.floor(remaining / 3600);
+      const minutes = Math.floor((remaining % 3600) / 60);
+      const seconds = remaining % 60;
+
       if (timerRef.current) {
         timerRef.current.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
       }
@@ -78,6 +83,9 @@ const Index = () => {
   const updateStreak = useUpdateStreak();
   const streakUpdatedRef = useRef(false);
 
+  const hasUpdatedStreakToday = streakData?.last_streak_date === new Date().toISOString().split('T')[0];
+  useNotifications(hasCollected, hasUpdatedStreakToday);
+
   // Prefetch collection data in background so it's ready when user navigates
   useAllCards();
 
@@ -99,9 +107,14 @@ const Index = () => {
     if (!todayCard) return;
     
     try {
-      await collectCard.mutateAsync({ userId: user.id, cardId: todayCard.id });
+      const result = await collectCard.mutateAsync({ userId: user.id, cardId: todayCard.id });
       await updateStreak.mutateAsync(user.id);
-      toast.success(t('home.cardAdded'));
+      
+      if (result?.code === 'ALREADY_COLLECTED') {
+        toast.info(t('home.alreadyCollected'));
+      } else {
+        toast.success(t('home.cardAdded'));
+      }
     } catch (error: any) {
       if (error?.code !== '23505') {
         toast.error(t('common.error'));
@@ -129,7 +142,7 @@ const Index = () => {
   return (
     <div className="min-h-screen pb-24">
       {/* Header */}
-      <header className="pt-2 pb-0 px-4 text-center relative">
+      <header className="pb-0 px-4 text-center relative">
         {streakData && streakData.current_streak > 0 && (
           <div className="absolute top-20 right-4 z-20">
             <WinstreakBadge streak={streakData.current_streak} />

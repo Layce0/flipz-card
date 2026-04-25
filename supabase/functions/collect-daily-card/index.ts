@@ -44,12 +44,15 @@ Deno.serve(async (req) => {
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
     // 1. Determine today's card (same seeded logic as client)
-    const today = new Date().toISOString().split("T")[0];
+    const now = new Date();
+    const today = now.toISOString().split("T")[0];
+    const period = now.getUTCHours() < 12 ? 0 : 1;
 
     const { data: cards, error: cardsError } = await adminClient
       .from("cards")
       .select("*")
-      .lte("release_date", today);
+      .lte("release_date", today)
+      .order("id");
 
     if (cardsError) throw cardsError;
     if (!cards || cards.length === 0) {
@@ -63,7 +66,7 @@ Deno.serve(async (req) => {
     }
 
     // Seeded random — must match client logic exactly
-    const seed = `${today}-${userId}`;
+    const seed = `${today}-${period}-${userId}`;
     let hash = 0;
     for (let i = 0; i < seed.length; i++) {
       hash = (hash << 5) - hash + seed.charCodeAt(i);
@@ -72,26 +75,26 @@ Deno.serve(async (req) => {
     const index = Math.abs(hash) % cards.length;
     const todayCard = cards[index];
 
-    // 2. Check if already collected today
-    const todayStart = `${today}T00:00:00.000Z`;
-    const tomorrowDate = new Date(today);
-    tomorrowDate.setDate(tomorrowDate.getDate() + 1);
-    const tomorrowStart = tomorrowDate.toISOString().split("T")[0] + "T00:00:00.000Z";
+    // 2. Check if already collected in the current 12h UTC window
+    const windowStart = new Date(now);
+    windowStart.setUTCHours(period === 0 ? 0 : 12, 0, 0, 0);
+    const windowEnd = new Date(windowStart);
+    windowEnd.setUTCHours(windowStart.getUTCHours() + 12);
 
     const { data: existing, error: existError } = await adminClient
       .from("user_cards")
       .select("id")
       .eq("user_id", userId)
       .eq("card_id", todayCard.id)
-      .gte("obtained_at", todayStart)
-      .lt("obtained_at", tomorrowStart)
+      .gte("obtained_at", windowStart.toISOString())
+      .lt("obtained_at", windowEnd.toISOString())
       .limit(1);
 
     if (existError) throw existError;
 
     if (existing && existing.length > 0) {
       return new Response(
-        JSON.stringify({ success: false, code: 'ALREADY_COLLECTED', card: todayCard }),
+        JSON.stringify({ success: false, code: 'ALREADY_COLLECTED', error: 'ALREADY_COLLECTED', card: todayCard }),
         {
           status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
