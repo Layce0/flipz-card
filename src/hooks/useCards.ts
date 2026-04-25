@@ -405,35 +405,40 @@ export const useDeleteUserCards = () => {
   });
 };
 
-// Check if user has collected the card in the current 12h UTC window
-export const useHasCollectedToday = (userId: string | undefined, cardId: string | undefined) => {
+// Fetch the last time the user collected a daily card
+export const useLastDailyCardAt = (userId: string | undefined) => {
   return useQuery({
-    queryKey: ['has-collected-today', userId, cardId],
+    queryKey: ['last-daily-card-at', userId],
     queryFn: async () => {
-      if (!userId || !cardId) return false;
-
-      // Determine the current 12h UTC window boundaries
-      const now = new Date();
-      const period = now.getUTCHours() < 12 ? 0 : 1;
-      const windowStart = new Date(now);
-      windowStart.setUTCHours(period === 0 ? 0 : 12, 0, 0, 0);
-      const windowEnd = new Date(windowStart);
-      windowEnd.setUTCHours(windowStart.getUTCHours() + 12);
-      
+      if (!userId) return null;
       const { data, error } = await supabase
-        .from('user_cards')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('card_id', cardId)
-        .gte('obtained_at', windowStart.toISOString())
-        .lt('obtained_at', windowEnd.toISOString())
-        .limit(1);
+        .from('profiles')
+        .select('last_daily_card_at')
+        .eq('id', userId)
+        .single();
       
-      if (error) throw error;
-      return data && data.length > 0;
+      if (error && error.code !== 'PGRST116') throw error;
+      return data?.last_daily_card_at ? new Date(data.last_daily_card_at) : null;
     },
-    enabled: !!userId && !!cardId,
+    enabled: !!userId,
   });
+};
+
+// Check if user has collected a card in the last 12 hours
+export const useHasCollectedToday = (userId: string | undefined, cardId: string | undefined) => {
+  const query = useLastDailyCardAt(userId);
+  
+  const lastCollectedAt = query.data;
+  let hasCollected = false;
+  if (lastCollectedAt) {
+    const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
+    hasCollected = lastCollectedAt > twelveHoursAgo;
+  }
+
+  return {
+    ...query,
+    data: hasCollected,
+  };
 };
 
 // Collect a card (daily card via edge function)

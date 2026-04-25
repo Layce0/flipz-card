@@ -75,24 +75,19 @@ Deno.serve(async (req) => {
     const index = Math.abs(hash) % cards.length;
     const todayCard = cards[index];
 
-    // 2. Check if already collected in the current 12h UTC window
-    const windowStart = new Date(now);
-    windowStart.setUTCHours(period === 0 ? 0 : 12, 0, 0, 0);
-    const windowEnd = new Date(windowStart);
-    windowEnd.setUTCHours(windowStart.getUTCHours() + 12);
+    // 2. Check if collected in the last 12 hours based on profiles.last_daily_card_at
+    const { data: profile, error: profileError } = await adminClient
+      .from("profiles")
+      .select("last_daily_card_at")
+      .eq("id", userId)
+      .single();
 
-    const { data: existing, error: existError } = await adminClient
-      .from("user_cards")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("card_id", todayCard.id)
-      .gte("obtained_at", windowStart.toISOString())
-      .lt("obtained_at", windowEnd.toISOString())
-      .limit(1);
+    if (profileError && profileError.code !== 'PGRST116') throw profileError;
 
-    if (existError) throw existError;
+    const lastCollectedAt = profile?.last_daily_card_at ? new Date(profile.last_daily_card_at) : null;
+    const twelveHoursAgo = new Date(now.getTime() - 12 * 60 * 60 * 1000);
 
-    if (existing && existing.length > 0) {
+    if (lastCollectedAt && lastCollectedAt > twelveHoursAgo) {
       return new Response(
         JSON.stringify({ success: false, code: 'ALREADY_COLLECTED', error: 'ALREADY_COLLECTED', card: todayCard }),
         {
@@ -102,12 +97,23 @@ Deno.serve(async (req) => {
       );
     }
 
-    // 3. Insert the card
+    // 3. Insert the card and update the last_daily_card_at timestamp
     const { error: insertError } = await adminClient
       .from("user_cards")
       .insert({ user_id: userId, card_id: todayCard.id });
 
     if (insertError) throw insertError;
+
+    const { error: updateProfileError } = await adminClient
+      .from("profiles")
+      .update({ last_daily_card_at: now.toISOString() })
+      .eq("id", userId);
+
+    if (updateProfileError) {
+      console.error("Failed to update last_daily_card_at:", updateProfileError);
+      // We don't throw here so the user still gets the card even if the profile update failed,
+      // but ideally this shouldn't fail.
+    }
 
     return new Response(
       JSON.stringify({ success: true, card: todayCard }),

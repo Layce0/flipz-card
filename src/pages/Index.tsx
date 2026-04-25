@@ -9,28 +9,30 @@ import { Navigation } from '@/components/Navigation';
 import { WinstreakBadge } from '@/components/WinstreakBadge';
 import { Clock, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTodayCard, useHasCollectedToday, useCollectCard, useUserCards, useAllCards, isCardNew } from '@/hooks/useCards';
+import { useTodayCard, useHasCollectedToday, useCollectCard, useUserCards, useAllCards, isCardNew, useLastDailyCardAt } from '@/hooks/useCards';
 import { useUserStreak, useUpdateStreak } from '@/hooks/useWinstreak';
 import { useNotifications } from '@/hooks/useNotifications';
 import { toast } from 'sonner';
 const flipzLogo = '/flipz-logo-new.png';
 
 // Isolated timer component to avoid re-rendering the entire page every second
-const CountdownTimer = () => {
+const CountdownTimer = ({ lastCollectedAt }: { lastCollectedAt: Date | null | undefined }) => {
   const { t } = useTranslation();
   const timerRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     const updateTimer = () => {
-      const now = new Date();
-      const utcHour = now.getUTCHours();
-      const utcMin = now.getUTCMinutes();
-      const utcSec = now.getUTCSeconds();
-
-      // Time elapsed since last 12h boundary (UTC)
-      const elapsedInPeriod = ((utcHour % 12) * 3600) + (utcMin * 60) + utcSec;
-      const secondsInPeriod = 12 * 60 * 60; // 43200s
-      const remaining = secondsInPeriod - elapsedInPeriod;
+      let remaining = 0;
+      
+      if (lastCollectedAt) {
+        const twelveHoursInMs = 12 * 60 * 60 * 1000;
+        const unlocksAt = lastCollectedAt.getTime() + twelveHoursInMs;
+        const now = Date.now();
+        
+        if (unlocksAt > now) {
+          remaining = Math.floor((unlocksAt - now) / 1000);
+        }
+      }
 
       const hours = Math.floor(remaining / 3600);
       const minutes = Math.floor((remaining % 3600) / 60);
@@ -44,7 +46,7 @@ const CountdownTimer = () => {
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [lastCollectedAt]);
 
   return (
     <div data-tour="timer" className="relative flex items-center gap-2 bg-card/80 px-5 py-2.5 rounded-full mb-4 mt-[-0.5rem] timer-glow-border">
@@ -77,6 +79,7 @@ const Index = () => {
   
   const { data: todayCard, isLoading: cardLoading } = useTodayCard(user?.id);
   const { data: hasCollected, isLoading: collectedLoading } = useHasCollectedToday(user?.id, todayCard?.id);
+  const { data: lastCollectedAt } = useLastDailyCardAt(user?.id);
   const { data: userCards = [] } = useUserCards(user?.id);
   const collectCard = useCollectCard();
   const { data: streakData } = useUserStreak(user?.id);
@@ -156,7 +159,7 @@ const Index = () => {
 
       {/* Daily card section */}
       <main className="px-4 flex flex-col items-center">
-        <CountdownTimer />
+        <CountdownTimer lastCollectedAt={lastCollectedAt} />
 
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
