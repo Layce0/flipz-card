@@ -1,25 +1,9 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
-const ALLOWED_ORIGINS = [
-  'https://daily-card-quest.lovable.app',
-  'https://id-preview--292d3511-a5af-422b-bf8b-81ad9534130a.lovable.app',
-  'https://292d3511-a5af-422b-bf8b-81ad9534130a.lovableproject.com',
-  'http://localhost',
-  'http://localhost:8080',
-  'https://localhost',
-  'capacitor://localhost',
-];
-
-const getCorsHeaders = (origin: string | null) => {
-  const allowedOrigin = origin && ALLOWED_ORIGINS.some(allowed => origin === allowed)
-    ? origin
-    : ALLOWED_ORIGINS[0];
-
-  return {
-    'Access-Control-Allow-Origin': allowedOrigin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-  };
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 // Pack configurations (must match frontend)
@@ -44,8 +28,6 @@ const logStep = (step: string, details?: any) => {
 };
 
 serve(async (req) => {
-  const corsHeaders = getCorsHeaders(req.headers.get('origin'));
-
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }

@@ -1,25 +1,10 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const ALLOWED_ORIGINS = [
-  'https://daily-card-quest.lovable.app',
-  'https://id-preview--292d3511-a5af-422b-bf8b-81ad9534130a.lovable.app',
-  'https://292d3511-a5af-422b-bf8b-81ad9534130a.lovableproject.com',
-  'http://localhost',
-  'http://localhost:8080',
-  'https://localhost',
-  'capacitor://localhost',
-];
-
-const getCorsHeaders = (origin: string | null) => {
-  const allowedOrigin = origin && ALLOWED_ORIGINS.some(allowed => origin === allowed)
-    ? origin
-    : ALLOWED_ORIGINS[0];
-
-  return {
-    'Access-Control-Allow-Origin': allowedOrigin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-  };
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
+
 
 const TRADE_CONFIG: Record<string, { required: number; reward: number; keep: number }> = {
   common:    { required: 6, reward: 2,  keep: 1 },
@@ -72,9 +57,6 @@ function generateWeightedCards(cards: any[], weights: Record<string, number>, co
 }
 
 Deno.serve(async (req) => {
-  const origin = req.headers.get('origin');
-  const corsHeaders = getCorsHeaders(origin);
-
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -204,7 +186,7 @@ Deno.serve(async (req) => {
   } catch (error: any) {
     console.error('Trade error:', error);
     return new Response(JSON.stringify({ error: 'Erreur serveur' }), {
-      status: 500, headers: { ...getCorsHeaders(req.headers.get('origin')), 'Content-Type': 'application/json' }
+      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
 });
