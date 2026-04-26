@@ -457,7 +457,7 @@ export const useCollectCard = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-cards'] });
-      queryClient.invalidateQueries({ queryKey: ['has-collected-today'] });
+      queryClient.invalidateQueries({ queryKey: ['last-daily-card-at'] });
       queryClient.invalidateQueries({ queryKey: ['user-card-stats'] });
     },
   });
