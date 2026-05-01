@@ -91,7 +91,13 @@ export const useUpdateStreak = () => {
 
   return useMutation({
     mutationFn: async (userId: string) => {
-      const { data, error } = await invokeEdgeFunction('update-streak');
+      // Get exact local date in YYYY-MM-DD format regardless of timezone offset
+      const d = new Date();
+      const localDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      
+      const { data, error } = await invokeEdgeFunction('update-streak', {
+        body: { localDate }
+      });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       return data?.current_streak as number;

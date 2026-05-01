@@ -12,21 +12,23 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTodayCard, useHasCollectedToday, useCollectCard, useUserCards, useAllCards, isCardNew, useLastDailyCardAt } from '@/hooks/useCards';
 import { useUserStreak, useUpdateStreak } from '@/hooks/useWinstreak';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useSettings } from '@/hooks/useSettings';
 import { toast } from 'sonner';
 const flipzLogo = '/flipz-logo-new.png';
 
 // Isolated timer component to avoid re-rendering the entire page every second
-const CountdownTimer = ({ lastCollectedAt }: { lastCollectedAt: Date | null | undefined }) => {
+const CountdownTimer = ({ lastCollectedAt, timerHours = 12 }: { lastCollectedAt: Date | null | undefined, timerHours?: number }) => {
   const { t } = useTranslation();
   const timerRef = useRef<HTMLSpanElement>(null);
+  const [isAvailable, setIsAvailable] = useState(false);
 
   useEffect(() => {
     const updateTimer = () => {
       let remaining = 0;
       
       if (lastCollectedAt) {
-        const twelveHoursInMs = 12 * 60 * 60 * 1000;
-        const unlocksAt = lastCollectedAt.getTime() + twelveHoursInMs;
+        const timerMs = timerHours * 60 * 60 * 1000;
+        const unlocksAt = lastCollectedAt.getTime() + timerMs;
         const now = Date.now();
         
         if (unlocksAt > now) {
@@ -34,12 +36,17 @@ const CountdownTimer = ({ lastCollectedAt }: { lastCollectedAt: Date | null | un
         }
       }
 
-      const hours = Math.floor(remaining / 3600);
-      const minutes = Math.floor((remaining % 3600) / 60);
-      const seconds = remaining % 60;
+      if (remaining <= 0) {
+        setIsAvailable(true);
+      } else {
+        setIsAvailable(false);
+        const hours = Math.floor(remaining / 3600);
+        const minutes = Math.floor((remaining % 3600) / 60);
+        const seconds = remaining % 60;
 
-      if (timerRef.current) {
-        timerRef.current.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        if (timerRef.current) {
+          timerRef.current.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
       }
     };
 
@@ -52,7 +59,11 @@ const CountdownTimer = ({ lastCollectedAt }: { lastCollectedAt: Date | null | un
     <div data-tour="timer" className="relative flex items-center gap-2 bg-card/80 px-5 py-2.5 rounded-full mb-4 mt-[-0.5rem] timer-glow-border">
       <Clock className="w-4 h-4 text-primary" />
       <span className="text-sm text-muted-foreground">{t('home.nextCard')}</span>
-      <span ref={timerRef} className="font-mono text-primary font-semibold">00:00:00</span>
+      {isAvailable ? (
+        <span className="font-semibold text-green-400">Carte disponible !</span>
+      ) : (
+        <span ref={timerRef} className="font-mono text-primary font-semibold">00:00:00</span>
+      )}
     </div>
   );
 };
@@ -84,6 +95,7 @@ const Index = () => {
   const collectCard = useCollectCard();
   const { data: streakData } = useUserStreak(user?.id);
   const updateStreak = useUpdateStreak();
+  const { data: settings } = useSettings();
   const streakUpdatedRef = useRef(false);
 
   const hasUpdatedStreakToday = streakData?.last_streak_date === new Date().toISOString().split('T')[0];
@@ -91,15 +103,6 @@ const Index = () => {
 
   // Prefetch collection data in background so it's ready when user navigates
   useAllCards();
-
-  // Auto-update streak on app launch — fire only once
-  useEffect(() => {
-    if (user && !authLoading && !streakUpdatedRef.current) {
-      streakUpdatedRef.current = true;
-      updateStreak.mutate(user.id);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, authLoading]);
 
   const handleReveal = useCallback(async () => {
     if (!user) {
@@ -111,9 +114,15 @@ const Index = () => {
     
     try {
       const result = await collectCard.mutateAsync({ userId: user.id, cardId: todayCard.id });
-      await updateStreak.mutateAsync(user.id);
       
-      if (result?.code === 'ALREADY_COLLECTED') {
+      // Streak update is optional and might fail during rapid testing (server-side cooldown)
+      try {
+        await updateStreak.mutateAsync(user.id);
+      } catch (e) {
+        console.warn('Streak update skipped or blocked by server limit');
+      }
+      
+      if (result?.code === 'ALREADY_COLLECTED' || result?.bypassed) {
         toast.info(t('home.alreadyCollected'));
       } else {
         toast.success(t('home.cardAdded'));
@@ -146,7 +155,7 @@ const Index = () => {
     <div className="min-h-screen pb-24">
       {/* Header */}
       <header className="pb-0 px-4 text-center relative">
-        {streakData && streakData.current_streak > 0 && (
+        {streakData && (
           <div className="absolute top-20 right-4 z-20">
             <WinstreakBadge streak={streakData.current_streak} />
           </div>
@@ -159,7 +168,7 @@ const Index = () => {
 
       {/* Daily card section */}
       <main className="px-4 flex flex-col items-center">
-        <CountdownTimer lastCollectedAt={lastCollectedAt} />
+        <CountdownTimer lastCollectedAt={lastCollectedAt} timerHours={settings?.daily_timer_hours ?? 12} />
 
         {isLoading ? (
           <div className="flex items-center justify-center py-20">

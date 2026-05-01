@@ -35,7 +35,11 @@ Deno.serve(async (req) => {
 
     const userId = user.id
 
-    const today = new Date().toISOString().split('T')[0]
+    const reqBody = await req.json().catch(() => ({}));
+    let today = reqBody.localDate;
+    if (!today || !/^\d{4}-\d{2}-\d{2}$/.test(today)) {
+      today = new Date().toISOString().split('T')[0];
+    }
 
     // Fetch current streak using service role
     const { data: existing } = await supabaseAdmin
@@ -63,9 +67,9 @@ Deno.serve(async (req) => {
     }
 
     // Check if yesterday
-    const yesterday = new Date()
-    yesterday.setDate(yesterday.getDate() - 1)
-    const yesterdayStr = yesterday.toISOString().split('T')[0]
+    const [y, m, d] = today.split('-').map(Number);
+    const yesterdayDate = new Date(y, m - 1, d - 1);
+    const yesterdayStr = `${yesterdayDate.getFullYear()}-${String(yesterdayDate.getMonth() + 1).padStart(2, '0')}-${String(yesterdayDate.getDate()).padStart(2, '0')}`;
 
     let newStreak: number
     if (existing.last_streak_date === yesterdayStr) {
