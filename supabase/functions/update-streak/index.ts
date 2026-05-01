@@ -48,6 +48,8 @@ Deno.serve(async (req) => {
       .eq('user_id', userId)
       .maybeSingle()
 
+    const now = new Date();
+
     if (!existing) {
       // First time ever
       const { error } = await supabaseAdmin
@@ -59,23 +61,23 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Already updated today
-    if (existing.last_streak_date === today) {
+    const lastUpdate = new Date(existing.updated_at);
+    const diffMs = now.getTime() - lastUpdate.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
+
+    // Si on l'a déjà mis à jour très récemment (moins d'une heure, pour éviter le spam ou double appel)
+    if (diffHours < 1) {
       return new Response(JSON.stringify({ success: true, current_streak: existing.current_streak }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
-    // Check if yesterday
-    const [y, m, d] = today.split('-').map(Number);
-    const yesterdayDate = new Date(y, m - 1, d - 1);
-    const yesterdayStr = `${yesterdayDate.getFullYear()}-${String(yesterdayDate.getMonth() + 1).padStart(2, '0')}-${String(yesterdayDate.getDate()).padStart(2, '0')}`;
-
     let newStreak: number
-    if (existing.last_streak_date === yesterdayStr) {
+    // Le chrono de perte est de 26 heures
+    if (diffHours <= 26) {
       newStreak = existing.current_streak + 1
     } else {
-      // Streak broken
+      // Temps écoulé (> 26h), Winstreak brisée
       newStreak = 1
     }
 
