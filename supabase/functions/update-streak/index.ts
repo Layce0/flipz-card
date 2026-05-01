@@ -65,19 +65,21 @@ Deno.serve(async (req) => {
     const diffMs = now.getTime() - lastUpdate.getTime();
     const diffHours = diffMs / (1000 * 60 * 60);
 
-    // Si on l'a déjà mis à jour très récemment (moins d'une heure, pour éviter le spam ou double appel)
-    if (diffHours < 1) {
+    // Pour ne pas augmenter le Winstreak à CHAQUE carte (puisque la carte est dispo toutes les 12h),
+    // on impose un délai minimum de 18h avant de pouvoir faire "+1" sur la série.
+    // Si le joueur retourne une carte avant 18h, on ne fait rien (il garde sa série mais ça ne l'augmente pas).
+    if (diffHours < 18) {
       return new Response(JSON.stringify({ success: true, current_streak: existing.current_streak }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
     let newStreak: number
-    // Le chrono de perte est de 26 heures
-    if (diffHours <= 26) {
+    // Le chrono pour PERDRE la Winstreak est de 32 heures
+    if (diffHours <= 32) {
       newStreak = existing.current_streak + 1
     } else {
-      // Temps écoulé (> 26h), Winstreak brisée
+      // Temps écoulé (> 32h), Winstreak brisée
       newStreak = 1
     }
 
