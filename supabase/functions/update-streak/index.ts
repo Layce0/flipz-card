@@ -66,9 +66,9 @@ Deno.serve(async (req) => {
     const diffHours = diffMs / (1000 * 60 * 60);
 
     // Pour ne pas augmenter le Winstreak à CHAQUE carte (puisque la carte est dispo toutes les 12h),
-    // on impose un délai minimum de 18h avant de pouvoir faire "+1" sur la série.
-    // Si le joueur retourne une carte avant 18h, on ne fait rien (il garde sa série mais ça ne l'augmente pas).
-    if (diffHours < 18) {
+    // on impose un délai minimum de 24h avant de pouvoir faire "+1" sur la série.
+    // Si le joueur retourne une carte avant 24h, on ne fait rien (il garde sa série mais ça ne l'augmente pas).
+    if (diffHours < 24) {
       return new Response(JSON.stringify({ success: true, current_streak: existing.current_streak }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
