@@ -1,0 +1,44 @@
+name: Build iOS
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web assets
+        run: npm run build
+
+      - name: Sync iOS
+        run: npx cap sync ios
+
+      - name: Build for iOS Simulator (Verification)
+        run: |
+          cd ios/App
+          xcodebuild -workspace App.xcworkspace -scheme App -configuration Debug -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 15' -derivedDataPath DerivedData build
+
+      - name: Zip Simulator App
+        run: |
+          cd ios/App/DerivedData/App/Build/Products/Debug-iphonesimulator
+          zip -r DailyCard-iOS-Simulator.zip App.app
+
+      - name: Upload Simulator App artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DailyCard-iOS-Simulator
+          path: ios/App/DerivedData/App/Build/Products/Debug-iphonesimulator/DailyCard-iOS-Simulator.zip
+          retention-days: 7
+
