@@ -403,6 +403,7 @@ export type Database = {
           email: string | null
           id: string
           language: string | null
+          last_daily_card_at: string | null
           notifications_enabled: boolean | null
           theme: string | null
           username: string | null
@@ -414,6 +415,7 @@ export type Database = {
           email?: string | null
           id: string
           language?: string | null
+          last_daily_card_at?: string | null
           notifications_enabled?: boolean | null
           theme?: string | null
           username?: string | null
@@ -425,6 +427,7 @@ export type Database = {
           email?: string | null
           id?: string
           language?: string | null
+          last_daily_card_at?: string | null
           notifications_enabled?: boolean | null
           theme?: string | null
           username?: string | null
