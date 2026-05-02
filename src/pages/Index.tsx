@@ -12,7 +12,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTodayCard, useHasCollectedToday, useCollectCard, useUserCards, useAllCards, isCardNew, useLastDailyCardAt } from '@/hooks/useCards';
 import { useUserStreak, useUpdateStreak } from '@/hooks/useWinstreak';
 import { useNotifications } from '@/hooks/useNotifications';
-import { useSettings } from '@/hooks/useSettings';
 import { toast } from 'sonner';
 const flipzLogo = '/flipz-logo-new.png';
 
@@ -95,7 +94,6 @@ const Index = () => {
   const collectCard = useCollectCard();
   const { data: streakData } = useUserStreak(user?.id);
   const updateStreak = useUpdateStreak();
-  const { data: settings } = useSettings();
   const streakUpdatedRef = useRef(false);
 
   const hasUpdatedStreakToday = streakData?.last_streak_date === new Date().toISOString().split('T')[0];
