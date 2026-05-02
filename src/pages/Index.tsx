@@ -166,7 +166,7 @@ const Index = () => {
 
       {/* Daily card section */}
       <main className="px-4 flex flex-col items-center">
-        <CountdownTimer lastCollectedAt={lastCollectedAt} timerHours={settings?.daily_timer_hours ?? 12} />
+        <CountdownTimer lastCollectedAt={lastCollectedAt} timerHours={12} />
 
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
