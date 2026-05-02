@@ -645,6 +645,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_global_stats: {
+        Args: never
+        Returns: {
+          total_cards_in_circulation: number
+          total_cards_in_game: number
+          total_players: number
+          total_unique_owned_cards: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
