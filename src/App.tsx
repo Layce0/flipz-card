@@ -50,17 +50,19 @@ const AppContent = () => {
       <Suspense fallback={null}><OnboardingTutorial /></Suspense>
       <GlobalGifsOverlay />
       <GiftRevealPopup />
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/collection" element={<Collection />} />
-        <Route path="/packs" element={<Packs />} />
-        <Route path="/shop" element={<Shop />} />
-        <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <main>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/collection" element={<Collection />} />
+          <Route path="/packs" element={<Packs />} />
+          <Route path="/shop" element={<Shop />} />
+          <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </main>
     </div>
   );
 };
