@@ -35,11 +35,49 @@ const queryClient = new QueryClient({
   },
 });
 
+const ROUTE_SEO: Record<string, { title: string; description: string }> = {
+  "/": {
+    title: "FLIPZ — Cartes Mystères à collectionner",
+    description: "Découvrez une nouvelle carte mystère toutes les 12 heures et bâtissez votre collection légendaire sur FLIPZ.",
+  },
+  "/collection": {
+    title: "Ma Collection — FLIPZ",
+    description: "Parcourez vos cartes par rareté et complétez votre collection FLIPZ.",
+  },
+  "/packs": {
+    title: "Boosters & Packs — FLIPZ",
+    description: "Ouvrez des boosters gratuits et premium pour révéler de nouvelles cartes mystères.",
+  },
+  "/shop": {
+    title: "Boutique FLIPZ — Packs & échanges",
+    description: "Achetez des packs, échangez vos doublons et utilisez vos codes promo dans la boutique FLIPZ.",
+  },
+  "/profile": {
+    title: "Profil joueur — FLIPZ",
+    description: "Vos statistiques, votre winstreak et vos paramètres de compte FLIPZ.",
+  },
+  "/auth": {
+    title: "Connexion — FLIPZ",
+    description: "Connectez-vous ou créez un compte FLIPZ pour commencer votre collection.",
+  },
+  "/reset-password": {
+    title: "Réinitialiser le mot de passe — FLIPZ",
+    description: "Définissez un nouveau mot de passe pour votre compte FLIPZ.",
+  },
+};
+
+const RouteSeo = () => {
+  const { pathname } = useLocation();
+  const meta = ROUTE_SEO[pathname] ?? ROUTE_SEO["/"];
+  return <Seo title={meta.title} description={meta.description} path={pathname} />;
+};
+
 const AppContent = () => {
   const { updateRequired, storeUrl } = useForceUpdate();
 
   return (
     <div className="relative min-h-screen pt-[env(safe-area-inset-top,24px)]">
+      <RouteSeo />
       {/* Black Top Banner for Safe Area */}
       <div 
         className="fixed top-0 left-0 right-0 bg-[#0a0a0a] z-[100]" 
