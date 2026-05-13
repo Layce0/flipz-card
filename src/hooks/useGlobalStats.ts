@@ -21,8 +21,9 @@ export const useGlobalStats = (enabled = true) => {
     queryFn: async (): Promise<GlobalStats | null> => {
       const { data, error } = await supabase.rpc('get_global_stats');
       if (error) throw error;
-      const row = Array.isArray(data) ? data[0] : data;
-      if (!row) return null;
+      const raw: any = Array.isArray(data) ? data[0] : data;
+      if (!raw) return null;
+      const row = raw as Record<string, unknown>;
       return {
         total_players: Number(row.total_players) || 0,
         total_cards_in_circulation: Number(row.total_cards_in_circulation) || 0,
