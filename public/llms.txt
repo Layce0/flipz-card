@@ -1,0 +1,12 @@
+# FLIPZ — Cartes Mystères
+
+> Daily mystery card collection game. Open free packs every 12 hours, build your legendary collection, trade duplicates, and climb the winstreak.
+
+## Pages
+
+- [Home](/): Daily mystery card reveal with a 12-hour timer.
+- [Collection](/collection): Browse your owned cards by rarity.
+- [Packs](/packs): Open free and premium card packs.
+- [Shop](/shop): Buy packs, trade duplicates, and redeem promo codes.
+- [Profile](/profile): Player stats, winstreak, and account settings.
+- [Sign in](/auth): Create an account or sign in.
