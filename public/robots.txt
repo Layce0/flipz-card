@@ -12,3 +12,4 @@ Allow: /
 
 User-agent: *
 Allow: /
+Sitemap: https://daily-card-quest.lovable.app/sitemap.xml
