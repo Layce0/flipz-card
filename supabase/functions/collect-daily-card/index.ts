@@ -84,8 +84,8 @@ Deno.serve(async (req) => {
 
     if (profileError && profileError.code !== 'PGRST116') throw profileError;
 
-    const lastCollectedAt = profile?.last_daily_card_at ? new Date(profile.last_daily_card_at) : null;
     const twelveHoursAgo = new Date(now.getTime() - 12 * 60 * 60 * 1000);
+    const lastCollectedAt = profile?.last_daily_card_at ? new Date(profile.last_daily_card_at) : null;
 
     if (lastCollectedAt && lastCollectedAt > twelveHoursAgo) {
       return new Response(
@@ -97,23 +97,34 @@ Deno.serve(async (req) => {
       );
     }
 
-    // 3. Insert the card and update the last_daily_card_at timestamp
+    // 3. Atomically claim the cooldown slot to prevent race conditions
+    //    Only succeeds if last_daily_card_at is null OR older than 12h.
+    const { data: claimed, error: claimError } = await adminClient
+      .from("profiles")
+      .update({ last_daily_card_at: now.toISOString() })
+      .eq("id", userId)
+      .or(`last_daily_card_at.is.null,last_daily_card_at.lt.${twelveHoursAgo.toISOString()}`)
+      .select("id");
+
+    if (claimError) throw claimError;
+
+    if (!claimed || claimed.length === 0) {
+      // Another concurrent request already claimed the slot
+      return new Response(
+        JSON.stringify({ success: false, code: 'ALREADY_COLLECTED', error: 'ALREADY_COLLECTED', card: todayCard }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // 4. Insert the card now that we hold the exclusive claim
     const { error: insertError } = await adminClient
       .from("user_cards")
       .insert({ user_id: userId, card_id: todayCard.id });
 
     if (insertError) throw insertError;
-
-    const { error: updateProfileError } = await adminClient
-      .from("profiles")
-      .update({ last_daily_card_at: now.toISOString() })
-      .eq("id", userId);
-
-    if (updateProfileError) {
-      console.error("Failed to update last_daily_card_at:", updateProfileError);
-      // We don't throw here so the user still gets the card even if the profile update failed,
-      // but ideally this shouldn't fail.
-    }
 
     return new Response(
       JSON.stringify({ success: true, card: todayCard }),
