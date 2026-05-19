@@ -126,8 +126,13 @@ serve(async (req) => {
       logStep("Found existing customer", { customerId });
     }
 
-    // Get origin for success/cancel URLs
-    const origin = req.headers.get("origin") || "https://daily-card-quest.lovable.app";
+    // Get origin for success/cancel URLs — validated against allowlist to prevent open redirect/phishing
+    const ALLOWED_ORIGINS = [
+      "https://daily-card-quest.lovable.app",
+      "https://id-preview--292d3511-a5af-422b-bf8b-81ad9534130a.lovable.app",
+    ];
+    const rawOrigin = req.headers.get("origin") || "";
+    const origin = ALLOWED_ORIGINS.includes(rawOrigin) ? rawOrigin : ALLOWED_ORIGINS[0];
 
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
