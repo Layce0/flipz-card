@@ -75,40 +75,19 @@ Deno.serve(async (req) => {
     const index = Math.abs(hash) % cards.length;
     const todayCard = cards[index];
 
-    // 2. Check if collected in the last 12 hours based on profiles.last_daily_card_at
-    const { data: profile, error: profileError } = await adminClient
-      .from("profiles")
-      .select("last_daily_card_at")
-      .eq("id", userId)
-      .single();
-
-    if (profileError && profileError.code !== 'PGRST116') throw profileError;
-
     const twelveHoursAgo = new Date(now.getTime() - 12 * 60 * 60 * 1000);
-    const lastCollectedAt = profile?.last_daily_card_at ? new Date(profile.last_daily_card_at) : null;
 
-    if (lastCollectedAt && lastCollectedAt > twelveHoursAgo) {
-      return new Response(
-        JSON.stringify({ success: false, code: 'ALREADY_COLLECTED', error: 'ALREADY_COLLECTED', card: todayCard }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    // 3. Atomically claim the cooldown slot to prevent race conditions
-    //    Only succeeds if last_daily_card_at is null OR older than 12h.
-    const { data: claimed, error: claimError } = await adminClient
-      .from("profiles")
-      .update({ last_daily_card_at: now.toISOString() })
-      .eq("id", userId)
-      .or(`last_daily_card_at.is.null,last_daily_card_at.lt.${twelveHoursAgo.toISOString()}`)
-      .select("id");
+    // 2. Atomically claim the cooldown slot in the database.
+    //    This avoids stale REST schema-cache issues when reading/updating new profile columns.
+    const { data: claimed, error: claimError } = await adminClient.rpc("claim_daily_card_cooldown", {
+      _user_id: userId,
+      _claimed_at: now.toISOString(),
+      _cooldown_cutoff: twelveHoursAgo.toISOString(),
+    });
 
     if (claimError) throw claimError;
 
-    if (!claimed || claimed.length === 0) {
+    if (!claimed) {
       // Another concurrent request already claimed the slot
       return new Response(
         JSON.stringify({ success: false, code: 'ALREADY_COLLECTED', error: 'ALREADY_COLLECTED', card: todayCard }),
