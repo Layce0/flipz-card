@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
     if (!claimed) {
       // Another concurrent request already claimed the slot
       return new Response(
-        JSON.stringify({ success: false, code: 'ALREADY_COLLECTED', error: 'ALREADY_COLLECTED', card: todayCard }),
+        JSON.stringify({ success: true, code: 'ALREADY_COLLECTED', card: todayCard }),
         {
           status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
