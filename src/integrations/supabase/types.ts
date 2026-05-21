@@ -645,6 +645,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_daily_card_cooldown: {
+        Args: {
+          _claimed_at: string
+          _cooldown_cutoff: string
+          _user_id: string
+        }
+        Returns: boolean
+      }
       get_global_stats: { Args: never; Returns: Json }
       has_role: {
         Args: {
