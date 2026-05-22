@@ -87,7 +87,7 @@ Deno.serve(async (req) => {
 
     const { error } = await supabaseAdmin
       .from('user_streaks')
-      .update({ current_streak: newStreak, last_streak_date: today })
+      .update({ current_streak: newStreak, last_streak_date: today, updated_at: new Date().toISOString() })
       .eq('user_id', userId)
     if (error) throw error
 
