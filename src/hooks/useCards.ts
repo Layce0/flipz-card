@@ -459,6 +459,8 @@ export const useCollectCard = () => {
       queryClient.invalidateQueries({ queryKey: ['user-cards'] });
       queryClient.invalidateQueries({ queryKey: ['last-daily-card-at'] });
       queryClient.invalidateQueries({ queryKey: ['user-card-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['user-streak'] });
+      queryClient.invalidateQueries({ queryKey: ['winstreak-claims'] });
     },
   });
 };
