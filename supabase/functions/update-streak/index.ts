@@ -75,19 +75,30 @@ Deno.serve(async (req) => {
     }
 
     let newStreak: number
+    let streakReset = false
     // Le chrono pour PERDRE la Winstreak est de 32 heures
     if (diffHours <= 32) {
       newStreak = existing.current_streak + 1
     } else {
       // Temps écoulé (> 32h), Winstreak brisée
       newStreak = 1
+      streakReset = true
     }
 
     const { error } = await supabaseAdmin
       .from('user_streaks')
-      .update({ current_streak: newStreak, last_streak_date: today })
+      .update({ current_streak: newStreak, last_streak_date: today, updated_at: new Date().toISOString() })
       .eq('user_id', userId)
     if (error) throw error
+
+    // When the streak breaks, clear past winstreak_claims so the user can
+    // re-earn the rewards on the new cycle.
+    if (streakReset) {
+      await supabaseAdmin
+        .from('winstreak_claims')
+        .delete()
+        .eq('user_id', userId)
+    }
 
     return new Response(JSON.stringify({ success: true, current_streak: newStreak }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
