@@ -64,6 +64,7 @@ export const useUserCards = (userId: string | undefined) => {
   return useQuery({
     queryKey: ['user-cards', userId],
     staleTime: 5 * 60 * 1000,
+    refetchOnMount: 'always',
     queryFn: async () => {
       if (!userId) return [];
       
@@ -456,11 +457,11 @@ export const useCollectCard = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-cards'] });
-      queryClient.invalidateQueries({ queryKey: ['last-daily-card-at'] });
-      queryClient.invalidateQueries({ queryKey: ['user-card-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['user-streak'] });
-      queryClient.invalidateQueries({ queryKey: ['winstreak-claims'] });
+      queryClient.invalidateQueries({ queryKey: ['user-cards'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['last-daily-card-at'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['user-card-stats'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['user-streak'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['winstreak-claims'], refetchType: 'all' });
     },
   });
 };
