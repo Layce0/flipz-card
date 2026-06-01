@@ -175,15 +175,32 @@ export const useUserCardStats = (userId: string | undefined) => {
   });
 };
 
-// Get today's card - random per user based on date + userId + 12h UTC period
+// Get today's card - random per user based on date + userId + 12h UTC period.
+// While the 12h cooldown is still running, we keep the card from the period in
+// which the user last collected so the displayed card doesn't change mid-cooldown.
 export const useTodayCard = (userId: string | undefined) => {
   return useQuery({
     queryKey: ['today-card', userId],
     queryFn: async () => {
+      // Read last collection time so we can lock the displayed card during cooldown
+      let lastCollectedAt: Date | null = null;
+      if (userId) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('last_daily_card_at')
+          .eq('id', userId)
+          .single();
+        if (data?.last_daily_card_at) lastCollectedAt = new Date(data.last_daily_card_at);
+      }
+
       const now = new Date();
-      const today = now.toISOString().split('T')[0];
-      // 12h UTC period: 0 = 00:00–11:59, 1 = 12:00–23:59
-      const period = now.getUTCHours() < 12 ? 0 : 1;
+      const cooldownMs = 12 * 60 * 60 * 1000;
+      const stillOnCooldown = !!lastCollectedAt && (now.getTime() - lastCollectedAt.getTime() < cooldownMs);
+      // While on cooldown, anchor seed to the period of the previous collect
+      // so the revealed card stays the same until the timer ends.
+      const refDate = stillOnCooldown ? lastCollectedAt! : now;
+      const today = refDate.toISOString().split('T')[0];
+      const period = refDate.getUTCHours() < 12 ? 0 : 1;
 
       // Get all available cards
       const { data: cards, error } = await supabase
@@ -206,6 +223,7 @@ export const useTodayCard = (userId: string | undefined) => {
       
       return cards[index] as GameCard;
     },
+    enabled: true,
   });
 };
 
