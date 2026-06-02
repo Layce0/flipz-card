@@ -446,12 +446,18 @@ export const useLastDailyCardAt = (userId: string | undefined) => {
 // Check if user has collected a card in the last 12 hours
 export const useHasCollectedToday = (userId: string | undefined, cardId: string | undefined) => {
   const query = useLastDailyCardAt(userId);
-  
-  const lastCollectedAt = query.data;
-  let hasCollected = false;
-  if (lastCollectedAt) {
+
+  // Preserve `undefined` while loading so the UI can keep showing a spinner
+  // instead of briefly rendering the card as collectible (which would let the
+  // user tap and trigger an "already collected" error from the server).
+  let hasCollected: boolean | undefined;
+  if (query.isLoading || (query.data === undefined && !query.isFetched)) {
+    hasCollected = undefined;
+  } else if (query.data) {
     const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
-    hasCollected = lastCollectedAt > twelveHoursAgo;
+    hasCollected = query.data > twelveHoursAgo;
+  } else {
+    hasCollected = false;
   }
 
   return {
