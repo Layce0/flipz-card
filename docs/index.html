@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flipz - Daily Card Quest | Support & Confidentialité</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0d0f14;
+            --card-bg: #161a23;
+            --accent-color: #6366f1;
+            --accent-hover: #4f46e5;
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --border-color: #242b3d;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 0;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e1b4b 0%, #0d0f14 100%);
+            padding: 60px 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo-container {
+            margin-bottom: 20px;
+        }
+
+        .logo-emoji {
+            font-size: 4rem;
+            animation: float 3s ease-in-out infinite;
+            display: inline-block;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(5deg); }
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #a5b4fc, #6366f1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        main {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        h2 {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            color: #a5b4fc;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        p {
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+        }
+
+        ul {
+            list-style-position: inside;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: var(--accent-color);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background-color 0.2s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .contact-info {
+            background-color: rgba(99, 102, 241, 0.1);
+            border-left: 4px solid var(--accent-color);
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+
+        .contact-info strong {
+            color: var(--text-primary);
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: 60px;
+        }
+
+        a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-container">
+            <span class="logo-emoji">🃏</span>
+        </div>
+        <h1>Flipz</h1>
+        <p class="subtitle">Daily Card Quest — Ouvrez des boosters, complétez des quêtes et collectionnez des cartes épiques.</p>
+    </header>
+
+    <main>
+        <!-- Section Support / Assistance -->
+        <section class="card" id="support">
+            <h2>📬 Assistance & Support</h2>
+            <p>Un problème avec l'application ? Une suggestion pour améliorer Flipz ? Notre équipe est là pour vous aider.</p>
+            <p>Avant de nous contacter, n'hésitez pas à vérifier les points suivants :</p>
+            <ul>
+                <li>Assurez-vous d'avoir la dernière version de l'application installée.</li>
+                <li>Vérifiez votre connexion internet pour l'ouverture des boosters.</li>
+            </ul>
+            <div class="contact-info">
+                <p>Pour toute question ou demande d'assistance, écrivez-nous directement par e-mail :</p>
+                <p>📧 <strong>lcsrvrt@gmail.com</strong></p>
+            </div>
+        </section>
+
+        <!-- Section Confidentialité -->
+        <section class="card" id="privacy">
+            <h2>🔒 Engagement de Confidentialité</h2>
+            <p><em>Dernière mise à jour : 7 juin 2026</em></p>
+            <p>La protection de votre vie privée est notre priorité absolue. Cette politique décrit comment vos données sont traitées dans l'application Flipz.</p>
+            
+            <h3>1. Collecte des données</h3>
+            <p>Flipz est conçu pour collecter le strict minimum d'informations nécessaires au bon fonctionnement du jeu :</p>
+            <ul>
+                <li><strong>Données de jeu :</strong> Vos scores, collections de cartes, streaks et progression dans les quêtes sont enregistrés localement ou sur nos serveurs sécurisés pour vous permettre de synchroniser votre partie.</li>
+                <li><strong>Publicités :</strong> Si l'application affiche des publicités (AdMob), des identifiants publicitaires anonymes peuvent être utilisés pour vous proposer du contenu adapté, conformément aux règles d'Apple.</li>
+            </ul>
+
+            <h3>2. Partage des données</h3>
+            <p>Nous ne vendons, n'échangeons et ne transférons aucune donnée personnelle ou de jeu à des tiers.</p>
+
+            <h3>3. Consentement et contrôle</h3>
+            <p>Vous pouvez à tout moment réinitialiser vos identifiants publicitaires ou limiter le suivi via les réglages de confidentialité de votre appareil iOS.</p>
+
+            <h3>4. Contact</h3>
+            <p>Pour toute question relative à vos données privées, contactez-nous à l'adresse suivante : <strong>lcsrvrt@gmail.com</strong>.</p>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Alban VIGNEAU. Tous droits réservés.</p>
+        <p>Flipz est une application propulsée par Capacitor & React.</p>
+    </footer>
+
+</body>
+</html>
