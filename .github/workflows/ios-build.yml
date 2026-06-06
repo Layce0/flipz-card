@@ -93,7 +93,7 @@ jobs:
               <key>provisioningProfiles</key>
               <dict>
                   <key>com.wintak.flipz</key>
-                  <string>Your Provisioning Profile Name Here</string>
+                  <string>Flipz App Store</string>
               </dict>
           </dict>
           </plist>
