@@ -34,9 +34,10 @@ jobs:
           ruby-version: '3.0'
           bundler-cache: true
 
-      - name: Install Cocoapods
+      - name: Install CocoaPods
         run: |
           cd ios/App
+          gem install cocoapods -v 1.13.0
           pod install
 
       - name: Install Apple Certificate and Provisioning Profile
