@@ -3,7 +3,7 @@ name: Build iOS App
 on:
   push:
     branches: [ "main" ]
-  workflow_dispatch: # Permet de lancer le build manuellement
+  workflow_dispatch:
 
 jobs:
   build_ios:
@@ -20,25 +20,13 @@ jobs:
           node-version: '22'
 
       - name: Install Dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build Web App
         run: npm run build
 
       - name: Sync Capacitor iOS
         run: npx cap sync ios
-
-      - name: Setup Ruby (for Cocoapods)
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.0'
-          bundler-cache: true
-
-      - name: Install CocoaPods
-        run: |
-          cd ios/App
-          gem install cocoapods -v 1.13.0
-          pod install
 
       - name: Install Apple Certificate and Provisioning Profile
         env:
@@ -52,9 +40,13 @@ jobs:
           PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
-          # Import certificate and provisioning profile from secrets
-          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
-          echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode -o $PP_PATH
+          # Decode certificate and provisioning profile from secrets
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode > $CERTIFICATE_PATH
+          echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode > $PP_PATH
+
+          # Verify files were created
+          echo "Certificate file size: $(wc -c < $CERTIFICATE_PATH) bytes"
+          echo "Provisioning profile size: $(wc -c < $PP_PATH) bytes"
 
           # Create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
@@ -63,27 +55,34 @@ jobs:
 
           # Import certificate to keychain
           security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
 
           # Apply provisioning profile
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
+          # Extract UUID from the provisioning profile and rename it
+          PP_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< $(/usr/bin/security cms -D -i $PP_PATH))
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$PP_UUID.mobileprovision
+          echo "Installed provisioning profile with UUID: $PP_UUID"
 
       - name: Build and Archive iOS App
         run: |
           cd ios/App
           xcodebuild archive \
-            -workspace App.xcworkspace \
+            -project App.xcodeproj \
             -scheme App \
             -configuration Release \
             -archivePath $PWD/build/App.xcarchive \
-            PROVISIONING_PROFILE_SPECIFIER="" \
-            CODE_SIGN_STYLE="Manual"
+            -destination 'generic/platform=iOS' \
+            CODE_SIGN_STYLE="Manual" \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            DEVELOPMENT_TEAM="KN67ATZ9C7" \
+            PROVISIONING_PROFILE_SPECIFIER="Flipz App Store" \
+            PRODUCT_BUNDLE_IDENTIFIER="com.wintak.flipz"
 
       - name: Export IPA
         run: |
           cd ios/App
-          # We need an exportOptions.plist file. We generate a simple one.
           cat <<EOF > exportOptions.plist
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -91,6 +90,10 @@ jobs:
           <dict>
               <key>method</key>
               <string>app-store</string>
+              <key>teamID</key>
+              <string>KN67ATZ9C7</string>
+              <key>signingStyle</key>
+              <string>manual</string>
               <key>provisioningProfiles</key>
               <dict>
                   <key>com.wintak.flipz</key>
@@ -99,7 +102,7 @@ jobs:
           </dict>
           </plist>
           EOF
-          
+
           xcodebuild -exportArchive \
             -archivePath $PWD/build/App.xcarchive \
             -exportOptionsPlist exportOptions.plist \
@@ -110,3 +113,8 @@ jobs:
         with:
           name: flipz-ios-app
           path: ios/App/build/export/*.ipa
+
+      - name: Clean up keychain
+        if: always()
+        run: |
+          security delete-keychain $RUNNER_TEMP/app-signing.keychain-db || true
