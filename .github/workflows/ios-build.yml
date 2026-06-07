@@ -114,6 +114,27 @@ jobs:
           name: flipz-ios-app
           path: ios/App/build/export/*.ipa
 
+      - name: Upload to App Store Connect
+        env:
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+        run: |
+          # Write the API key to a file
+          mkdir -p ~/private_keys
+          echo "$APP_STORE_CONNECT_PRIVATE_KEY" > ~/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8
+
+          # Find the IPA file
+          IPA_PATH=$(find ios/App/build/export -name "*.ipa" -type f | head -1)
+          echo "Uploading IPA: $IPA_PATH"
+
+          # Upload to App Store Connect using xcrun altool
+          xcrun altool --upload-app \
+            --type ios \
+            --file "$IPA_PATH" \
+            --apiKey "$APP_STORE_CONNECT_API_KEY_ID" \
+            --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID"
+
       - name: Clean up keychain
         if: always()
         run: |
