@@ -22,12 +22,12 @@ const Collection = () => {
   const { data: userCards = [], isLoading: userCardsLoading } = useUserCards(user?.id);
   const { newCardIds, markAsSeen } = useNewCardIndicator();
 
-  // Mark cards as seen when visiting collection
+  // Clear "Nouveau" badges when leaving the collection page
   useEffect(() => {
-    if (user && !userCardsLoading) {
+    return () => {
       markAsSeen();
-    }
-  }, [user, userCardsLoading, markAsSeen]);
+    };
+  }, [markAsSeen]);
   
   // Card detail dialog state
   const [selectedCard, setSelectedCard] = useState<GameCard | null>(null);
