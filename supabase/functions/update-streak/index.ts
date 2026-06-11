@@ -53,12 +53,12 @@ Deno.serve(async (req) => {
     const CARDS_PER_STREAK = 2;
 
     if (!existing) {
-      // First time ever: progress 1/2, streak 0
+      // First card ever: streak goes directly to 1
       const { error } = await supabaseAdmin
         .from('user_streaks')
-        .insert({ user_id: userId, current_streak: 0, streak_progress: 1, last_streak_date: today })
+        .insert({ user_id: userId, current_streak: 1, streak_progress: 0, last_streak_date: today })
       if (error) throw error
-      return new Response(JSON.stringify({ success: true, current_streak: 0, streak_progress: 1 }), {
+      return new Response(JSON.stringify({ success: true, current_streak: 1, streak_progress: 0 }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
