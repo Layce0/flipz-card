@@ -114,11 +114,12 @@
 
 @layer utilities {
   .font-display {
-    font-family: 'Fredoka', sans-serif;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 700;
   }
 
   .font-body {
-    font-family: 'Raleway', sans-serif;
+    font-family: 'Nunito', sans-serif;
   }
 
   .font-logo {
