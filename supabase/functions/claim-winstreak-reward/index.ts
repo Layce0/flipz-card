@@ -64,10 +64,11 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Verify today matches streak date
-    const today = new Date().toISOString().split('T')[0]
-    if (streak.last_streak_date !== today) {
-      return new Response(JSON.stringify({ error: 'Streak non mise à jour aujourd\'hui' }), {
+    // Verify streak is still alive (updated in the last 24h sliding window)
+    const lastUpdate = streak.updated_at ? new Date(streak.updated_at).getTime() : 0
+    const ageHours = (Date.now() - lastUpdate) / (1000 * 60 * 60)
+    if (ageHours > 24) {
+      return new Response(JSON.stringify({ error: 'Série expirée, retourne une carte pour la relancer' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
