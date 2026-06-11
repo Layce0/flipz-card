@@ -49,45 +49,48 @@ Deno.serve(async (req) => {
       .maybeSingle()
 
     const now = new Date();
+    const TIMER_HOURS = 24;
+    const CARDS_PER_STREAK = 2;
 
     if (!existing) {
-      // First time ever
+      // First time ever: progress 1/2, streak 0
       const { error } = await supabaseAdmin
         .from('user_streaks')
-        .insert({ user_id: userId, current_streak: 1, last_streak_date: today })
+        .insert({ user_id: userId, current_streak: 0, streak_progress: 1, last_streak_date: today })
       if (error) throw error
-      return new Response(JSON.stringify({ success: true, current_streak: 1 }), {
+      return new Response(JSON.stringify({ success: true, current_streak: 0, streak_progress: 1 }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
     const lastUpdate = new Date(existing.updated_at);
-    const diffMs = now.getTime() - lastUpdate.getTime();
-    const diffHours = diffMs / (1000 * 60 * 60);
+    const diffHours = (now.getTime() - lastUpdate.getTime()) / (1000 * 60 * 60);
 
-    // Pour ne pas augmenter le Winstreak à CHAQUE carte (puisque la carte est dispo toutes les 12h),
-    // on impose un délai minimum de 24h avant de pouvoir faire "+1" sur la série.
-    // Si le joueur retourne une carte avant 24h, on ne fait rien (il garde sa série mais ça ne l'augmente pas).
-    if (diffHours < 24) {
-      return new Response(JSON.stringify({ success: true, current_streak: existing.current_streak }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
-    }
+    let newStreak: number = existing.current_streak ?? 0;
+    let newProgress: number = existing.streak_progress ?? 0;
+    let streakReset = false;
 
-    let newStreak: number
-    let streakReset = false
-    // Le chrono pour PERDRE la Winstreak est de 32 heures
-    if (diffHours <= 32) {
-      newStreak = existing.current_streak + 1
+    if (diffHours > TIMER_HOURS) {
+      // Timer expired -> reset everything; this flip counts as progress 1
+      newStreak = 0;
+      newProgress = 1;
+      streakReset = true;
     } else {
-      // Temps écoulé (> 32h), Winstreak brisée
-      newStreak = 1
-      streakReset = true
+      newProgress = newProgress + 1;
+      if (newProgress >= CARDS_PER_STREAK) {
+        newStreak = newStreak + 1;
+        newProgress = 0;
+      }
     }
 
     const { error } = await supabaseAdmin
       .from('user_streaks')
-      .update({ current_streak: newStreak, last_streak_date: today, updated_at: new Date().toISOString() })
+      .update({
+        current_streak: newStreak,
+        streak_progress: newProgress,
+        last_streak_date: today,
+        updated_at: new Date().toISOString(),
+      })
       .eq('user_id', userId)
     if (error) throw error
 
