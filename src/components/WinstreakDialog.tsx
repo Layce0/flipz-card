@@ -1,10 +1,10 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Flame, Gift, Check, Lock, ChevronLeft, ChevronRight, Package, Sparkles, Zap, Crown } from 'lucide-react';
+import { Flame, Gift, Check, Lock, ChevronLeft, ChevronRight, Package, Sparkles, Zap, Crown, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
-import { useWinstreakRewards, useWinstreakClaims, useClaimWinstreakReward } from '@/hooks/useWinstreak';
+import { useWinstreakRewards, useWinstreakClaims, useClaimWinstreakReward, useUserStreak } from '@/hooks/useWinstreak';
 import { toast } from 'sonner';
 import { GameCard } from '@/types/card';
 import { PackRevealFlow } from '@/components/shop/PackRevealFlow';
@@ -16,6 +16,48 @@ interface WinstreakDialogProps {
   onOpenChange: (open: boolean) => void;
   streak: number;
 }
+
+const CARDS_PER_STREAK = 2;
+const TIMER_HOURS = 24;
+
+const ExpiryCountdown = ({ updatedAt }: { updatedAt: string | undefined }) => {
+  const [label, setLabel] = useState('--:--:--');
+  const [expired, setExpired] = useState(false);
+
+  useEffect(() => {
+    if (!updatedAt) return;
+    const tick = () => {
+      const end = new Date(updatedAt).getTime() + TIMER_HOURS * 3600 * 1000;
+      const remaining = Math.max(0, Math.floor((end - Date.now()) / 1000));
+      if (remaining <= 0) {
+        setExpired(true);
+        setLabel('Expirée');
+        return;
+      }
+      setExpired(false);
+      const h = Math.floor(remaining / 3600).toString().padStart(2, '0');
+      const m = Math.floor((remaining % 3600) / 60).toString().padStart(2, '0');
+      const s = (remaining % 60).toString().padStart(2, '0');
+      setLabel(`${h}:${m}:${s}`);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [updatedAt]);
+
+  return (
+    <div className={cn(
+      "flex items-center justify-center gap-1.5 mt-2 px-3 py-1.5 rounded-full text-xs font-semibold border",
+      expired
+        ? "bg-destructive/10 text-destructive border-destructive/30"
+        : "bg-orange-500/10 text-orange-300 border-orange-400/30"
+    )}>
+      <Clock className="w-3.5 h-3.5" />
+      <span className="font-mono tabular-nums">{label}</span>
+      {!expired && <span className="text-muted-foreground/70 font-normal">avant reset</span>}
+    </div>
+  );
+};
 
 const DAYS_PER_PAGE = 5;
 const MAX_DAYS = 100;
