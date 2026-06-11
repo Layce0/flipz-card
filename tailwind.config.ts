@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ['Fredoka', 'sans-serif'],
-        body: ['Raleway', 'sans-serif'],
+        display: ['Quicksand', 'sans-serif'],
+        body: ['Nunito', 'sans-serif'],
         logo: ['Baloo 2', 'cursive'],
       },
       colors: {
