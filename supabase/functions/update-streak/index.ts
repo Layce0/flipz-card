@@ -103,7 +103,7 @@ Deno.serve(async (req) => {
         .eq('user_id', userId)
     }
 
-    return new Response(JSON.stringify({ success: true, current_streak: newStreak }), {
+    return new Response(JSON.stringify({ success: true, current_streak: newStreak, streak_progress: newProgress }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
 
