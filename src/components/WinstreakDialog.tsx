@@ -303,6 +303,21 @@ export const WinstreakDialog = ({ open, onOpenChange, streak }: WinstreakDialogP
               </DialogTitle>
             </DialogHeader>
 
+            {/* Progress to next streak point + 24h reset timer */}
+            <div className="relative z-10 mt-3 flex flex-col items-center">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-card/60 border border-orange-400/30">
+                <Flame className="w-3.5 h-3.5 text-orange-400" />
+                <span className="text-xs font-semibold text-foreground/90">
+                  Progression :
+                </span>
+                <span className="font-mono tabular-nums text-sm font-bold text-orange-300">
+                  {progress}/{CARDS_PER_STREAK}
+                </span>
+                <span className="text-[10px] text-muted-foreground">cartes</span>
+              </div>
+              <ExpiryCountdown updatedAt={userStreak?.updated_at} />
+            </div>
+
             {/* Progress dots */}
             <div className="flex items-center gap-1.5 mt-3 z-10 relative">
               {days.map((day) => {
