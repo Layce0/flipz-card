@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Bubblegum+Sans&family=Fredoka:wght@400;500;600;700&family=Raleway:wght@300;400;500;600&family=Quicksand:wght@500;600;700&family=Nunito:wght@400;500;600;700&display=swap&font-display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Bubblegum+Sans&family=Fredoka:wght@400;500;600;700&family=Raleway:wght@300;400;500;600&family=Quicksand:wght@500;600;700&family=Nunito:wght@600;700;800;900&display=swap&font-display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -109,17 +109,20 @@
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-display;
+    font-weight: 900;
   }
 }
 
 @layer utilities {
   .font-display {
-    font-family: 'Quicksand', sans-serif;
-    font-weight: 700;
+    font-family: 'Baloo 2', 'Quicksand', sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.01em;
   }
 
   .font-body {
     font-family: 'Nunito', sans-serif;
+    font-weight: 700;
   }
 
   .font-logo {

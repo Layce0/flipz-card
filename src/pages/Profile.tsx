@@ -339,7 +339,7 @@ const Profile = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-center mb-6">
-                  <span className="text-4xl font-bold text-primary">{cardStats.total}</span>
+                  <span className="text-4xl font-bold text-primary">{cardStats.total.toLocaleString()}</span>
                   <p className="text-sm text-muted-foreground">{t('stats.cardsOwned')}</p>
                 </div>
 
@@ -350,7 +350,7 @@ const Profile = () => {
                         <span className={`font-medium bg-gradient-to-r ${getRarityColor(rarity)} bg-clip-text text-transparent`}>
                           {getRarityLabel(rarity)}
                         </span>
-                        <span className="text-muted-foreground">{cardStats[rarity]}</span>
+                        <span className="text-muted-foreground">{cardStats[rarity].toLocaleString()}</span>
                       </div>
                       <Progress 
                         value={cardStats.total > 0 ? (cardStats[rarity] / cardStats.total) * 100 : 0} 
