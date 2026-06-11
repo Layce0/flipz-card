@@ -551,6 +551,7 @@ export type Database = {
           id: string
           last_free_pack_at: string | null
           last_streak_date: string | null
+          streak_progress: number
           updated_at: string
           user_id: string
         }
@@ -559,6 +560,7 @@ export type Database = {
           id?: string
           last_free_pack_at?: string | null
           last_streak_date?: string | null
+          streak_progress?: number
           updated_at?: string
           user_id: string
         }
@@ -567,6 +569,7 @@ export type Database = {
           id?: string
           last_free_pack_at?: string | null
           last_streak_date?: string | null
+          streak_progress?: number
           updated_at?: string
           user_id?: string
         }

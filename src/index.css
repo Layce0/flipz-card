@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Bubblegum+Sans&family=Fredoka:wght@400;500;600;700&family=Raleway:wght@300;400;500;600&display=swap&font-display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Bubblegum+Sans&family=Fredoka:wght@400;500;600;700&family=Raleway:wght@300;400;500;600&family=Quicksand:wght@500;600;700&family=Nunito:wght@400;500;600;700&display=swap&font-display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -114,11 +114,12 @@
 
 @layer utilities {
   .font-display {
-    font-family: 'Fredoka', sans-serif;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 700;
   }
 
   .font-body {
-    font-family: 'Raleway', sans-serif;
+    font-family: 'Nunito', sans-serif;
   }
 
   .font-logo {

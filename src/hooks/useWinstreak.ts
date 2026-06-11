@@ -16,6 +16,7 @@ export interface UserStreak {
   id: string;
   user_id: string;
   current_streak: number;
+  streak_progress: number;
   last_streak_date: string | null;
   updated_at: string;
 }

@@ -255,7 +255,17 @@ const Packs = () => {
       />
 
       {!isRevealing ? (
-        <div className="flex-1 flex flex-col items-center justify-center relative px-4">
+        <div className="flex-1 flex flex-col items-center justify-center relative px-4 pt-12">
+          {/* Page title */}
+          <div className="text-center mb-6 z-10">
+            <h1 className="font-display text-3xl font-bold text-gradient-gold mb-1">
+              {t('packs.title', 'Pack quotidien')}
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              {t('packs.subtitle', 'Regarde une pub pour ouvrir ton pack gratuit')}
+            </p>
+          </div>
+
           {/* Pack booster centered */}
           <img
             src={packBoosterImg}

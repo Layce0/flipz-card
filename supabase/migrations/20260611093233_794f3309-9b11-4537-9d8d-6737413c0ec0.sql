@@ -1,0 +1,1 @@
+ALTER TABLE public.user_streaks ADD COLUMN IF NOT EXISTS streak_progress integer NOT NULL DEFAULT 0;
