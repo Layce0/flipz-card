@@ -220,7 +220,9 @@ export const WinstreakDialog = ({ open, onOpenChange, streak }: WinstreakDialogP
   const { user } = useAuth();
   const { data: rewards = [] } = useWinstreakRewards();
   const { data: claims = [] } = useWinstreakClaims(user?.id);
+  const { data: userStreak } = useUserStreak(user?.id);
   const claimReward = useClaimWinstreakReward();
+  const progress = userStreak?.streak_progress ?? 0;
   const [page, setPage] = useState(() => Math.floor(Math.max(streak - 1, 0) / DAYS_PER_PAGE));
   const totalPages = Math.ceil(MAX_DAYS / DAYS_PER_PAGE);
 
