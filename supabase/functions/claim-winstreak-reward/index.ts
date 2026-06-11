@@ -64,14 +64,8 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Verify streak is still alive (updated in the last 24h sliding window)
-    const lastUpdate = streak.updated_at ? new Date(streak.updated_at).getTime() : 0
-    const ageHours = (Date.now() - lastUpdate) / (1000 * 60 * 60)
-    if (ageHours > 24) {
-      return new Response(JSON.stringify({ error: 'Série expirée, retourne une carte pour la relancer' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
-    }
+    // v2: No 24h liveness check here — the streak counter itself enforces validity.
+    // If current_streak >= dayNumber, the reward is claimable.
 
     // Verify reward exists
     const { data: reward } = await supabaseAdmin
