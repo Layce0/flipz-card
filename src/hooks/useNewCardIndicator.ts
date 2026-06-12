@@ -1,54 +1,75 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useUserCards } from '@/hooks/useCards';
 import { useAuth } from '@/contexts/AuthContext';
 
-const LAST_SEEN_KEY = 'collection_last_seen';
-const EMPTY_CARDS: { id: string; obtained_at: string }[] = [];
+const KNOWN_IDS_KEY = 'collection_known_ids';
+const EMPTY_CARDS: { id: string }[] = [];
 
 const areSetsEqual = (a: Set<string>, b: Set<string>) => {
   if (a.size !== b.size) return false;
-  for (const value of a) {
-    if (!b.has(value)) return false;
-  }
+  for (const v of a) if (!b.has(v)) return false;
   return true;
+};
+
+const loadKnown = (userId: string): Set<string> => {
+  try {
+    const raw = localStorage.getItem(`${KNOWN_IDS_KEY}_${userId}`);
+    if (!raw) return new Set();
+    return new Set(JSON.parse(raw) as string[]);
+  } catch {
+    return new Set();
+  }
+};
+
+const saveKnown = (userId: string, ids: Set<string>) => {
+  try {
+    localStorage.setItem(`${KNOWN_IDS_KEY}_${userId}`, JSON.stringify([...ids]));
+  } catch {
+    /* noop */
+  }
 };
 
 export const useNewCardIndicator = () => {
   const { user } = useAuth();
   const { data: userCards } = useUserCards(user?.id);
   const safeUserCards = userCards ?? EMPTY_CARDS;
-  const [hasNewCards, setHasNewCards] = useState(false);
+
+  const currentIds = useMemo(
+    () => new Set(safeUserCards.map((c) => c.id)),
+    [safeUserCards]
+  );
+
   const [newCardIds, setNewCardIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    if (!user?.id || safeUserCards.length === 0) {
-      setHasNewCards(false);
-      setNewCardIds(prev => (prev.size === 0 ? prev : new Set()));
+    if (!user?.id) {
+      setNewCardIds((prev) => (prev.size === 0 ? prev : new Set()));
       return;
     }
 
-    const lastSeen = localStorage.getItem(`${LAST_SEEN_KEY}_${user.id}`);
-    if (!lastSeen) {
-      const allIds = new Set(safeUserCards.map(c => c.id));
-      setHasNewCards(allIds.size > 0);
-      setNewCardIds(prev => (areSetsEqual(prev, allIds) ? prev : allIds));
+    const known = loadKnown(user.id);
+
+    // First visit ever: seed known set with current cards, no badge
+    if (known.size === 0 && currentIds.size > 0 && !localStorage.getItem(`${KNOWN_IDS_KEY}_${user.id}`)) {
+      saveKnown(user.id, currentIds);
+      setNewCardIds((prev) => (prev.size === 0 ? prev : new Set()));
       return;
     }
 
-    const newIds = new Set(
-      safeUserCards.filter(card => card.obtained_at > lastSeen).map(c => c.id)
-    );
-    setHasNewCards(newIds.size > 0);
-    setNewCardIds(prev => (areSetsEqual(prev, newIds) ? prev : newIds));
-  }, [user?.id, safeUserCards]);
+    const fresh = new Set<string>();
+    currentIds.forEach((id) => {
+      if (!known.has(id)) fresh.add(id);
+    });
+    setNewCardIds((prev) => (areSetsEqual(prev, fresh) ? prev : fresh));
+  }, [user?.id, currentIds]);
+
+  const hasNewCards = newCardIds.size > 0;
 
   const markAsSeen = useCallback(() => {
-    if (user?.id) {
-      localStorage.setItem(`${LAST_SEEN_KEY}_${user.id}`, new Date().toISOString());
-      setHasNewCards(false);
-      setNewCardIds(prev => (prev.size === 0 ? prev : new Set()));
-    }
-  }, [user?.id]);
+    if (!user?.id) return;
+    saveKnown(user.id, currentIds);
+    setNewCardIds((prev) => (prev.size === 0 ? prev : new Set()));
+  }, [user?.id, currentIds]);
 
   return { hasNewCards, newCardIds, markAsSeen };
 };

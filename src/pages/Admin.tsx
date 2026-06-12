@@ -13,6 +13,7 @@ import { WinstreakRewardsManager } from '@/components/admin/WinstreakRewardsMana
 import { GlobalGifsManager } from '@/components/admin/GlobalGifsManager';
 import { PackProbabilitiesManager } from '@/components/admin/PackProbabilitiesManager';
 import { UserAccountManager } from '@/components/admin/UserAccountManager';
+import { ModeratorTools } from '@/components/admin/ModeratorTools';
 import { GlobalStatsPanel } from '@/components/admin/GlobalStatsPanel';
 import { Rarity, RARITY_CONFIG, GameCard } from '@/types/card';
 import { toast } from 'sonner';
@@ -479,6 +480,9 @@ const Admin = () => {
 
         {/* User Account Manager */}
         <UserAccountManager />
+
+        {/* Moderator Tools */}
+        <ModeratorTools />
 
 
         <section>
