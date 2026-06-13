@@ -72,11 +72,16 @@ const RouteSeo = () => {
   return <Seo title={meta.title} description={meta.description} path={pathname} />;
 };
 
+import { SplashScreen } from "@/components/SplashScreen";
+import { useAuth } from "@/contexts/AuthContext";
+
 const AppContent = () => {
   const { updateRequired, storeUrl } = useForceUpdate();
+  const { isLoading: isAuthLoading } = useAuth();
 
   return (
     <div className="relative min-h-screen pt-[env(safe-area-inset-top,24px)]">
+      <SplashScreen isAuthReady={!isAuthLoading} />
       <RouteSeo />
       {/* Black Top Banner for Safe Area */}
       <div 
