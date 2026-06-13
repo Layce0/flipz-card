@@ -194,6 +194,10 @@ serve(async (req) => {
     const packConfig = PACK_CONFIGS[productId];
     if (!packConfig) throw new Error("Produit inconnu");
 
+    // Verify purchase with Google Play Developer API + acknowledge
+    await verifyAndAcknowledgeGooglePurchase(productId, purchaseToken);
+    logStep("Google purchase verified and acknowledged");
+
     const { cardCount, type: packType } = packConfig;
 
     // Get all cards
