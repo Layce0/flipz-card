@@ -83,12 +83,13 @@ export const useGoogleBilling = () => {
           onSuccess(data.cards, derivedPackType);
         }
       } catch (err: any) {
-        const code = err?.code || err?.message;
+        const code = err?.code || err?.message || 'UNKNOWN';
+        const debugMsg = err?.message || err?.code || JSON.stringify(err);
         if (code === 'USER_CANCELED' || /cancel/i.test(String(code))) {
           toast.error(t('shop.purchaseCanceled'));
         } else {
           console.error('Google Billing error:', err);
-          toast.error(t('shop.paymentError'));
+          toast.error(`${t('shop.paymentError')} [${debugMsg}]`);
         }
       } finally {
         setLoading(false);
