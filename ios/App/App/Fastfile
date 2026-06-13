@@ -1,0 +1,30 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Build a signed IPA"
+  lane :build do
+    # You need to set up fastlane match or specify your provisioning profile manually here
+    # get_certificates
+    # get_provisioning_profile
+
+    build_app(
+      scheme: "App",
+      export_method: "app-store",
+      # export_options: {
+      #   provisioningProfiles: {
+      #     "com.layce.dailycard" => "DailyCard_Provisioning_Profile"
+      #   }
+      # }
+    )
+  end
+
+  desc "Build a signed IPA using Match"
+  lane :build_with_match do
+    match(type: "appstore")
+    
+    build_app(
+      scheme: "App",
+      export_method: "app-store"
+    )
+  end
+end
