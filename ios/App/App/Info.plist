@@ -51,5 +51,11 @@
 	<true/>
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
+    <key>NSUserTrackingUsageDescription</key>
+    <string>Cette autorisation nous permet de vous proposer des publicités personnalisées et de garder le jeu gratuit.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Nous avons besoin d'accéder à vos photos pour vous permettre de modifier votre avatar de profil.</string>
+    <key>NSCameraUsageDescription</key>
+    <string>Nous avons besoin de l'appareil photo pour vous permettre de prendre une photo pour votre profil.</string>
 </dict>
 </plist>
