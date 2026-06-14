@@ -14,6 +14,14 @@ const initializeAdMob = async (isTesting: boolean) => {
   if (!Capacitor.isNativePlatform()) return;
   
   try {
+    if (Capacitor.getPlatform() === 'ios') {
+      try {
+        await AdMob.requestTrackingAuthorization();
+      } catch (e) {
+        console.warn('ATT request failed or not supported:', e);
+      }
+    }
+
     await AdMob.initialize({
       initializeForTesting: isTesting,
     });

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Capacitor, registerPlugin } from '@capacitor/core';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +10,9 @@ interface BillingPluginInterface {
     purchaseToken: string;
     productId: string;
     orderId: string;
+  }>;
+  getProducts(options: { productIds: string[] }): Promise<{
+    prices: Record<string, string>;
   }>;
 }
 
@@ -36,8 +39,34 @@ export const useGoogleBilling = () => {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [loadingPackId, setLoadingPackId] = useState<string | null>(null);
+  const [prices, setPrices] = useState<Record<string, string>>({});
 
   const isNative = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
+
+  useEffect(() => {
+    if (!isNative) return;
+
+    const fetchPrices = async () => {
+      try {
+        const productIds = Object.values(PACK_TO_PRODUCT);
+        const result = await BillingPlugin.getProducts({ productIds });
+        if (result && result.prices) {
+          // Inverse map to store prices by packId
+          const localPrices: Record<string, string> = {};
+          Object.entries(PACK_TO_PRODUCT).forEach(([packId, productId]) => {
+            if (result.prices[productId]) {
+              localPrices[packId] = result.prices[productId];
+            }
+          });
+          setPrices(localPrices);
+        }
+      } catch (err) {
+        console.error('Failed to fetch Google Play prices:', err);
+      }
+    };
+
+    fetchPrices();
+  }, [isNative]);
 
   const purchase = useCallback(
     async (packId: string, onSuccess: (cards: any[], packType: string) => void) => {
@@ -99,5 +128,5 @@ export const useGoogleBilling = () => {
     [user, t],
   );
 
-  return { purchase, loading, loadingPackId, isNative };
+  return { purchase, loading, loadingPackId, isNative, prices };
 };

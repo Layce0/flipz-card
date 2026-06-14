@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Navigation } from '@/components/Navigation';
@@ -15,6 +16,7 @@ import { useUserCards, useTradeCards, UserCardWithCount } from '@/hooks/useCards
 import { RedeemCodeSection } from '@/components/shop/RedeemCodeSection';
 import { invokeEdgeFunction } from '@/lib/edgeFunctions';
 import { useGoogleBilling } from '@/hooks/useGoogleBilling';
+import { useAppleBilling } from '@/hooks/useAppleBilling';
 
 const Shop = () => {
   const { user, isModerator } = useAuth();
@@ -23,6 +25,7 @@ const Shop = () => {
   const { data: userCards = [], isLoading: cardsLoading, refetch: refetchCards } = useUserCards(user?.id);
   const tradeCards = useTradeCards();
   const googleBilling = useGoogleBilling();
+  const appleBilling = useAppleBilling();
 
   const [loadingPackId, setLoadingPackId] = useState<string | null>(null);
   const [isTrading, setIsTrading] = useState(false);
@@ -76,6 +79,17 @@ const Shop = () => {
     }
 
     const derivedPackType = packId.split('_')[0] || 'standard';
+
+    // Native iOS: use Apple Billing
+    if (appleBilling.isNativeIOS) {
+      await appleBilling.purchase(packId, (cards, packType) => {
+        setPurchasedCards(cards);
+        setPurchasedPackType(packType);
+        setShowPurchaseReward(true);
+        refetchCards();
+      });
+      return;
+    }
 
     // Native Android: use Google Play Billing
     if (googleBilling.isNative) {
@@ -215,24 +229,27 @@ const Shop = () => {
               description={t('shop.standardPacksDesc')}
               packs={standardPacks}
               onPurchase={handlePurchase}
-              isLoading={!!loadingPackId || googleBilling.loading}
-              loadingPackId={loadingPackId || googleBilling.loadingPackId}
+              isLoading={!!loadingPackId || googleBilling.loading || appleBilling.loading}
+              loadingPackId={loadingPackId || googleBilling.loadingPackId || appleBilling.loadingPackId}
+              localPrices={{ ...googleBilling.prices, ...appleBilling.prices }}
             />
             <PackSection
               title={t('shop.luckyPacks')}
               description={t('shop.luckyPacksDesc')}
               packs={luckyPacks}
               onPurchase={handlePurchase}
-              isLoading={!!loadingPackId || googleBilling.loading}
-              loadingPackId={loadingPackId || googleBilling.loadingPackId}
+              isLoading={!!loadingPackId || googleBilling.loading || appleBilling.loading}
+              loadingPackId={loadingPackId || googleBilling.loadingPackId || appleBilling.loadingPackId}
+              localPrices={{ ...googleBilling.prices, ...appleBilling.prices }}
             />
             <PackSection
               title={t('shop.ultraPacks')}
               description={t('shop.ultraPacksDesc')}
               packs={ultraPacks}
               onPurchase={handlePurchase}
-              isLoading={!!loadingPackId || googleBilling.loading}
-              loadingPackId={loadingPackId || googleBilling.loadingPackId}
+              isLoading={!!loadingPackId || googleBilling.loading || appleBilling.loading}
+              loadingPackId={loadingPackId || googleBilling.loadingPackId || appleBilling.loadingPackId}
+              localPrices={{ ...googleBilling.prices, ...appleBilling.prices }}
             />
           </>
         )}

@@ -13,6 +13,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { User, Settings, BarChart3, LogOut, Camera, Lock, Save, GraduationCap } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -46,6 +57,7 @@ const Profile = () => {
     confirm: '',
   });
   const [changingPassword, setChangingPassword] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -182,6 +194,26 @@ const Profile = () => {
   const handleLogout = async () => {
     await signOut();
     navigate('/');
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeletingAccount(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('manage-user-account', {
+        body: { action: 'delete_self' }
+      });
+      if (error || data?.error) {
+        toast.error(t('profile.deleteError', 'Erreur lors de la suppression du compte.'));
+      } else {
+        toast.success(t('profile.deleteSuccess', 'Votre compte a été supprimé.'));
+        await signOut();
+        navigate('/');
+      }
+    } catch (err) {
+      toast.error(t('profile.deleteError', 'Erreur lors de la suppression du compte.'));
+    } finally {
+      setDeletingAccount(false);
+    }
   };
 
   const getRarityColor = (rarity: string) => {
@@ -411,6 +443,35 @@ const Profile = () => {
                   <Save className="w-4 h-4 mr-2" />
                   {saving ? t('common.saving') : t('settings.saveSettings')}
                 </Button>
+                
+                {/* Delete Account Section */}
+                <div className="pt-6 mt-6 border-t border-border">
+                  <h3 className="text-destructive font-semibold mb-2">{t('profile.dangerZone', 'Zone de danger')}</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {t('profile.deleteWarning', 'Une fois votre compte supprimé, il n\'y a pas de retour en arrière possible. Soyez certain.')}
+                  </p>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" className="w-full" disabled={deletingAccount}>
+                        {deletingAccount ? t('common.loading', 'Chargement...') : t('profile.deleteAccount', 'Supprimer mon compte')}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>{t('profile.deleteConfirmTitle', 'Êtes-vous absolument sûr ?')}</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          {t('profile.deleteConfirmDesc', 'Cette action ne peut pas être annulée. Cela supprimera définitivement votre compte et effacera vos données de nos serveurs.')}
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>{t('common.cancel', 'Annuler')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                          {t('profile.deleteAccount', 'Supprimer')}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

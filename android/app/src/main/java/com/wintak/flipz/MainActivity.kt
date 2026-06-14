@@ -27,9 +27,10 @@ class MainActivity : BridgeActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
+        registerPlugin(BillingPlugin::class.java)
         super.onCreate(savedInstanceState)
         
-        // Force la fermeture du splash screen après 4 secondes maximum
+        // Force la fermeture du splash screen native instantanément pour laisser place au Splash Screen React (avec la barre de progression)
         val content: View = findViewById(android.R.id.content)
         content.viewTreeObserver.addOnPreDrawListener(object : android.view.ViewTreeObserver.OnPreDrawListener {
             override fun onPreDraw(): Boolean {
@@ -53,7 +54,6 @@ class MainActivity : BridgeActivity() {
         }
 
         checkForAppUpdate()
-        registerPlugin(BillingPlugin::class.java)
 
 
         // Application initiale du mode immersif

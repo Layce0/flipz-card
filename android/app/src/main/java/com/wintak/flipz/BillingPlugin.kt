@@ -22,7 +22,23 @@ class BillingPlugin : Plugin() {
 
         billingClient?.startConnection(object : BillingClientStateListener {
             override fun onBillingSetupFinished(billingResult: BillingResult) {
-                // Ready
+                if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                    val params = QueryPurchasesParams.newBuilder()
+                        .setProductType(BillingClient.ProductType.INAPP)
+                        .build()
+                    billingClient?.queryPurchasesAsync(params) { result, purchases ->
+                        if (result.responseCode == BillingClient.BillingResponseCode.OK) {
+                            for (purchase in purchases) {
+                                if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
+                                    val consumeParams = ConsumeParams.newBuilder()
+                                        .setPurchaseToken(purchase.purchaseToken)
+                                        .build()
+                                    billingClient?.consumeAsync(consumeParams) { _, _ -> }
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             override fun onBillingServiceDisconnected() {
@@ -45,11 +61,11 @@ class BillingPlugin : Plugin() {
                     result.put("orderId", purchase.orderId ?: "")
                     call.resolve(result)
 
-                    // Acknowledge the purchase
-                    val acknowledgePurchaseParams = AcknowledgePurchaseParams.newBuilder()
+                    // Consume the purchase so it can be bought again
+                    val consumeParams = ConsumeParams.newBuilder()
                         .setPurchaseToken(purchase.purchaseToken)
                         .build()
-                    billingClient?.acknowledgePurchase(acknowledgePurchaseParams) { }
+                    billingClient?.consumeAsync(consumeParams) { _, _ -> }
                 } else {
                     call.reject("No purchases returned")
                 }
@@ -119,5 +135,51 @@ class BillingPlugin : Plugin() {
                 }
             }
         })
+    }
+
+    @PluginMethod
+    fun getProducts(call: PluginCall) {
+        val productIdsArray = call.getArray("productIds")
+        if (productIdsArray == null || productIdsArray.length() == 0) {
+            call.reject("INVALID_ARGS", "productIds is required")
+            return
+        }
+
+        val client = billingClient
+        if (client == null || !client.isReady) {
+            call.reject("NOT_READY", "BillingClient is not ready")
+            return
+        }
+
+        val productList = mutableListOf<QueryProductDetailsParams.Product>()
+        for (i in 0 until productIdsArray.length()) {
+            productList.add(
+                QueryProductDetailsParams.Product.newBuilder()
+                    .setProductId(productIdsArray.getString(i))
+                    .setProductType(BillingClient.ProductType.INAPP)
+                    .build()
+            )
+        }
+
+        val params = QueryProductDetailsParams.newBuilder()
+            .setProductList(productList)
+            .build()
+
+        client.queryProductDetailsAsync(params) { billingResult, productDetailsList ->
+            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK && productDetailsList != null) {
+                val prices = JSObject()
+                for (productDetails in productDetailsList) {
+                    val price = productDetails.oneTimePurchaseOfferDetails?.formattedPrice
+                    if (price != null) {
+                        prices.put(productDetails.productId, price)
+                    }
+                }
+                val result = JSObject()
+                result.put("prices", prices)
+                call.resolve(result)
+            } else {
+                call.reject("ERROR", "Failed to query products")
+            }
+        }
     }
 }

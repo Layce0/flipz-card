@@ -236,8 +236,8 @@ const Packs = () => {
           </div>
           <div className="border-2 border-dashed border-white/20 rounded-2xl p-12 flex flex-col items-center gap-4 max-w-sm mx-4">
             <Play className="w-16 h-16 text-primary" />
-            <p className="text-white text-xl font-display text-center">Publicité simulée</p>
-            <p className="text-white/50 text-sm text-center">Cette pub n'apparaît que sur le web.<br/>Sur mobile natif, une vraie pub AdMob s'affichera.</p>
+            <p className="text-white text-xl font-display text-center">Préparation de votre récompense...</p>
+            <p className="text-white/50 text-sm text-center">Veuillez patienter quelques instants.</p>
             <div className="w-full bg-white/10 rounded-full h-2 mt-4">
               <div 
                 className="bg-primary h-2 rounded-full transition-all duration-1000 ease-linear" 

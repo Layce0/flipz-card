@@ -130,6 +130,22 @@ Deno.serve(async (req) => {
       return json({ success: true, message: "Ta winstreak est remise à 0" });
     }
 
+    if (action === "delete_self") {
+      // Allow a user to delete their own account
+      await Promise.all([
+        admin.from("user_cards").delete().eq("user_id", caller.id),
+        admin.from("winstreak_claims").delete().eq("user_id", caller.id),
+        admin.from("code_redemptions").delete().eq("user_id", caller.id),
+        admin.from("purchase_transactions").delete().eq("user_id", caller.id),
+        admin.from("user_streaks").delete().eq("user_id", caller.id),
+        admin.from("user_roles").delete().eq("user_id", caller.id),
+        admin.from("profiles").delete().eq("id", caller.id),
+      ]);
+      const { error: deleteError } = await admin.auth.admin.deleteUser(caller.id);
+      if (deleteError) return json({ error: deleteError.message }, 500);
+      return json({ success: true, message: "Compte supprimé" });
+    }
+
     // ---------- Admin-only tools (existing) ----------
     if (!isAdmin) return json({ error: "Accès admin requis" }, 403);
     if (!targetUserId) return json({ error: "Paramètres manquants" }, 400);
