@@ -27,7 +27,29 @@ Deno.serve(async (req) => {
     const { data: { user: caller }, error: authError } = await supabaseAuth.auth.getUser(token);
     if (authError || !caller) return json({ error: "Non autorisé" }, 401);
 
-    // Role check: admin OR moderator
+    const { action, targetUserId, streakValue } = await req.json();
+    if (!action) return json({ error: "Paramètres manquants" }, 400);
+
+    const admin = createClient(supabaseUrl, serviceRoleKey);
+
+    // ---------- Self-service: any authenticated user can delete their own account ----------
+    // Required by Apple App Store Review Guideline 5.1.1(v). Must run BEFORE role checks.
+    if (action === "delete_self") {
+      await Promise.all([
+        admin.from("user_cards").delete().eq("user_id", caller.id),
+        admin.from("winstreak_claims").delete().eq("user_id", caller.id),
+        admin.from("code_redemptions").delete().eq("user_id", caller.id),
+        admin.from("purchase_transactions").delete().eq("user_id", caller.id),
+        admin.from("user_streaks").delete().eq("user_id", caller.id),
+        admin.from("user_roles").delete().eq("user_id", caller.id),
+        admin.from("profiles").delete().eq("id", caller.id),
+      ]);
+      const { error: deleteError } = await admin.auth.admin.deleteUser(caller.id);
+      if (deleteError) return json({ error: deleteError.message }, 500);
+      return json({ success: true, message: "Compte supprimé" });
+    }
+
+    // Role check: admin OR moderator (for all other actions)
     const { data: roles } = await supabaseAuth
       .from("user_roles")
       .select("role")
@@ -37,11 +59,6 @@ Deno.serve(async (req) => {
     const isAdmin = roleSet.has("admin");
     const isModerator = isAdmin || roleSet.has("moderator");
     if (!isModerator) return json({ error: "Accès modérateur requis" }, 403);
-
-    const { action, targetUserId, streakValue } = await req.json();
-    if (!action) return json({ error: "Paramètres manquants" }, 400);
-
-    const admin = createClient(supabaseUrl, serviceRoleKey);
 
     // ---------- Moderator-only tools ----------
     if (action === "skip_my_daily_timer") {
