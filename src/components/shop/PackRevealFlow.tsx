@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { MysteryCard } from '@/components/MysteryCard';
 import { PackOpeningAnimation, PackAnimationType } from '@/components/PackOpeningAnimation';
+import { PackSummary } from '@/components/shop/PackSummary';
 import { Button } from '@/components/ui/button';
-import { X, Sparkles, ChevronLeft } from 'lucide-react';
+import { X, Sparkles, ChevronLeft, FastForward } from 'lucide-react';
 import { GameCard } from '@/types/card';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
