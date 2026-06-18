@@ -38,14 +38,15 @@ export const PackSummary = ({ cards, ownedSnapshot, onClose }: PackSummaryProps)
         <div className="grid grid-cols-3 gap-3 w-full">
           {enriched.map(({ card, isNew }, idx) => {
             const rarity = RARITY_CONFIG[card.rarity];
+            const rarityColor = `hsl(var(--rarity-${card.rarity}))`;
             return (
               <div key={idx} className="flex flex-col items-center">
                 <div
-                  className={cn(
-                    'relative w-full aspect-[3/4] rounded-lg overflow-hidden border-2',
-                    `border-rarity-${card.rarity}`
-                  )}
-                  style={{ boxShadow: `0 0 12px hsl(var(--rarity-${card.rarity}) / 0.4)` }}
+                  className="relative w-full aspect-[3/4] rounded-lg overflow-hidden border-2"
+                  style={{
+                    borderColor: rarityColor,
+                    boxShadow: `0 0 12px hsl(var(--rarity-${card.rarity}) / 0.4)`,
+                  }}
                 >
                   {card.image_url ? (
                     <img src={card.image_url} alt={getTitle(card)} className="w-full h-full object-cover" />
@@ -58,7 +59,7 @@ export const PackSummary = ({ cards, ownedSnapshot, onClose }: PackSummaryProps)
                     </span>
                   )}
                 </div>
-                <p className="text-[10px] text-center mt-1 truncate w-full" style={{ color: `hsl(var(--rarity-${card.rarity}))` }}>
+                <p className="text-[10px] text-center mt-1 truncate w-full" style={{ color: rarityColor }}>
                   {rarity?.label}
                 </p>
               </div>
