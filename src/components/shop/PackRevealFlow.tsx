@@ -47,6 +47,7 @@ export const PackRevealFlow = ({ cards, isOpen, onClose, initialOwnedCardIds, pa
         : userCards.filter(c => c.count > 0).map(c => c.id);
       setOwnedSnapshot(new Set(ownedIds));
       setShowPackAnimation(true);
+      setShowSummary(false);
       setCurrentCardIndex(0);
       setCardRevealed(false);
       setSlideDir(null);
