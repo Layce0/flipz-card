@@ -202,6 +202,7 @@ const Packs = () => {
     setIsRevealing(false);
     setCardRevealed(false);
     setShowPackAnimation(false);
+    setShowSummary(false);
     setSlideDir(null);
     setDragX(0);
     setDragY(0);
