@@ -28,6 +28,7 @@ const Packs = () => {
   const [isRevealing, setIsRevealing] = useState(false);
   const [cardRevealed, setCardRevealed] = useState(false);
   const [showPackAnimation, setShowPackAnimation] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
   const { data: userCards = [] } = useUserCards(user?.id);
   const [ownedSnapshot, setOwnedSnapshot] = useState<Set<string>>(new Set());
   const queryClient = useQueryClient();
