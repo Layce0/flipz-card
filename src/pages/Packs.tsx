@@ -309,6 +309,15 @@ const Packs = () => {
           )}
           </div>
         </div>
+      ) : showSummary ? (
+        <PackSummary
+          cards={revealedCards}
+          ownedSnapshot={ownedSnapshot}
+          onClose={() => {
+            toast.success(t('packs.cardsAdded', { count: revealedCards.length }));
+            handleClose();
+          }}
+        />
       ) : (
           <div className="fixed inset-0 z-[60] bg-background flex flex-col items-center justify-center p-4 select-none"
             style={{ touchAction: 'pan-y' }}
@@ -381,6 +390,16 @@ const Packs = () => {
                 <span>{currentCardIndex >= revealedCards.length - 1 ? t('common.finish') : t('packs.swipeHint', 'Swipez pour continuer')}</span>
               </div>
             )}
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowSummary(true)}
+              className="absolute bottom-6 left-1/2 -translate-x-1/2 gap-2 bg-card/80 backdrop-blur"
+            >
+              <FastForward className="w-4 h-4" />
+              {t('packs.skipReveal', 'Passer')}
+            </Button>
           </div>
         )}
 
