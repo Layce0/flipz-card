@@ -174,6 +174,16 @@ export const PackRevealFlow = ({ cards, isOpen, onClose, initialOwnedCardIds, pa
     );
   }
 
+  if (showSummary) {
+    return (
+      <PackSummary
+        cards={cards}
+        ownedSnapshot={ownedSnapshot}
+        onClose={handleClose}
+      />
+    );
+  }
+
   const isLast = currentCardIndex >= cards.length - 1;
 
   return (
