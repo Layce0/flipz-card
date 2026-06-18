@@ -6,7 +6,8 @@ import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { MysteryCard } from '@/components/MysteryCard';
 import { PackOpeningAnimation } from '@/components/PackOpeningAnimation';
-import { Play, Loader2, X, ChevronLeft } from 'lucide-react';
+import { PackSummary } from '@/components/shop/PackSummary';
+import { Play, Loader2, X, ChevronLeft, FastForward } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserCards } from '@/hooks/useCards';
 import { useAdMob } from '@/hooks/useAdMob';
@@ -27,6 +28,7 @@ const Packs = () => {
   const [isRevealing, setIsRevealing] = useState(false);
   const [cardRevealed, setCardRevealed] = useState(false);
   const [showPackAnimation, setShowPackAnimation] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
   const { data: userCards = [] } = useUserCards(user?.id);
   const [ownedSnapshot, setOwnedSnapshot] = useState<Set<string>>(new Set());
   const queryClient = useQueryClient();
@@ -200,6 +202,7 @@ const Packs = () => {
     setIsRevealing(false);
     setCardRevealed(false);
     setShowPackAnimation(false);
+    setShowSummary(false);
     setSlideDir(null);
     setDragX(0);
     setDragY(0);
@@ -306,6 +309,15 @@ const Packs = () => {
           )}
           </div>
         </div>
+      ) : showSummary ? (
+        <PackSummary
+          cards={revealedCards}
+          ownedSnapshot={ownedSnapshot}
+          onClose={() => {
+            toast.success(t('packs.cardsAdded', { count: revealedCards.length }));
+            handleClose();
+          }}
+        />
       ) : (
           <div className="fixed inset-0 z-[60] bg-background flex flex-col items-center justify-center p-4 select-none"
             style={{ touchAction: 'pan-y' }}
@@ -378,6 +390,16 @@ const Packs = () => {
                 <span>{currentCardIndex >= revealedCards.length - 1 ? t('common.finish') : t('packs.swipeHint', 'Swipez pour continuer')}</span>
               </div>
             )}
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowSummary(true)}
+              className="absolute bottom-6 left-1/2 -translate-x-1/2 gap-2 bg-card/80 backdrop-blur"
+            >
+              <FastForward className="w-4 h-4" />
+              {t('packs.skipReveal', 'Passer')}
+            </Button>
           </div>
         )}
 

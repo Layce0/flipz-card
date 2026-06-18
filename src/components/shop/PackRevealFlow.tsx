@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { MysteryCard } from '@/components/MysteryCard';
 import { PackOpeningAnimation, PackAnimationType } from '@/components/PackOpeningAnimation';
+import { PackSummary } from '@/components/shop/PackSummary';
 import { Button } from '@/components/ui/button';
-import { X, Sparkles, ChevronLeft } from 'lucide-react';
+import { X, Sparkles, ChevronLeft, FastForward } from 'lucide-react';
 import { GameCard } from '@/types/card';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
@@ -25,6 +26,7 @@ export const PackRevealFlow = ({ cards, isOpen, onClose, initialOwnedCardIds, pa
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [cardRevealed, setCardRevealed] = useState(false);
   const [showPackAnimation, setShowPackAnimation] = useState(true);
+  const [showSummary, setShowSummary] = useState(false);
   const [slideDir, setSlideDir] = useState<{ x: number; y: number } | null>(null);
   const [dragX, setDragX] = useState(0);
   const [dragY, setDragY] = useState(0);
@@ -45,6 +47,7 @@ export const PackRevealFlow = ({ cards, isOpen, onClose, initialOwnedCardIds, pa
         : userCards.filter(c => c.count > 0).map(c => c.id);
       setOwnedSnapshot(new Set(ownedIds));
       setShowPackAnimation(true);
+      setShowSummary(false);
       setCurrentCardIndex(0);
       setCardRevealed(false);
       setSlideDir(null);
@@ -171,6 +174,16 @@ export const PackRevealFlow = ({ cards, isOpen, onClose, initialOwnedCardIds, pa
     );
   }
 
+  if (showSummary) {
+    return (
+      <PackSummary
+        cards={cards}
+        ownedSnapshot={ownedSnapshot}
+        onClose={handleClose}
+      />
+    );
+  }
+
   const isLast = currentCardIndex >= cards.length - 1;
 
   return (
@@ -259,6 +272,17 @@ export const PackRevealFlow = ({ cards, isOpen, onClose, initialOwnedCardIds, pa
           <span>{isLast ? t('common.finish', 'Terminer') : t('packs.swipeHint', 'Swipez pour continuer')}</span>
         </div>
       )}
+
+      {/* Skip button at bottom */}
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setShowSummary(true)}
+        className="absolute bottom-6 left-1/2 -translate-x-1/2 gap-2 bg-card/80 backdrop-blur"
+      >
+        <FastForward className="w-4 h-4" />
+        {t('packs.skipReveal', 'Passer')}
+      </Button>
     </div>
   );
 };
