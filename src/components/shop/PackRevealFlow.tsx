@@ -272,6 +272,17 @@ export const PackRevealFlow = ({ cards, isOpen, onClose, initialOwnedCardIds, pa
           <span>{isLast ? t('common.finish', 'Terminer') : t('packs.swipeHint', 'Swipez pour continuer')}</span>
         </div>
       )}
+
+      {/* Skip button at bottom */}
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setShowSummary(true)}
+        className="absolute bottom-6 left-1/2 -translate-x-1/2 gap-2 bg-card/80 backdrop-blur"
+      >
+        <FastForward className="w-4 h-4" />
+        {t('packs.skipReveal', 'Passer')}
+      </Button>
     </div>
   );
 };
