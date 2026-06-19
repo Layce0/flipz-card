@@ -275,10 +275,10 @@ export const PackRevealFlow = ({ cards, isOpen, onClose, initialOwnedCardIds, pa
 
       {/* Skip button at bottom */}
       <Button
-        variant="outline"
+        variant="ghost"
         size="sm"
         onClick={() => setShowSummary(true)}
-        className="absolute bottom-6 left-1/2 -translate-x-1/2 gap-2 bg-card/80 backdrop-blur"
+        className="absolute bottom-6 left-1/2 -translate-x-1/2 gap-2 bg-card/20 hover:bg-card/30 backdrop-blur-sm border border-border/20 text-muted-foreground/70"
       >
         <FastForward className="w-4 h-4" />
         {t('packs.skipReveal', 'Passer')}
