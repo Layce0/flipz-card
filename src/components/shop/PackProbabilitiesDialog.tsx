@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Info, Loader2 } from 'lucide-react';
+import { HelpCircle, Loader2 } from 'lucide-react';
 import { usePackProbabilities } from '@/hooks/usePackProbabilities';
 
 export const PackProbabilitiesDialog = () => {
@@ -22,9 +22,9 @@ export const PackProbabilitiesDialog = () => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2 text-xs">
-          <Info className="w-4 h-4" />
-          Probabilités de tirage
+        <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full opacity-60 hover:opacity-100 transition-opacity bg-background/50">
+          <HelpCircle className="w-4 h-4" />
+          <span className="sr-only">Probabilités de tirage</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
