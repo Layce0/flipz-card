@@ -33,7 +33,7 @@ export const PackCard = memo(({ pack, onPurchase, isLoading, disabled, localPric
     switch (pack.type) {
       case 'lucky':
         return {
-          container: 'bg-gradient-to-br from-[hsl(280,50%,18%)] via-[hsl(260,40%,12%)] to-[hsl(280,45%,15%)]',
+          container: 'bg-gradient-to-br from-[hsl(280,50%,18%)]/60 via-[hsl(260,40%,12%)]/60 to-[hsl(280,45%,15%)]/60 backdrop-blur-md',
           border: 'border-2 border-primary/40 hover:border-primary/70',
           glow: 'hover:shadow-[0_0_25px_rgba(234,179,8,0.25)]',
           iconGlow: 'drop-shadow-[0_0_12px_rgba(234,179,8,0.6)]',
@@ -42,7 +42,7 @@ export const PackCard = memo(({ pack, onPurchase, isLoading, disabled, localPric
         };
       case 'ultra':
         return {
-          container: 'bg-gradient-to-br from-[hsl(45,80%,25%)] via-[hsl(280,50%,20%)] to-[hsl(45,70%,20%)]',
+          container: 'bg-gradient-to-br from-[hsl(45,80%,25%)]/60 via-[hsl(280,50%,20%)]/60 to-[hsl(45,70%,20%)]/60 backdrop-blur-md',
           border: 'border-[3px] border-primary/70 hover:border-primary',
           glow: 'hover:shadow-[0_0_40px_rgba(234,179,8,0.5)]',
           iconGlow: 'drop-shadow-[0_0_20px_rgba(234,179,8,0.9)] animate-pulse',
@@ -51,7 +51,7 @@ export const PackCard = memo(({ pack, onPurchase, isLoading, disabled, localPric
         };
       default:
         return {
-          container: 'bg-gradient-to-br from-[hsl(280,40%,12%)] via-[hsl(260,30%,8%)] to-[hsl(240,30%,10%)]',
+          container: 'bg-gradient-to-br from-[hsl(280,40%,12%)]/60 via-[hsl(260,30%,8%)]/60 to-[hsl(240,30%,10%)]/60 backdrop-blur-md',
           border: 'border border-muted/30 hover:border-muted/50',
           glow: 'hover:shadow-[0_0_15px_rgba(168,85,247,0.15)]',
           iconGlow: 'drop-shadow-[0_0_8px_rgba(234,179,8,0.4)]',

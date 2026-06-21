@@ -200,9 +200,14 @@ const Shop = () => {
   }
 
   return (
-    <div className="min-h-screen pb-24">
+    <div className="min-h-screen pb-24 relative">
+      {/* Ambient background orbs for glassmorphism */}
+      <div className="fixed top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-primary/10 blur-[120px] pointer-events-none" />
+      <div className="fixed top-[40%] right-[-10%] w-[40%] h-[40%] rounded-full bg-blue-500/10 blur-[100px] pointer-events-none" />
+      <div className="fixed bottom-[0%] left-[20%] w-[50%] h-[50%] rounded-full bg-purple-500/10 blur-[120px] pointer-events-none" />
+
       {/* Header */}
-      <header className="pt-12 pb-6 px-4">
+      <header className="sticky top-0 z-40 pt-12 pb-4 px-4 bg-background/40 backdrop-blur-xl border-b border-white/5">
         <div className="flex items-center gap-4 mb-4">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
             <Store className="w-7 h-7 text-primary" />
@@ -218,7 +223,7 @@ const Shop = () => {
         </div>
       </header>
 
-      <main className="px-4 space-y-8">
+      <main className="px-4 space-y-8 mt-6 relative z-10">
         {verifyingPurchase ? (
           <div className="flex flex-col items-center justify-center py-12 gap-4">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
