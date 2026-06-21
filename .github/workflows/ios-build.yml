@@ -14,8 +14,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set Xcode Version to 26
-        run: sudo xcode-select -s /Applications/Xcode_26.0.app/Contents/Developer
+      - name: Set Xcode Version
+        run: sudo xcode-select -s /Applications/Xcode_26.0.1.app/Contents/Developer
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -76,11 +76,7 @@ jobs:
             -scheme App \
             -configuration Release \
             -archivePath $PWD/build/App.xcarchive \
-            -destination 'generic/platform=iOS' \
-            CODE_SIGN_STYLE="Manual" \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
-            DEVELOPMENT_TEAM="KN67ATZ9C7" \
-            PRODUCT_BUNDLE_IDENTIFIER="com.wintak.flipz"
+            -destination 'generic/platform=iOS'
 
       - name: Export IPA
         run: |
