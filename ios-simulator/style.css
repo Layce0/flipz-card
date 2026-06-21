@@ -1,0 +1,318 @@
+:root {
+    --ios-bg: url('wallpaper.png');
+    --glass-bg: rgba(255, 255, 255, 0.2);
+    --glass-border: rgba(255, 255, 255, 0.3);
+    --text-color: #fff;
+    --font-main: 'Inter', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background: #121212;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: var(--font-main);
+    overflow: hidden;
+}
+
+/* iPhone Frame */
+.iphone-container {
+    perspective: 1000px;
+}
+
+.iphone-frame {
+    width: 380px;
+    height: 780px;
+    background: #1a1a1a;
+    border-radius: 60px;
+    padding: 12px;
+    box-shadow: 
+        0 50px 100px rgba(0,0,0,0.5),
+        0 0 0 4px #2a2a2a,
+        inset 0 0 10px rgba(255,255,255,0.1);
+    position: relative;
+    border: 2px solid #333;
+}
+
+.iphone-screen {
+    width: 100%;
+    height: 100%;
+    background: var(--ios-bg) center/cover no-repeat;
+    border-radius: 48px;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Status Bar */
+.status-bar {
+    height: 44px;
+    padding: 0 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    z-index: 100;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.dynamic-island {
+    width: 110px;
+    height: 30px;
+    background: black;
+    border-radius: 20px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 11px;
+    transition: all 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+.dynamic-island.expanded {
+    width: 320px;
+    height: 160px;
+}
+
+.status-icons {
+    display: flex;
+    gap: 6px;
+}
+
+.icon-small {
+    width: 16px;
+    height: 16px;
+}
+
+/* Lock Screen */
+.lock-screen {
+    background: rgba(0,0,0,0.1);
+    backdrop-filter: blur(10px);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 80px 20px 40px;
+    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.lock-header {
+    text-align: center;
+    color: white;
+}
+
+.date {
+    font-size: 20px;
+    font-weight: 500;
+    opacity: 0.9;
+}
+
+.clock {
+    font-size: 80px;
+    font-weight: 700;
+    margin-top: -10px;
+}
+
+.lock-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.quick-action {
+    width: 50px;
+    height: 50px;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+}
+
+.swipe-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: white;
+    font-size: 12px;
+    opacity: 0.7;
+    animation: pulse 2s infinite;
+}
+
+.swipe-indicator .line {
+    width: 140px;
+    height: 5px;
+    background: white;
+    border-radius: 10px;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+}
+
+/* Home Screen */
+.home-screen {
+    padding: 60px 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.app-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.app-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.app-icon:active {
+    transform: scale(0.9);
+}
+
+.icon-bg {
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+}
+
+.app-name {
+    color: white;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+/* App Specific Colors */
+.safari { background: linear-gradient(135deg, #00C6FF, #0072FF); }
+.photos { background: white; color: #ff3b30; }
+.settings { background: linear-gradient(135deg, #8E8E93, #48484A); }
+.clock { background: #1c1c1e; }
+.music { background: linear-gradient(135deg, #ff4b2b, #ff416c); }
+.mail { background: linear-gradient(135deg, #2193b0, #6dd5ed); }
+
+/* Dock */
+.dock {
+    position: absolute;
+    bottom: 20px;
+    width: calc(100% - 40px);
+    left: 20px;
+}
+
+.dock-container {
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(20px);
+    border-radius: 30px;
+    height: 80px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 10px;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.dock-icon {
+    width: 55px;
+    height: 55px;
+    background: white;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #333;
+}
+
+/* App Window */
+.app-window {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: white;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    animation: appOpen 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+@keyframes appOpen {
+    from { transform: scale(0.1); opacity: 0; border-radius: 50px; }
+    to { transform: scale(1); opacity: 1; border-radius: 0; }
+}
+
+.app-header {
+    height: 100px;
+    padding: 50px 20px 10px;
+    background: #f9f9f9;
+    border-bottom: 1px solid #ddd;
+}
+
+.address-bar {
+    background: #eee;
+    border-radius: 10px;
+    padding: 8px 15px;
+    font-size: 14px;
+    color: #666;
+}
+
+.app-body {
+    flex: 1;
+}
+
+iframe {
+    width: 100%;
+    height: 100%;
+}
+
+/* Home Indicator */
+.home-indicator {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 5px;
+    background: white;
+    border-radius: 10px;
+    z-index: 200;
+    cursor: pointer;
+    transition: opacity 0.3s;
+}
+
+.home-indicator:hover {
+    background: #ccc;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.screen-content {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+}

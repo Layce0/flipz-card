@@ -17,6 +17,7 @@ import { RedeemCodeSection } from '@/components/shop/RedeemCodeSection';
 import { invokeEdgeFunction } from '@/lib/edgeFunctions';
 import { useGoogleBilling } from '@/hooks/useGoogleBilling';
 import { useAppleBilling } from '@/hooks/useAppleBilling';
+import { PackProbabilitiesDialog } from '@/components/shop/PackProbabilitiesDialog';
 
 const Shop = () => {
   const { user, isModerator } = useAuth();
@@ -211,9 +212,10 @@ const Shop = () => {
             <p className="text-sm text-muted-foreground">{t('shop.subtitle')}</p>
           </div>
         </div>
-        {!cardsLoading && (
-          <TradeOverviewDialog userCards={userCards} />
-        )}
+        <div className="flex gap-2">
+          {!cardsLoading && <TradeOverviewDialog userCards={userCards} />}
+          <PackProbabilitiesDialog />
+        </div>
       </header>
 
       <main className="px-4 space-y-8">

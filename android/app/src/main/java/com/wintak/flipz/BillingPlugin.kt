@@ -165,21 +165,24 @@ class BillingPlugin : Plugin() {
             .setProductList(productList)
             .build()
 
-        client.queryProductDetailsAsync(params) { billingResult, productDetailsList ->
-            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK && productDetailsList != null) {
-                val prices = JSObject()
-                for (productDetails in productDetailsList) {
-                    val price = productDetails.oneTimePurchaseOfferDetails?.formattedPrice
-                    if (price != null) {
-                        prices.put(productDetails.productId, price)
+        client.queryProductDetailsAsync(params, object : ProductDetailsResponseListener {
+            override fun onProductDetailsResponse(billingResult: BillingResult, productDetailsResult: QueryProductDetailsResult) {
+                val productDetailsList = productDetailsResult.productDetailsList
+                if (billingResult.responseCode == BillingClient.BillingResponseCode.OK && productDetailsList != null) {
+                    val prices = JSObject()
+                    for (productDetails in productDetailsList) {
+                        val price = productDetails.oneTimePurchaseOfferDetails?.formattedPrice
+                        if (price != null) {
+                            prices.put(productDetails.productId, price)
+                        }
                     }
+                    val result = JSObject()
+                    result.put("prices", prices)
+                    call.resolve(result)
+                } else {
+                    call.reject("ERROR", "Failed to query products")
                 }
-                val result = JSObject()
-                result.put("prices", prices)
-                call.resolve(result)
-            } else {
-                call.reject("ERROR", "Failed to query products")
             }
-        }
+        })
     }
 }

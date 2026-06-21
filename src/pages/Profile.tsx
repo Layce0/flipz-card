@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
+import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,7 +26,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { User, Settings, BarChart3, LogOut, Camera, Lock, Save, GraduationCap } from 'lucide-react';
+import { User, Settings, BarChart3, LogOut, Camera as CameraIcon, Lock, Save, GraduationCap, Info } from 'lucide-react';
 import { toast } from 'sonner';
 
 const LANGUAGES = [
@@ -58,6 +60,68 @@ const Profile = () => {
   });
   const [changingPassword, setChangingPassword] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  /** Convert a data-URL to a File for Supabase upload */
+  const dataUrlToFile = (dataUrl: string, filename: string): File => {
+    const [header, base64] = dataUrl.split(',');
+    const mime = header.match(/:(.*?);/)?.[1] || 'image/jpeg';
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return new File([bytes], filename, { type: mime });
+  };
+
+  /** Upload a File to Supabase and update avatar_url state */
+  const uploadAvatarFile = async (file: File) => {
+    if (!user) return;
+    const fileExt = file.name.split('.').pop() || 'jpg';
+    const filePath = `${user.id}/avatar.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadError) {
+      toast.error(t('profile.avatarError'));
+      return;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
+
+    setProfile(prev => ({ ...prev, avatar_url: publicUrl }));
+    toast.success(t('profile.avatarSuccess'));
+  };
+
+  /** Tapping the camera icon — use native Camera plugin on iOS/Android */
+  const handleAvatarPick = async () => {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const photo = await CapCamera.getPhoto({
+          resultType: CameraResultType.DataUrl,
+          source: CameraSource.Prompt,
+          quality: 80,
+          width: 512,
+          height: 512,
+          allowEditing: true,
+        });
+        if (photo.dataUrl) {
+          const file = dataUrlToFile(photo.dataUrl, 'avatar.jpg');
+          await uploadAvatarFile(file);
+        }
+      } catch (err: any) {
+        // User cancelled — ignore
+        if (err?.message?.includes('cancel') || err?.message?.includes('Cancel')) return;
+        console.error('Camera error:', err);
+        toast.error(t('profile.avatarError'));
+      }
+    } else {
+      // Web fallback: trigger the hidden file input
+      fileInputRef.current?.click();
+    }
+  };
 
   useEffect(() => {
     if (!user) {
@@ -91,28 +155,11 @@ const Profile = () => {
     setLoading(false);
   };
 
+  /** Web fallback: handle file input change */
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user) return;
-
-    const fileExt = file.name.split('.').pop();
-    const filePath = `${user.id}/avatar.${fileExt}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from('avatars')
-      .upload(filePath, file, { upsert: true });
-
-    if (uploadError) {
-      toast.error(t('profile.avatarError'));
-      return;
-    }
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('avatars')
-      .getPublicUrl(filePath);
-
-    setProfile(prev => ({ ...prev, avatar_url: publicUrl }));
-    toast.success(t('profile.avatarSuccess'));
+    if (!file) return;
+    await uploadAvatarFile(file);
   };
 
   const saveProfile = async () => {
@@ -249,15 +296,16 @@ const Profile = () => {
                 {profile.username?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || '?'}
               </AvatarFallback>
             </Avatar>
-            <label className="absolute bottom-0 right-0 p-2 bg-primary rounded-full cursor-pointer hover:bg-primary/90 transition-colors">
-              <Camera className="w-4 h-4 text-primary-foreground" />
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleAvatarUpload}
-              />
-            </label>
+            <button type="button" onClick={handleAvatarPick} className="absolute bottom-0 right-0 p-2 bg-primary rounded-full cursor-pointer hover:bg-primary/90 transition-colors">
+              <CameraIcon className="w-4 h-4 text-primary-foreground" />
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarUpload}
+            />
           </div>
           <h1 className="text-xl font-bold mt-3 text-foreground">
             {profile.username || user?.email?.split('@')[0] || 'Joueur'}
@@ -436,6 +484,21 @@ const Profile = () => {
                   >
                     <GraduationCap className="w-4 h-4 mr-2" />
                     {t('settings.replayTutorial', 'Revoir le tutoriel')}
+                  </Button>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>{t('settings.privacy', 'Légal')}</Label>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      // Ouvrir la politique de confidentialité
+                      window.open('https://layce0.github.io/flipz-app/#privacy', '_blank');
+                    }}
+                  >
+                    <Info className="w-4 h-4 mr-2" />
+                    {t('settings.privacyPolicy', 'Politique de confidentialité')}
                   </Button>
                 </div>
 

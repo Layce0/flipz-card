@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iOS Simulator - Premium Edition</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="iphone-container">
+        <!-- Device Frame -->
+        <div class="iphone-frame">
+            <div class="iphone-screen">
+                <!-- Status Bar -->
+                <div class="status-bar">
+                    <div class="time" id="current-time">18:23</div>
+                    <div class="dynamic-island" id="dynamic-island"></div>
+                    <div class="status-icons">
+                        <i data-lucide="signal" class="icon-small"></i>
+                        <i data-lucide="wifi" class="icon-small"></i>
+                        <i data-lucide="battery" class="icon-small"></i>
+                    </div>
+                </div>
+
+                <!-- Lock Screen Overlay -->
+                <div class="screen-content lock-screen" id="lock-screen">
+                    <div class="lock-header">
+                        <div class="date" id="current-date">Jeudi 30 Avril</div>
+                        <div class="clock" id="large-clock">18:23</div>
+                    </div>
+                    <div class="lock-bottom">
+                        <div class="quick-action">
+                            <i data-lucide="flashlight"></i>
+                        </div>
+                        <div class="swipe-indicator">
+                            <div class="line"></div>
+                            <span>Balayer pour déverrouiller</span>
+                        </div>
+                        <div class="quick-action">
+                            <i data-lucide="camera"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Home Screen -->
+                <div class="screen-content home-screen hidden" id="home-screen">
+                    <div class="app-grid">
+                        <div class="app-icon" onclick="openApp('safari')">
+                            <div class="icon-bg safari"><i data-lucide="compass"></i></div>
+                            <span class="app-name">Safari</span>
+                        </div>
+                        <div class="app-icon" onclick="openApp('photos')">
+                            <div class="icon-bg photos"><i data-lucide="image"></i></div>
+                            <span class="app-name">Photos</span>
+                        </div>
+                        <div class="app-icon" onclick="openApp('settings')">
+                            <div class="icon-bg settings"><i data-lucide="settings"></i></div>
+                            <span class="app-name">Réglages</span>
+                        </div>
+                        <div class="app-icon" onclick="openApp('clock')">
+                            <div class="icon-bg clock"><i data-lucide="clock"></i></div>
+                            <span class="app-name">Horloge</span>
+                        </div>
+                        <div class="app-icon" onclick="openApp('music')">
+                            <div class="icon-bg music"><i data-lucide="music"></i></div>
+                            <span class="app-name">Musique</span>
+                        </div>
+                        <div class="app-icon" onclick="openApp('mail')">
+                            <div class="icon-bg mail"><i data-lucide="mail"></i></div>
+                            <span class="app-name">Mail</span>
+                        </div>
+                    </div>
+
+                    <!-- Dock -->
+                    <div class="dock">
+                        <div class="dock-container">
+                            <div class="dock-icon"><i data-lucide="phone"></i></div>
+                            <div class="dock-icon"><i data-lucide="message-square"></i></div>
+                            <div class="dock-icon"><i data-lucide="browser"></i></div>
+                            <div class="dock-icon"><i data-lucide="play"></i></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- App Containers (Hidden by default) -->
+                <div class="app-window hidden" id="app-safari">
+                    <div class="app-header">
+                        <div class="address-bar">google.com</div>
+                    </div>
+                    <div class="app-body">
+                        <iframe src="https://www.google.com/search?igu=1" frameborder="0"></iframe>
+                    </div>
+                </div>
+
+                <div class="app-window hidden" id="app-settings">
+                    <div class="app-header">
+                        <h2>Réglages</h2>
+                    </div>
+                    <div class="app-body">
+                        <div class="setting-item">
+                            <span>Mode Sombre</span>
+                            <div class="toggle" onclick="toggleDarkMode()"></div>
+                        </div>
+                        <div class="setting-item">
+                            <span>Fond d'écran</span>
+                            <i data-lucide="chevron-right"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Home Indicator -->
+                <div class="home-indicator" id="home-indicator" onclick="goHome()"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
