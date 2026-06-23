@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
     <key>GADApplicationIdentifier</key>
-    <string>ca-app-pub-3940256099942544~1458002511</string>
+    <string>ca-app-pub-6340983480597130~7855353560</string>
     <key>CAPACITOR_DEBUG</key>
 	<string>$(CAPACITOR_DEBUG)</string>
 	<key>CFBundleDevelopmentRegion</key>
@@ -32,7 +32,7 @@
 	<string>Main</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
-		<string>armv7</string>
+		<string>arm64</string>
 	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
@@ -58,5 +58,7 @@
     <string>Nous avons besoin de l'appareil photo pour vous permettre de prendre une photo pour votre profil.</string>
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>Nous avons besoin de cette autorisation pour enregistrer vos photos.</string>
+    <key>NSUserTrackingUsageDescription</key>
+    <string>Flipz utilise votre identifiant publicitaire pour vous proposer des publicités pertinentes et mesurer leur efficacité. Vous pouvez refuser à tout moment dans les réglages de confidentialité.</string>
 </dict>
 </plist>
