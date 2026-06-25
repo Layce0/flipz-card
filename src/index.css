@@ -454,4 +454,240 @@
       opacity: 0;
     }
   }
+
+  /* ===== BOOST OVERLAY ANIMATIONS ===== */
+
+  /* Boost icon aura pulse */
+  @keyframes boost-icon-pulse {
+    0%, 100% { transform: scale(0.8); opacity: 0.4; }
+    50% { transform: scale(1.3); opacity: 0.8; }
+  }
+
+  /* Boost overlay slide-in from top */
+  @keyframes boost-slide-in {
+    0% { transform: translateY(-20px) scale(0.8); opacity: 0; }
+    60% { transform: translateY(4px) scale(1.02); opacity: 1; }
+    100% { transform: translateY(0) scale(1); opacity: 1; }
+  }
+
+  /* Boost border shimmer */
+  @keyframes boost-border-shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+
+  /* Circular progress ring for boost timer */
+  .boost-progress-ring circle.progress {
+    transition: stroke-dashoffset 1s linear;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+  }
+
+  /* ===== PACK OPENING CINEMATIC ANIMATIONS ===== */
+
+  /* Ambient floating particles */
+  @keyframes ambient-float {
+    0% { transform: translate(0, 0) scale(1); opacity: 0; }
+    10% { opacity: 0.9; }
+    50% { transform: translate(var(--float-x, 20px), var(--float-y, -40px)) scale(1.3); opacity: 0.8; }
+    100% { transform: translate(var(--float-x2, -10px), var(--float-y2, -80px)) scale(0.5); opacity: 0; }
+  }
+
+  /* Background pulse gradient */
+  @keyframes pack-bg-pulse {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.1); }
+  }
+
+  /* Volumetric light rays from center */
+  @keyframes light-rays {
+    0% { transform: rotate(0deg); opacity: 0; }
+    20% { opacity: 0.15; }
+    100% { transform: rotate(180deg); opacity: 0; }
+  }
+
+  /* Light rays continuous spin for climax */
+  @keyframes light-rays-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Full-screen white flash */
+  @keyframes flash-white {
+    0% { opacity: 0; }
+    15% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  /* Crack glow on pack surface */
+  @keyframes crack-glow {
+    0% { opacity: 0; filter: blur(2px); }
+    50% { opacity: 1; filter: blur(0px); }
+    100% { opacity: 0.8; filter: blur(1px); }
+  }
+
+  /* Particle with trail for climax burst */
+  @keyframes particle-trail {
+    0% {
+      transform: translate(0, 0) scale(1);
+      opacity: 1;
+    }
+    30% {
+      transform: translate(calc(var(--tx) * 0.4), calc(var(--ty) * 0.4)) scale(1.5);
+      opacity: 1;
+    }
+    100% {
+      transform: translate(var(--tx), var(--ty)) scale(0);
+      opacity: 0;
+    }
+  }
+
+  /* Energy ring expanding outward */
+  @keyframes ring-expand {
+    0% {
+      transform: scale(0.3);
+      opacity: 0.9;
+      border-width: 4px;
+    }
+    50% {
+      opacity: 0.6;
+      border-width: 2px;
+    }
+    100% {
+      transform: scale(3);
+      opacity: 0;
+      border-width: 0.5px;
+    }
+  }
+
+  /* Screen shake effect */
+  @keyframes screen-shake {
+    0%, 100% { transform: translate(0, 0); }
+    10% { transform: translate(-8px, 4px); }
+    20% { transform: translate(6px, -6px); }
+    30% { transform: translate(-4px, 8px); }
+    40% { transform: translate(8px, -2px); }
+    50% { transform: translate(-6px, -4px); }
+    60% { transform: translate(4px, 6px); }
+    70% { transform: translate(-2px, -8px); }
+    80% { transform: translate(6px, 2px); }
+    90% { transform: translate(-4px, 4px); }
+  }
+
+  /* Pack glow intensify per tap */
+  @keyframes pack-glow-intensify {
+    0%, 100% { box-shadow: 0 0 20px var(--glow-color, hsl(45 90% 55% / 0.3)); }
+    50% { box-shadow: 0 0 60px var(--glow-color, hsl(45 90% 55% / 0.7)), 0 0 120px var(--glow-color, hsl(45 90% 55% / 0.3)); }
+  }
+
+  /* Tap indicator pulse */
+  @keyframes tap-pulse {
+    0%, 100% { transform: scale(1); opacity: 0.6; }
+    50% { transform: scale(1.15); opacity: 1; }
+  }
+
+  /* Shimmer sweep for boost overlay */
+  @keyframes boost-shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(200%); }
+  }
+
+  /* ===== ULTRA PREMIUM PACK OPENING ===== */
+  
+  .premium-bg {
+    background: radial-gradient(circle at 50% 50%, hsl(220 30% 12%) 0%, hsl(220 50% 2%) 100%);
+  }
+
+  @keyframes slow-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .premium-god-rays {
+    mask-image: radial-gradient(circle, black 0%, transparent 60%);
+    animation: slow-spin 30s linear infinite;
+    mix-blend-mode: screen;
+  }
+
+  @keyframes ambient-drift {
+    from { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+    20% { opacity: 0.8; }
+    80% { opacity: 0.8; }
+    to { transform: translate(100px, -150px) rotate(360deg); opacity: 0; }
+  }
+
+  @keyframes premium-ember {
+    0% {
+      transform: translate(0, 0) scale(0.5);
+      opacity: 0;
+    }
+    20% {
+      transform: translate(calc(var(--tx) * 0.2), calc(var(--ty) * 0.2)) scale(1.5);
+      opacity: 1;
+    }
+    100% {
+      transform: translate(var(--tx), var(--ty)) scale(0);
+      opacity: 0;
+    }
+  }
+
+  @keyframes premium-core-light-burst {
+    0% {
+      width: 0px;
+      height: 0px;
+      opacity: 0;
+      filter: blur(10px);
+    }
+    10% {
+      width: 150vw;
+      height: 150vw;
+      opacity: 1;
+      filter: blur(40px);
+    }
+    100% {
+      width: 200vw;
+      height: 200vw;
+      opacity: 0;
+      filter: blur(60px);
+    }
+  }
+
+  .premium-core-light {
+    animation: premium-core-light-burst 1.5s cubic-bezier(0.1, 1, 0.3, 1) forwards;
+    mix-blend-mode: screen;
+  }
+
+  @keyframes premium-tear-top-cinematic {
+    0% {
+      transform: translateY(0) rotate(0deg) scale(1);
+      opacity: 1;
+      filter: brightness(1);
+    }
+    100% {
+      transform: translateY(-180px) rotate(-12deg) scale(1.05);
+      opacity: 0;
+      filter: brightness(0.5);
+    }
+  }
+
+  @keyframes premium-tear-bottom-cinematic {
+    0% {
+      transform: translateY(0) rotate(0deg) scale(1);
+      opacity: 1;
+      filter: brightness(1);
+    }
+    100% {
+      transform: translateY(180px) rotate(8deg) scale(0.95);
+      opacity: 0;
+      filter: brightness(0.5);
+    }
+  }
+
+  .premium-tear-top {
+    animation: premium-tear-top-cinematic 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .premium-tear-bottom {
+    animation: premium-tear-bottom-cinematic 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
 }
+

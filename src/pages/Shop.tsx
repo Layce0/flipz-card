@@ -32,6 +32,7 @@ const Shop = () => {
   const [isTrading, setIsTrading] = useState(false);
   const [purchasedCards, setPurchasedCards] = useState<any[]>([]);
   const [purchasedPackType, setPurchasedPackType] = useState<string>('standard');
+  const [purchasedPackId, setPurchasedPackId] = useState<string>('');
   const [showPurchaseReward, setShowPurchaseReward] = useState(false);
   const [verifyingPurchase, setVerifyingPurchase] = useState(false);
 
@@ -86,6 +87,7 @@ const Shop = () => {
       await appleBilling.purchase(packId, (cards, packType) => {
         setPurchasedCards(cards);
         setPurchasedPackType(packType);
+        setPurchasedPackId(packId);
         setShowPurchaseReward(true);
         refetchCards();
       });
@@ -97,6 +99,7 @@ const Shop = () => {
       await googleBilling.purchase(packId, (cards, packType) => {
         setPurchasedCards(cards);
         setPurchasedPackType(packType);
+        setPurchasedPackId(packId);
         setShowPurchaseReward(true);
         refetchCards();
       });
@@ -117,6 +120,7 @@ const Shop = () => {
         if (data.cards && data.cards.length > 0) {
           setPurchasedCards(data.cards);
           setPurchasedPackType(derivedPackType);
+          setPurchasedPackId(packId);
           setShowPurchaseReward(true);
           toast.success(t('shop.cardsReceived', { count: data.cardCount }));
           refetchCards();
@@ -207,7 +211,7 @@ const Shop = () => {
       <div className="fixed bottom-[0%] left-[20%] w-[50%] h-[50%] rounded-full bg-purple-500/10 blur-[120px] pointer-events-none" />
 
       {/* Header */}
-      <header className="sticky top-0 z-40 pt-12 pb-4 px-4 bg-transparent border-b border-white/5">
+      <header className="relative pt-12 pb-4 px-4 bg-transparent border-b border-white/10">
         <div className="flex items-center gap-4 mb-4">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
             <Store className="w-7 h-7 text-primary" />
@@ -270,6 +274,7 @@ const Shop = () => {
         isOpen={showPurchaseReward}
         onClose={handleClosePurchaseReveal}
         packType={purchasedPackType as any}
+        packId={purchasedPackId}
       />
 
       <Navigation />

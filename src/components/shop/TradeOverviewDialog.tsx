@@ -196,6 +196,7 @@ export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => 
         cards={revealCards}
         isOpen={showReveal}
         onClose={handleRevealClose}
+        packType="standard"
       />
     </Dialog>
   );

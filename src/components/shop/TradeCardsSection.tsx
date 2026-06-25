@@ -205,6 +205,7 @@ export const TradeCardsSection = ({ userCards, onTrade, isTrading }: TradeCardsS
         cards={rewardCards}
         isOpen={showReward}
         onClose={handleCloseReveal}
+        packType="standard"
       />
     </>
   );
