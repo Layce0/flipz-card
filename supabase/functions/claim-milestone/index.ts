@@ -67,7 +67,9 @@ Deno.serve(async (req) => {
     });
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { data: { user: authUser }, error: userError } = await supabaseAnon.auth.getUser();
+    const authRes = await supabaseAnon.auth.getUser();
+    const authUser = authRes.data.user;
+    const userError = authRes.error;
     if (userError || !authUser) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
