@@ -248,12 +248,17 @@ Deno.serve(async (req) => {
       }
 
       const pickRarity = () => {
-        let roll = Math.random() * totalWeight
-        for (const rarity of rarityOrder) {
-          roll -= effectiveWeights[rarity]
-          if (roll <= 0) return rarity
+        let roll = Math.random() * totalWeight;
+        let selected = 'common';
+        for (let i = 0; i < rarityOrder.length; i++) {
+          const rarity = rarityOrder[i];
+          roll -= effectiveWeights[rarity];
+          if (roll <= 0) {
+            selected = rarity;
+            break;
+          }
         }
-        return 'common'
+        return selected;
       }
 
       const selectedCards: any[] = []
