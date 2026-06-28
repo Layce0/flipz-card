@@ -160,10 +160,13 @@ Deno.serve(async (req) => {
         const { data: bCodes } = await supabaseAdmin
           .from('reward_codes')
           .select('id, reward_type, reward_config')
-          .in('id', bCodeIds)
-        ;(bCodes || []).forEach((c: any) => {
-          applyBoost(c.reward_type, c.reward_config as Record<string, any>)
-        })
+          .in('id', bCodeIds);
+        
+        if (bCodes) {
+          bCodes.forEach((c: any) => {
+            applyBoost(c.reward_type, c.reward_config as Record<string, any>);
+          });
+        }
       }
 
       // 2. Winstreak boosts
@@ -177,10 +180,13 @@ Deno.serve(async (req) => {
         const { data: rwData } = await supabaseAdmin
           .from('winstreak_rewards')
           .select('id, reward_type, reward_config')
-          .in('id', rwIds)
-        ;(rwData || []).forEach((r: any) => {
-          applyBoost(r.reward_type, r.reward_config as Record<string, any>)
-        })
+          .in('id', rwIds);
+
+        if (rwData) {
+          rwData.forEach((r: any) => {
+            applyBoost(r.reward_type, r.reward_config as Record<string, any>);
+          });
+        }
       }
 
       const finalCardCount = Math.round(cardCount * cardMult) + bonusCards
@@ -193,19 +199,21 @@ Deno.serve(async (req) => {
       const { data: probRows, error: probError } = await supabaseAdmin
         .from('pack_probability_tables')
         .select('*')
-        .eq('pack_type', dbPackType)
+        .eq('pack_type', dbPackType);
 
-      if (probError) throw probError
+      if (probError) throw probError;
 
-      const dbTable: Record<number, Record<string, number>> = {}
-      ;(probRows || []).forEach((row: any) => {
-        dbTable[Number(row.luck_multiplier)] = {
-          common: Number(row.common_rate),
-          rare: Number(row.rare_rate),
-          epic: Number(row.epic_rate),
-          legendary: Number(row.legendary_rate),
-        }
-      })
+      const dbTable: Record<number, Record<string, number>> = {};
+      if (probRows) {
+        probRows.forEach((row: any) => {
+          dbTable[Number(row.luck_multiplier)] = {
+            common: Number(row.common_rate),
+            rare: Number(row.rare_rate),
+            epic: Number(row.epic_rate),
+            legendary: Number(row.legendary_rate),
+          };
+        });
+      }
 
       const FALLBACK: Record<string, number> = { common: 60, rare: 25, epic: 12, legendary: 3 }
       const effectiveLuck = luckMult > 1 ? luckMult : 1
