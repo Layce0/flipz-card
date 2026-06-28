@@ -77,7 +77,12 @@ Deno.serve(async (req) => {
     const userId = authUser.id;
 
     // Read body for milestone key (used to track which milestone was claimed)
-    const body = await req.json().catch(() => ({}));
+    let body: any = {};
+    try {
+      body = await req.json();
+    } catch (e) {
+      // ignore
+    }
     const milestoneKey: string = body?.milestoneKey ?? 'starter_pack';
 
     // Server-side idempotency: check user_metadata to avoid double-claiming

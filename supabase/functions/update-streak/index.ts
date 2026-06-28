@@ -35,7 +35,12 @@ Deno.serve(async (req) => {
 
     const userId = user.id
 
-    const reqBody = await req.json().catch(() => ({}));
+    let reqBody: any = {};
+    try {
+      reqBody = await req.json();
+    } catch (e) {
+      // ignore
+    }
     let today = reqBody.localDate;
     if (!today || !/^\d{4}-\d{2}-\d{2}$/.test(today)) {
       today = new Date().toISOString().split('T')[0];
