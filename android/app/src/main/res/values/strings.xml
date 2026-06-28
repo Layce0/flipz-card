@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">FLIPZ</string>
     <string name="title_activity_main">FLIPZ</string>
-    <string name="package_name">com.wintak.flipz</string>
-    <string name="custom_url_scheme">com.wintak.flipz</string>
+    <string name="package_name">com.cardquest.flipz</string>
+    <string name="custom_url_scheme">com.cardquest.flipz</string>
 </resources>

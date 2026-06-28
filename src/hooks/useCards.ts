@@ -572,3 +572,35 @@ export const useUploadCardImage = () => {
     },
   });
 };
+
+export const useClaimMilestone = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (milestoneKey?: string) => {
+      const { data, error } = await invokeEdgeFunction('claim-milestone', {
+        body: milestoneKey ? { milestoneKey } : {}
+      });
+
+      if (error) {
+         let message = 'Erreur serveur';
+         try {
+           const body = await (error as unknown as { context?: { text: () => Promise<string> } })?.context?.text();
+           if (body) {
+             const parsed = JSON.parse(body);
+             if (parsed.error) message = parsed.error;
+           }
+         } catch(e) {
+           console.error(e);
+         }
+         throw new Error(message);
+      }
+      if (data?.error) throw new Error(data.error);
+
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-cards'] });
+    },
+  });
+};

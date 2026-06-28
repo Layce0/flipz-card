@@ -7,8 +7,11 @@ import { RarityTabs } from '@/components/RarityTabs';
 import { GameCard, Rarity } from '@/types/card';
 import { BookOpen, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useAllCards, useUserCards } from '@/hooks/useCards';
+import { useAllCards, useUserCards, useClaimMilestone } from '@/hooks/useCards';
 import { useNewCardIndicator } from '@/hooks/useNewCardIndicator';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { PackRevealFlow } from '@/components/shop/PackRevealFlow';
 
 const CardDetailDialog = lazy(() => import('@/components/CardDetailDialog').then(m => ({ default: m.CardDetailDialog })));
 
@@ -21,6 +24,26 @@ const Collection = () => {
   const { data: allCards = [], isLoading: cardsLoading } = useAllCards();
   const { data: userCards = [], isLoading: userCardsLoading } = useUserCards(user?.id);
   const { newCardIds, markAsSeen } = useNewCardIndicator();
+  const claimMilestone = useClaimMilestone();
+
+  // Milestone logic
+  const [claimedMilestones, setClaimedMilestones] = useState<number[]>([]);
+  
+  useEffect(() => {
+    if (user?.id) {
+      const stored = localStorage.getItem(`flipz_collection_milestones_${user.id}`);
+      if (stored) {
+        try {
+          setClaimedMilestones(JSON.parse(stored));
+        } catch(e) {
+          console.error(e);
+        }
+      }
+    }
+  }, [user?.id]);
+
+  const [revealedCards, setRevealedCards] = useState<GameCard[]>([]);
+  const [isRevealing, setIsRevealing] = useState(false);
 
   // Clear "Nouveau" badges when leaving the collection page
   useEffect(() => {
@@ -72,6 +95,29 @@ const Collection = () => {
 
   const progressPercent = useMemo(() => allCards.length > 0 ? Math.round((userCards.length / allCards.length) * 100) : 0, [allCards.length, userCards.length]);
 
+  const availableMilestones = useMemo(() => {
+    const milestones = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+    return milestones.filter(m => progressPercent >= m && !claimedMilestones.includes(m));
+  }, [progressPercent, claimedMilestones]);
+
+  const handleClaimMilestone = async (milestone: number) => {
+    if (!user?.id) return;
+    try {
+      const res = await claimMilestone.mutateAsync(`milestone_${milestone}`);
+      const newClaimed = [...claimedMilestones, milestone];
+      setClaimedMilestones(newClaimed);
+      localStorage.setItem(`flipz_collection_milestones_${user.id}`, JSON.stringify(newClaimed));
+      
+      if (res?.cards) {
+        setRevealedCards(res.cards);
+        setIsRevealing(true);
+      }
+      toast.success(`Récompense du palier ${milestone}% récupérée !`);
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Erreur lors de la récupération');
+    }
+  };
+
   const isLoading = authLoading || cardsLoading || userCardsLoading;
 
   if (authLoading) {
@@ -98,7 +144,7 @@ const Collection = () => {
         </div>
 
         {/* Progress bar */}
-        <div className="mt-3 mb-5">
+        <div className="mt-3 mb-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="flex justify-between items-center mb-1.5">
             <p className="text-xs text-muted-foreground font-medium">
               {t('collection.uniqueCards', { collected: userCards.length, total: allCards.length, totalCount: totalCardsCollected })}
@@ -107,7 +153,7 @@ const Collection = () => {
           </div>
           <div className="h-2 rounded-full bg-muted/50 overflow-hidden">
             <div
-              className="h-full rounded-full transition-all duration-700 ease-out"
+              className="h-full rounded-full transition-all duration-1000 ease-out"
               style={{
                 width: `${progressPercent}%`,
                 background: 'linear-gradient(90deg, hsl(45 90% 55%), hsl(35 90% 50%))',
@@ -115,6 +161,24 @@ const Collection = () => {
               }}
             />
           </div>
+          
+          {availableMilestones.length > 0 && (
+            <div className="mt-4 p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-between animate-in fade-in zoom-in-95 duration-300">
+              <div>
+                <p className="text-sm font-semibold text-orange-400">Palier {availableMilestones[0]}% atteint ! 🎉</p>
+                <p className="text-xs text-muted-foreground">Ouvre ton booster récompense</p>
+              </div>
+              <Button 
+                onClick={() => handleClaimMilestone(availableMilestones[0])}
+                disabled={claimMilestone.isPending}
+                size="sm"
+                variant="gold"
+                className="h-8"
+              >
+                {claimMilestone.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Récupérer'}
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Rarity filter */}
@@ -160,6 +224,13 @@ const Collection = () => {
           />
         </Suspense>
       )}
+
+      <PackRevealFlow
+        cards={revealedCards}
+        isOpen={isRevealing}
+        onClose={() => setIsRevealing(false)}
+        packType="standard"
+      />
 
       <Navigation />
     </div>

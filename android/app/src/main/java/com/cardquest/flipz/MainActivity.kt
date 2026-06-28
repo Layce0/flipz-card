@@ -1,4 +1,4 @@
-package com.wintak.flipz
+package com.cardquest.flipz
 
 import android.app.*
 import android.content.BroadcastReceiver

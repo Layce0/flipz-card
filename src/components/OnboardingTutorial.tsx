@@ -6,6 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { useClaimMilestone } from '@/hooks/useCards';
+import { PackRevealFlow } from '@/components/shop/PackRevealFlow';
+import { GameCard } from '@/types/card';
+import { toast } from 'sonner';
 
 const ONBOARDING_KEY = 'flipz_onboarding_done';
 
@@ -53,6 +57,10 @@ export const OnboardingTutorial = () => {
   const location = useLocation();
   const rafRef = useRef<number>();
   const { user } = useAuth();
+  
+  const claimMilestone = useClaimMilestone();
+  const [revealedCards, setRevealedCards] = useState<GameCard[]>([]);
+  const [isRevealing, setIsRevealing] = useState(false);
 
   useEffect(() => {
     if (!user) return; // Only start onboarding after login
@@ -236,7 +244,7 @@ export const OnboardingTutorial = () => {
   }
 
   // Finish screen
-  if (phase === 'finish') {
+  if (phase === 'finish' && !isRevealing) {
     return (
       <Dialog open onOpenChange={() => {}}>
         <DialogContent className="max-w-sm rounded-2xl border-primary/30 bg-card p-0 overflow-hidden [&>button]:hidden">
@@ -257,12 +265,30 @@ export const OnboardingTutorial = () => {
               variant="gold"
               size="lg"
               className="mt-4 w-full text-base font-bold"
-              onClick={() => {
-                localStorage.setItem(ONBOARDING_KEY, 'true');
-                setPhase('done');
+              disabled={claimMilestone.isPending}
+              onClick={async () => {
+                try {
+                  const res = await claimMilestone.mutateAsync();
+                  // Mark onboarding done BEFORE showing the reveal,
+                  // so that if the user closes midway it's still marked.
+                  localStorage.setItem(ONBOARDING_KEY, 'true');
+                  if (res?.cards && res.cards.length > 0) {
+                    setRevealedCards(res.cards);
+                    setIsRevealing(true);
+                  } else {
+                    // No cards returned: just finish directly
+                    setPhase('done');
+                  }
+                  toast.success('Pack de bienvenue récupéré !');
+                } catch (e) {
+                  console.error(e);
+                  // Even on error, let the user proceed
+                  localStorage.setItem(ONBOARDING_KEY, 'true');
+                  setPhase('done');
+                }
               }}
             >
-              {t('onboarding.start')}
+              {claimMilestone.isPending ? 'Récupération...' : t('onboarding.start')}
             </Button>
           </div>
         </DialogContent>
@@ -418,6 +444,21 @@ export const OnboardingTutorial = () => {
         </div>
       </div>
       </>
+    );
+  }
+
+  // When the user is in 'finish' phase with an active reveal, show the reveal instead of the dialog
+  if (isRevealing) {
+    return (
+      <PackRevealFlow
+        cards={revealedCards}
+        isOpen={isRevealing}
+        onClose={() => {
+          setIsRevealing(false);
+          setPhase('done');
+        }}
+        packType="lucky"
+      />
     );
   }
 

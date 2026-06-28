@@ -1,6 +1,9 @@
 import { useState, lazy, Suspense, memo } from 'react';
-import { Flame } from 'lucide-react';
+import { Flame, FlameKindling, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
+import { useRestoreStreak } from '@/hooks/useWinstreak';
+import { toast } from 'sonner';
 
 const WinstreakDialog = lazy(() => import('./WinstreakDialog').then(m => ({ default: m.WinstreakDialog })));
 
@@ -10,8 +13,50 @@ interface WinstreakBadgeProps {
 
 export const WinstreakBadge = memo(({ streak }: WinstreakBadgeProps) => {
   const [open, setOpen] = useState(false);
+  const { user } = useAuth();
+  const restoreStreak = useRestoreStreak();
+  
+  const previousStreak = user?.user_metadata?.previous_streak;
+  const restoreExpiresAt = user?.user_metadata?.restore_expires_at;
+  const canRestore = streak <= 0 && previousStreak > 0 && restoreExpiresAt && new Date(restoreExpiresAt) > new Date();
 
-  if (streak <= 0) return null;
+  const handleRestore = async () => {
+    try {
+      await restoreStreak.mutateAsync();
+      toast.success('Série restaurée avec succès !');
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Erreur lors de la restauration');
+    }
+  };
+
+  if (streak <= 0 && !canRestore) return null;
+
+  if (canRestore) {
+    return (
+      <button
+        onClick={handleRestore}
+        disabled={restoreStreak.isPending}
+        className={cn(
+          "group relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-full",
+          "bg-gradient-to-r from-gray-500/25 via-gray-400/20 to-gray-500/25",
+          "border border-gray-400/50 hover:border-gray-300/80",
+          "transition-all duration-300 cursor-pointer backdrop-blur-md active:scale-95"
+        )}
+      >
+        <div className="relative flex items-center">
+          {restoreStreak.isPending ? (
+            <Loader2 className="w-4 h-4 text-gray-300 animate-spin" />
+          ) : (
+            <FlameKindling className="w-4 h-4 text-gray-400" />
+          )}
+        </div>
+        <span className="text-xs font-semibold text-gray-300 flex flex-col items-start leading-tight">
+          <span>{previousStreak} perdu</span>
+          <span className="text-[9px] text-gray-400">Restaurez !</span>
+        </span>
+      </button>
+    );
+  }
 
   return (
     <>

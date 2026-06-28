@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
       .maybeSingle()
 
     const now = new Date();
-    const TIMER_HOURS = 24;
+    const TIMER_HOURS = 48; // Changed from 24 to 48h
     const CARDS_PER_STREAK = 2;
 
     if (!existing) {
@@ -72,9 +72,19 @@ Deno.serve(async (req) => {
 
     if (diffHours > TIMER_HOURS) {
       // Timer expired -> reset everything; this flip counts as progress 1
+      // Save previous streak to allow restoration
+      const prevStreakForRestore = existing.current_streak ?? 0;
       newStreak = 0;
       newProgress = 1;
       streakReset = true;
+      
+      // Store in Auth user_metadata to allow restore (avoiding schema changes)
+      await supabaseAdmin.auth.admin.updateUserById(userId, {
+        user_metadata: { 
+          previous_streak: prevStreakForRestore, 
+          restore_expires_at: new Date(now.getTime() + 48*60*60*1000).toISOString() 
+        }
+      });
     } else {
       newProgress = newProgress + 1;
       if (newProgress >= CARDS_PER_STREAK) {
@@ -103,7 +113,12 @@ Deno.serve(async (req) => {
         .eq('user_id', userId)
     }
 
-    return new Response(JSON.stringify({ success: true, current_streak: newStreak, streak_progress: newProgress }), {
+    return new Response(JSON.stringify({ 
+      success: true, 
+      current_streak: newStreak, 
+      streak_progress: newProgress,
+      streak_reset: streakReset 
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
 

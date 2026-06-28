@@ -86,11 +86,11 @@ export const RedeemCodeSection = ({ userCards }: RedeemCodeSectionProps) => {
       <section className="mt-8">
         <div className="flex items-center gap-2 mb-3">
           <Ticket className="w-5 h-5 text-primary" />
-          <h2 className="font-display text-lg text-foreground">Code Cadeau</h2>
+          <h2 className="font-display text-lg text-foreground">Code Promo 🎁</h2>
         </div>
         <div className="p-4 rounded-2xl bg-card/60 border border-border">
           <p className="text-sm text-muted-foreground mb-3">
-            Entrez un code cadeau gratuit (distribué sur nos réseaux sociaux) pour recevoir des récompenses
+            Suis-nous sur les réseaux et récupère des codes exclusifs pour des cartes et boosters gratuits !
           </p>
           <div className="flex gap-2">
             <Input

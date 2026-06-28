@@ -1,13 +1,4 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import packSachetImg from '@/assets/pack-sachet.png';
-import packSachetTopImg from '@/assets/pack-sachet-top.png';
-import packSachetBottomImg from '@/assets/pack-sachet-bottom.png';
-import packUltraImg from '@/assets/pack-ultra.png';
-import packUltraTopImg from '@/assets/pack-ultra-top.png';
-import packUltraBottomImg from '@/assets/pack-ultra-bottom.png';
-import packLuckyImg from '@/assets/pack-lucky.png';
-import packLuckyTopImg from '@/assets/pack-lucky-top.png';
-import packLuckyBottomImg from '@/assets/pack-lucky-bottom.png';
 
 export type PackAnimationType = 'standard' | 'lucky' | 'ultra' | 'free';
 
@@ -28,21 +19,22 @@ const GLOW_COLORS: Record<string, string> = {
 // Component removed to keep the opening clean
 
 export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free', packId }: PackOpeningAnimationProps) => {
-  const getImageUrl = (suffix: string = '') => {
+  const getImageUrl = () => {
     let base = 'pack-sachet';
-    if (packId) {
-      base = `pack-${packId.replace('_', '-')}`;
-    } else if (packType) {
-      if (packType === 'ultra') base = 'pack-ultra';
-      else if (packType === 'lucky') base = 'pack-lucky';
-      else base = 'pack-sachet';
+    
+    // Tous les packs standards utilisent l'animation de base (le sachet)
+    if (packType === 'standard' || packType === 'free') {
+      base = 'pack-sachet';
+    } else if (packType === 'ultra') {
+      base = 'pack-ultra';
+    } else if (packType === 'lucky') {
+      base = 'pack-lucky';
     }
-    return new URL(`../assets/${base}${suffix}.png`, import.meta.url).href;
+    
+    return new URL(`../assets/${base}.png`, import.meta.url).href;
   };
 
-  const sachetImg = getImageUrl('');
-  const topImg = getImageUrl('-top');
-  const bottomImg = getImageUrl('-bottom');
+  const mainImg = getImageUrl();
   
   const [tapCount, setTapCount] = useState(0);
   const [isTearing, setIsTearing] = useState(false);
@@ -128,7 +120,7 @@ export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free', pa
               }}
             />
             <img
-              src={sachetImg}
+              src={mainImg}
               alt="Pack"
               className="w-80 h-auto select-none relative z-10 transition-transform duration-300"
               style={{
@@ -141,17 +133,29 @@ export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free', pa
         ) : (
           <div className="relative w-80 flex flex-col items-center justify-center">
             {/* Top slice flying off */}
-            <div className="w-80 absolute top-0 z-10 premium-tear-top">
-              <img src={topImg} alt="" className="w-full h-auto select-none" draggable={false} />
+            <div 
+              className="w-80 absolute top-0 z-10 premium-tear-top"
+              style={{
+                clipPath: 'polygon(0% 0%, 100% 0%, 100% 18%, 95% 15%, 90% 19%, 85% 14%, 80% 18%, 75% 15%, 70% 19%, 65% 14%, 60% 18%, 55% 15%, 50% 19%, 45% 14%, 40% 18%, 35% 15%, 30% 19%, 25% 14%, 20% 18%, 15% 15%, 10% 19%, 5% 14%, 0% 18%)',
+                filter: 'drop-shadow(0 10px 25px rgba(0,0,0,0.8))'
+              }}
+            >
+              <img src={mainImg} alt="" className="w-full h-auto select-none" draggable={false} />
             </div>
 
             {/* Bottom slice dropping down */}
-            <div className="w-80 absolute top-0 z-10 premium-tear-bottom">
-              <img src={bottomImg} alt="" className="w-full h-auto select-none" draggable={false} />
+            <div 
+              className="w-80 absolute top-0 z-10 premium-tear-bottom"
+              style={{
+                clipPath: 'polygon(0% 18%, 5% 14%, 10% 19%, 15% 15%, 20% 18%, 25% 14%, 30% 19%, 35% 15%, 40% 18%, 45% 14%, 50% 19%, 55% 15%, 60% 18%, 65% 14%, 70% 19%, 75% 15%, 80% 18%, 85% 14%, 90% 19%, 95% 15%, 100% 18%, 100% 100%, 0% 100%)',
+                filter: 'drop-shadow(0 10px 25px rgba(0,0,0,0.8))'
+              }}
+            >
+              <img src={mainImg} alt="" className="w-full h-auto select-none" draggable={false} />
             </div>
             
             {/* To keep layout spacing */}
-            <img src={sachetImg} alt="" className="w-80 h-auto opacity-0" />
+            <img src={mainImg} alt="" className="w-80 h-auto opacity-0" />
           </div>
         )}
       </div>
