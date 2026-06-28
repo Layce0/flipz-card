@@ -34,7 +34,12 @@ Deno.serve(async (req) => {
 
     const userId = user.id
 
-    const { rewardId, dayNumber } = await req.json()
+    let reqBody: any = {};
+    const bodyText = await req.text();
+    if (bodyText) {
+      try { reqBody = JSON.parse(bodyText); } catch { /* ignore */ }
+    }
+    const { rewardId, dayNumber } = reqBody;
 
     // Validate rewardId is a UUID
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i

@@ -78,10 +78,9 @@ Deno.serve(async (req) => {
 
     // Read body for milestone key (used to track which milestone was claimed)
     let body: any = {};
-    try {
-      body = await req.json();
-    } catch (e) {
-      // ignore
+    const bodyText = await req.text();
+    if (bodyText) {
+      try { body = JSON.parse(bodyText); } catch { /* ignore */ }
     }
     const milestoneKey: string = body?.milestoneKey ?? 'starter_pack';
 
