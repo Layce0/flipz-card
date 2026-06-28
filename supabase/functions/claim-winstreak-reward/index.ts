@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
     let reqBody: any = {};
     const bodyText = await req.text();
     if (bodyText) {
-      try { reqBody = JSON.parse(bodyText); } catch { /* ignore */ }
+      try { reqBody = JSON.parse(bodyText); } catch (_e) { /* ignore */ }
     }
     const { rewardId, dayNumber } = reqBody;
 

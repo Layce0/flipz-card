@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
     let body: any = {};
     const bodyText = await req.text();
     if (bodyText) {
-      try { body = JSON.parse(bodyText); } catch { /* ignore */ }
+      try { body = JSON.parse(bodyText); } catch (_e) { /* ignore */ }
     }
     const milestoneKey: string = body?.milestoneKey ?? 'starter_pack';
 
