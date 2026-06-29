@@ -28,10 +28,9 @@ Deno.serve(async (req) => {
     const userClient = createClient(supabaseUrl, supabaseAnon, {
       global: { headers: { Authorization: authHeader } },
     });
-    const {
-      data: { user },
-      error: userError,
-    } = await userClient.auth.getUser();
+    const authResult = await userClient.auth.getUser();
+    const user = authResult.data.user;
+    const userError = authResult.error;
 
     if (userError || !user) {
       return new Response(JSON.stringify({ error: "Non autorisé" }), {

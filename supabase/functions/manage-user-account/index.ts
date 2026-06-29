@@ -24,7 +24,9 @@ Deno.serve(async (req) => {
 
     const supabaseAuth = createClient(supabaseUrl, serviceRoleKey);
     const token = authHeader.replace("Bearer ", "");
-    const { data: { user: caller }, error: authError } = await supabaseAuth.auth.getUser(token);
+    const callerResult = await supabaseAuth.auth.getUser(token);
+    const caller = callerResult.data.user;
+    const authError = callerResult.error;
     if (authError || !caller) return json({ error: "Non autorisé" }, 401);
 
     const { action, targetUserId, streakValue } = await req.json();

@@ -56,11 +56,13 @@ function generateWeightedCards(cards: any[], weights: Record<string, number>, co
 
   const pickRarity = () => {
     let roll = Math.random() * totalWeight;
-    for (const rarity of rarityOrder) {
+    let selected = 'common';
+    for (let ri = 0; ri < rarityOrder.length; ri++) {
+      const rarity = rarityOrder[ri];
       roll -= effectiveWeights[rarity];
-      if (roll <= 0) return rarity;
+      if (roll <= 0) { selected = rarity; break; }
     }
-    return 'common';
+    return selected;
   };
 
   const result: any[] = [];
@@ -92,7 +94,9 @@ Deno.serve(async (req) => {
     });
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { data: { user: authUser }, error: userError } = await supabaseAnon.auth.getUser();
+    const authResult = await supabaseAnon.auth.getUser();
+    const authUser = authResult.data.user;
+    const userError = authResult.error;
     if (userError || !authUser) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }

@@ -178,7 +178,8 @@ Deno.serve(async (req) => {
           .from('reward_codes')
           .select('id, reward_type, reward_config')
           .in('id', bCodeIds)
-        ;(bCodes || []).forEach((c: any) => {
+        const bCodeList = bCodes || []
+        bCodeList.forEach((c: any) => {
           applyBoost(c.reward_type, c.reward_config as Record<string, any>)
         })
       }
@@ -195,7 +196,8 @@ Deno.serve(async (req) => {
           .from('winstreak_rewards')
           .select('id, reward_type, reward_config')
           .in('id', rwIds)
-        ;(rwData || []).forEach((r: any) => {
+        const rwList = rwData || []
+        rwList.forEach((r: any) => {
           applyBoost(r.reward_type, r.reward_config as Record<string, any>)
         })
       }
@@ -215,7 +217,8 @@ Deno.serve(async (req) => {
       if (probError) throw probError
 
       const dbTable: Record<number, Record<string, number>> = {}
-      ;(probRows || []).forEach((row: any) => {
+      const probList = probRows || []
+      probList.forEach((row: any) => {
         dbTable[Number(row.luck_multiplier)] = {
           common: Number(row.common_rate),
           rare: Number(row.rare_rate),
