@@ -188,6 +188,32 @@ export const useClaimWinstreakReward = () => {
   });
 };
 
+
+export const useRestoreStreak = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      const { data, error } = await invokeEdgeFunction('restore-streak', {
+        body: {}
+      });
+
+      if (error) {
+        const details = await extractEdgeErrorDetails(error);
+        throw new Error(details.message || 'Erreur lors de la restauration');
+      }
+
+      if (data?.error) {
+        throw new Error(typeof data.error === 'string' ? data.error : JSON.stringify(data.error));
+      }
+
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-streak'] });
+    },
+  });
+};
 // Admin hooks
 export const useCreateWinstreakReward = () => {
   const queryClient = useQueryClient();
