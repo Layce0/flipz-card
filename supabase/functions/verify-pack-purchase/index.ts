@@ -243,11 +243,13 @@ serve(async (req) => {
 
     const pickRarity = () => {
       let roll = Math.random() * totalWeight;
-      for (const rarity of rarityOrder) {
+      let selected = 'common';
+      for (let ri = 0; ri < rarityOrder.length; ri++) {
+        const rarity = rarityOrder[ri];
         roll -= effectiveWeights[rarity];
-        if (roll <= 0) return rarity;
+        if (roll <= 0) { selected = rarity; break; }
       }
-      return 'common';
+      return selected;
     };
 
     const selectedCards: any[] = [];

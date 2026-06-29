@@ -48,7 +48,7 @@ const logStep = (step: string, details?: any) => {
 
 const verifyAppleReceipt = async (receiptData: string): Promise<any> => {
   const sharedSecret = Deno.env.get("APPLE_SHARED_SECRET");
-  if (!sharedSecret) throw new Error("APPLE_SHARED_SECRET non configur�");
+  if (!sharedSecret) throw new Error("APPLE_SHARED_SECRET non configurÚ");
 
   const verifyPayload = {
     "receipt-data": receiptData,
@@ -96,7 +96,7 @@ serve(async (req) => {
     const { packId, receiptData, productId, userId, transactionId } = await req.json();
 
     if (!packId || !receiptData || !productId || !userId || !transactionId) {
-      throw new Error("Paramètres manquants");
+      throw new Error("Param├¿tres manquants");
     }
 
     // Authenticate user
@@ -104,7 +104,7 @@ serve(async (req) => {
     const token = authHeader.replace("Bearer ", "");
     const { data: userData } = await supabase.auth.getUser(token);
     if (!userData.user || userData.user.id !== userId) {
-      throw new Error("Utilisateur non authentifié");
+      throw new Error("Utilisateur non authentifi├®");
     }
     logStep("User authenticated", { userId });
 
@@ -144,7 +144,7 @@ serve(async (req) => {
     const matchingPurchase = inApp.find((p: any) => p.transaction_id === transactionId && p.product_id === productId);
     
     if (!matchingPurchase) {
-       throw new Error("Transaction non trouv�e dans le re�u Apple");
+       throw new Error("Transaction non trouvÚe dans le reþu Apple");
     }
 
     const { cardCount, type: packType } = packConfig;
@@ -262,11 +262,13 @@ serve(async (req) => {
 
     const pickRarity = () => {
       let roll = Math.random() * totalWeight;
-      for (const rarity of rarityOrder) {
+      let selected = 'common';
+      for (let ri = 0; ri < rarityOrder.length; ri++) {
+        const rarity = rarityOrder[ri];
         roll -= effectiveWeights[rarity];
-        if (roll <= 0) return rarity;
+        if (roll <= 0) { selected = rarity; break; }
       }
-      return 'common';
+      return selected;
     };
 
     const selectedCards: any[] = [];
