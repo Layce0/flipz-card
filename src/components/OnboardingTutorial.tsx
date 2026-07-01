@@ -256,9 +256,12 @@ export const OnboardingTutorial = () => {
             <p className="text-muted-foreground text-sm leading-relaxed">
               {t('onboarding.finishDesc')}
             </p>
-            <div className="mt-2 px-4 py-2.5 rounded-xl bg-primary/10 border border-primary/20">
+            <div className="mt-2 px-4 py-2.5 rounded-xl bg-primary/10 border border-primary/20 space-y-1.5">
               <p className="text-xs text-muted-foreground">
                 💡 {t('onboarding.codeHint')} <span className="font-mono font-bold text-primary">debut</span>
+              </p>
+              <p className="text-[11px] text-muted-foreground/90 leading-snug">
+                🔄 Astuce : si tu obtiens plusieurs fois la même carte, tu pourras échanger tes doublons contre des boosters depuis l'onglet <span className="text-primary font-medium">Boutique</span>.
               </p>
             </div>
             <Button
@@ -268,7 +271,7 @@ export const OnboardingTutorial = () => {
               disabled={claimMilestone.isPending}
               onClick={async () => {
                 try {
-                  const res = await claimMilestone.mutateAsync();
+                  const res = await claimMilestone.mutateAsync(undefined);
                   // Mark onboarding done BEFORE showing the reveal,
                   // so that if the user closes midway it's still marked.
                   localStorage.setItem(ONBOARDING_KEY, 'true');

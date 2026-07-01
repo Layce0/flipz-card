@@ -265,7 +265,7 @@ const Packs = () => {
               <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center glow-gold">
                 <Package className="w-6 h-6 text-primary" />
               </div>
-              <h1 className="font-display text-4xl font-bold text-gradient-gold">
+              <h1 className="font-display text-5xl font-bold text-gradient-gold">
                 {t('packs.title', 'Pack quotidien')}
               </h1>
             </div>

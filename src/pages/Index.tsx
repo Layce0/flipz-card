@@ -13,6 +13,7 @@ import { useTodayCard, useHasCollectedToday, useCollectCard, useUserCards, useAl
 import { useUserStreak, useUpdateStreak } from '@/hooks/useWinstreak';
 import { useNotifications } from '@/hooks/useNotifications';
 import { toast } from 'sonner';
+import { StreakLostDialog } from '@/components/StreakLostDialog';
 const flipzLogo = '/flipz-logo-new.png';
 
 // Isolated timer component to avoid re-rendering the entire page every second
@@ -71,6 +72,7 @@ const Index = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [catData, setCatData] = useState<any>(null);
   const [catRunData, setCatRunData] = useState<any>(null);
+  const [lostStreak, setLostStreak] = useState<number | null>(null);
   const { user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -115,7 +117,10 @@ const Index = () => {
       
       // Streak update is optional and might fail during rapid testing (server-side cooldown)
       try {
-        await updateStreak.mutateAsync(user.id);
+        const streakRes = await updateStreak.mutateAsync(user.id);
+        if (streakRes?.streak_reset) {
+          setLostStreak(streakData?.current_streak ?? 1);
+        }
       } catch (e) {
         console.warn('Streak update skipped or blocked by server limit');
       }
@@ -217,6 +222,14 @@ const Index = () => {
 
       
       <Navigation />
+
+      {lostStreak !== null && (
+        <StreakLostDialog
+          open
+          onClose={() => setLostStreak(null)}
+          previousStreak={lostStreak}
+        />
+      )}
     </div>
   );
 };

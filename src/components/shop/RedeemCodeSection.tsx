@@ -89,8 +89,8 @@ export const RedeemCodeSection = ({ userCards }: RedeemCodeSectionProps) => {
           <h2 className="font-display text-lg text-foreground">Code Promo 🎁</h2>
         </div>
         <div className="p-4 rounded-2xl bg-card/60 border border-border">
-          <p className="text-sm text-muted-foreground mb-3">
-            Suis-nous sur les réseaux et récupère des codes exclusifs pour des cartes et boosters gratuits !
+          <p className="text-xs text-muted-foreground mb-3 leading-snug">
+            Entre un code cadeau distribué sur nos réseaux sociaux ou caché dans l'application.
           </p>
           <div className="flex gap-2">
             <Input

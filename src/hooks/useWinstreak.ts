@@ -101,7 +101,7 @@ export const useUpdateStreak = () => {
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      return data?.current_streak as number;
+      return data as { current_streak: number; streak_progress: number; streak_reset?: boolean };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-streak'] });
