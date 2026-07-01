@@ -72,6 +72,7 @@ const Index = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [catData, setCatData] = useState<any>(null);
   const [catRunData, setCatRunData] = useState<any>(null);
+  const [lostStreak, setLostStreak] = useState<number | null>(null);
   const { user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
