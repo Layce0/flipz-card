@@ -117,7 +117,10 @@ const Index = () => {
       
       // Streak update is optional and might fail during rapid testing (server-side cooldown)
       try {
-        await updateStreak.mutateAsync(user.id);
+        const streakRes = await updateStreak.mutateAsync(user.id);
+        if (streakRes?.streak_reset) {
+          setLostStreak(streakData?.current_streak ?? 1);
+        }
       } catch (e) {
         console.warn('Streak update skipped or blocked by server limit');
       }
