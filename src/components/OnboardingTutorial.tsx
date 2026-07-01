@@ -268,7 +268,7 @@ export const OnboardingTutorial = () => {
               disabled={claimMilestone.isPending}
               onClick={async () => {
                 try {
-                  const res = await claimMilestone.mutateAsync();
+                  const res = await claimMilestone.mutateAsync(undefined);
                   // Mark onboarding done BEFORE showing the reveal,
                   // so that if the user closes midway it's still marked.
                   localStorage.setItem(ONBOARDING_KEY, 'true');
