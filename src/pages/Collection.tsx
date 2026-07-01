@@ -161,6 +161,18 @@ const Collection = () => {
               }}
             />
           </div>
+          {progressPercent < 100 && (
+            <p className="mt-1.5 text-[11px] text-muted-foreground/80">
+              Prochain palier : <span className="text-primary font-medium">{Math.ceil((progressPercent + 1) / 10) * 10}%</span>
+              {' — '}
+              {(() => {
+                const next = Math.ceil((progressPercent + 1) / 10) * 10;
+                if (next <= 50) return 'une carte aléatoire';
+                if (next < 100) return 'un booster de 3 cartes';
+                return 'un booster de 5 cartes';
+              })()}
+            </p>
+          )}
           
           {availableMilestones.length > 0 && (
             <div className="mt-4 p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-between animate-in fade-in zoom-in-95 duration-300">
