@@ -13,6 +13,7 @@ import { useTodayCard, useHasCollectedToday, useCollectCard, useUserCards, useAl
 import { useUserStreak, useUpdateStreak } from '@/hooks/useWinstreak';
 import { useNotifications } from '@/hooks/useNotifications';
 import { toast } from 'sonner';
+import { StreakLostDialog } from '@/components/StreakLostDialog';
 const flipzLogo = '/flipz-logo-new.png';
 
 // Isolated timer component to avoid re-rendering the entire page every second
