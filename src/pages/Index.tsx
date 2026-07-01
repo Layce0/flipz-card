@@ -222,6 +222,14 @@ const Index = () => {
 
       
       <Navigation />
+
+      {lostStreak !== null && (
+        <StreakLostDialog
+          open
+          onClose={() => setLostStreak(null)}
+          previousStreak={lostStreak}
+        />
+      )}
     </div>
   );
 };
