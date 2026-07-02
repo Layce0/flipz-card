@@ -1,7 +1,7 @@
 import { memo, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Home, BookOpen, Package, Shield, LogIn, Store, User } from 'lucide-react';
+import { Home, BookOpen, Layers, Shield, LogIn, Sparkles, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNewCardIndicator } from '@/hooks/useNewCardIndicator';
