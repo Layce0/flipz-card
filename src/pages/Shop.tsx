@@ -214,7 +214,7 @@ const Shop = () => {
       <header className="relative pt-12 pb-4 px-4 bg-transparent border-b border-white/10">
         <div className="flex items-center gap-4 mb-4">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/5 flex items-center justify-center glow-gold">
-            <ShoppingBag className="w-7 h-7 text-primary" />
+            <Sparkles className="w-7 h-7 text-primary" />
           </div>
           <div>
             <h1 className="font-display text-3xl font-bold text-gradient-gold">{t('shop.title')}</h1>
