@@ -185,7 +185,7 @@ const Shop = () => {
         <header className="pt-12 pb-6 px-4">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-              <Store className="w-6 h-6 text-primary" />
+              <Sparkles className="w-6 h-6 text-primary" />
             </div>
             <div>
               <h1 className="font-display text-2xl text-foreground">{t('shop.title')}</h1>
