@@ -143,55 +143,45 @@ const Collection = () => {
           <h1 className="font-display text-2xl font-bold text-gradient-gold">{t('collection.title')}</h1>
         </div>
 
-        {/* Progress bar */}
-        <div className="mt-3 mb-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="flex justify-between items-center mb-1.5">
-            <p className="text-xs text-muted-foreground font-medium">
-              {t('collection.uniqueCards', { collected: userCards.length, total: allCards.length, totalCount: totalCardsCollected })}
-            </p>
-            <span className="text-xs font-display text-primary">{progressPercent}%</span>
+        {/* Progress — hero % */}
+        <div className="mt-4 mb-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="flex items-end justify-between mb-2">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 font-semibold">
+                {t('collection.title')}
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {t('collection.uniqueCards', { collected: userCards.length, total: allCards.length, totalCount: totalCardsCollected })}
+              </p>
+            </div>
+            <div className="text-right leading-none">
+              <span
+                className="font-display font-black text-5xl bg-clip-text text-transparent"
+                style={{
+                  backgroundImage: 'linear-gradient(135deg, hsl(45 95% 65%), hsl(35 90% 50%))',
+                  filter: 'drop-shadow(0 0 12px hsl(45 90% 55% / 0.35))',
+                }}
+              >
+                {progressPercent}
+              </span>
+              <span className="font-display font-bold text-2xl text-primary/80 ml-0.5">%</span>
+            </div>
           </div>
-          <div className="h-2 rounded-full bg-muted/50 overflow-hidden">
+          <div className="h-2.5 rounded-full bg-muted/40 overflow-hidden border border-primary/10">
             <div
-              className="h-full rounded-full transition-all duration-1000 ease-out"
+              className="h-full rounded-full transition-all duration-1000 ease-out relative"
               style={{
                 width: `${progressPercent}%`,
                 background: 'linear-gradient(90deg, hsl(45 90% 55%), hsl(35 90% 50%))',
-                boxShadow: '0 0 12px hsl(45 90% 55% / 0.5)',
+                boxShadow: '0 0 16px hsl(45 90% 55% / 0.55)',
               }}
-            />
-          </div>
-          {progressPercent < 100 && (
-            <p className="mt-1.5 text-[11px] text-muted-foreground/80">
-              Prochain palier : <span className="text-primary font-medium">{Math.ceil((progressPercent + 1) / 10) * 10}%</span>
-              {' — '}
-              {(() => {
-                const next = Math.ceil((progressPercent + 1) / 10) * 10;
-                if (next <= 50) return 'une carte aléatoire';
-                if (next < 100) return 'un booster de 3 cartes';
-                return 'un booster de 5 cartes';
-              })()}
-            </p>
-          )}
-          
-          {availableMilestones.length > 0 && (
-            <div className="mt-4 p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-between animate-in fade-in zoom-in-95 duration-300">
-              <div>
-                <p className="text-sm font-semibold text-orange-400">Palier {availableMilestones[0]}% atteint ! 🎉</p>
-                <p className="text-xs text-muted-foreground">Ouvre ton booster récompense</p>
-              </div>
-              <Button 
-                onClick={() => handleClaimMilestone(availableMilestones[0])}
-                disabled={claimMilestone.isPending}
-                size="sm"
-                variant="gold"
-                className="h-8"
-              >
-                {claimMilestone.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Récupérer'}
-              </Button>
+            >
+              <div className="absolute inset-0 shimmer opacity-40" />
             </div>
-          )}
+          </div>
         </div>
+
+
 
         {/* Rarity filter */}
         <RarityTabs 
