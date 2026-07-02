@@ -148,7 +148,7 @@ const Collection = () => {
           <div className="flex items-end justify-between mb-2">
             <div>
               <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 font-semibold">
-                {t('collection.title')}
+                Progression
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {t('collection.uniqueCards', { collected: userCards.length, total: allCards.length, totalCount: totalCardsCollected })}
