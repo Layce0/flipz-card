@@ -7,7 +7,7 @@ import { PackSection } from '@/components/shop/PackSection';
 import { TradeOverviewDialog } from '@/components/shop/TradeOverviewDialog';
 import { PackRevealFlow } from '@/components/shop/PackRevealFlow';
 import { Button } from '@/components/ui/button';
-import { Store, Loader2, ShoppingBag } from 'lucide-react';
+import { Loader2, Sparkles } from 'lucide-react';
 import { getPacksByType, TRADE_CONFIG } from '@/types/pack';
 import { Rarity } from '@/types/card';
 import { toast } from 'sonner';
