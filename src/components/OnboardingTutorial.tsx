@@ -71,6 +71,19 @@ export const OnboardingTutorial = () => {
     }
   }, [user]);
 
+  // Allow replay via custom event (fired from Profile "Revoir le tutoriel")
+  useEffect(() => {
+    const handler = () => {
+      localStorage.removeItem(ONBOARDING_KEY);
+      setTourStep(0);
+      setWaitingForInteraction(false);
+      setMinimized(false);
+      setPhase('lang');
+    };
+    window.addEventListener('flipz:replay-tutorial', handler);
+    return () => window.removeEventListener('flipz:replay-tutorial', handler);
+  }, []);
+
   // After navigating for a click-target step, auto-advance once we're on the right page
   useEffect(() => {
     if (phase !== 'tour' || !waitingForInteraction) return;
