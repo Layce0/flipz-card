@@ -7,7 +7,7 @@ import { PackSection } from '@/components/shop/PackSection';
 import { TradeOverviewDialog } from '@/components/shop/TradeOverviewDialog';
 import { PackRevealFlow } from '@/components/shop/PackRevealFlow';
 import { Button } from '@/components/ui/button';
-import { Store, Loader2, ShoppingBag } from 'lucide-react';
+import { Loader2, Sparkles } from 'lucide-react';
 import { getPacksByType, TRADE_CONFIG } from '@/types/pack';
 import { Rarity } from '@/types/card';
 import { toast } from 'sonner';
@@ -185,7 +185,7 @@ const Shop = () => {
         <header className="pt-12 pb-6 px-4">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-              <Store className="w-6 h-6 text-primary" />
+              <Sparkles className="w-6 h-6 text-primary" />
             </div>
             <div>
               <h1 className="font-display text-2xl text-foreground">{t('shop.title')}</h1>
@@ -214,7 +214,7 @@ const Shop = () => {
       <header className="relative pt-12 pb-4 px-4 bg-transparent border-b border-white/10">
         <div className="flex items-center gap-4 mb-4">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/5 flex items-center justify-center glow-gold">
-            <ShoppingBag className="w-7 h-7 text-primary" />
+            <Sparkles className="w-7 h-7 text-primary" />
           </div>
           <div>
             <h1 className="font-display text-3xl font-bold text-gradient-gold">{t('shop.title')}</h1>

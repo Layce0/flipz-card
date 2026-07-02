@@ -480,6 +480,7 @@ const Profile = () => {
                     onClick={() => {
                       localStorage.removeItem('flipz_onboarding_done');
                       navigate('/');
+                      setTimeout(() => window.dispatchEvent(new CustomEvent('flipz:replay-tutorial')), 100);
                     }}
                   >
                     <GraduationCap className="w-4 h-4 mr-2" />

@@ -1,7 +1,7 @@
 import { memo, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Home, BookOpen, Package, Shield, LogIn, Store, User } from 'lucide-react';
+import { Home, BookOpen, Layers, Shield, LogIn, Sparkles, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNewCardIndicator } from '@/hooks/useNewCardIndicator';
@@ -15,8 +15,8 @@ export const Navigation = memo(() => {
   const navItems = useMemo(() => [
     { path: '/', icon: Home, labelKey: 'nav.home', show: true, badge: false, tour: 'nav-home' },
     { path: '/collection', icon: BookOpen, labelKey: 'nav.collection', show: true, badge: hasNewCards, tour: 'nav-collection' },
-    { path: '/packs', icon: Package, labelKey: 'nav.packs', show: true, badge: false, tour: 'nav-packs' },
-    { path: '/shop', icon: Store, labelKey: 'nav.shop', show: !!user, badge: false, tour: 'nav-shop' },
+    { path: '/packs', icon: Layers, labelKey: 'nav.packs', show: true, badge: false, tour: 'nav-packs' },
+    { path: '/shop', icon: Sparkles, labelKey: 'nav.shop', show: !!user, badge: false, tour: 'nav-shop' },
     { path: '/admin', icon: Shield, labelKey: 'nav.admin', show: isAdmin, badge: false, tour: '' },
     { path: '/profile', icon: User, labelKey: 'nav.profile', show: !!user, badge: false, tour: 'nav-profile' },
     { path: '/auth', icon: LogIn, labelKey: 'nav.login', show: !user, badge: false, tour: 'nav-login' },
