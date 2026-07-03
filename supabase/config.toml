@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.manage-user-account]
 verify_jwt = false
+
+[functions.mcp]
+verify_jwt = false

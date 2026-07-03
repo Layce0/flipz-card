@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -41,7 +41,14 @@ const Auth = () => {
   const [lockoutRemaining, setLockoutRemaining] = useState(0);
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { t } = useTranslation();
+
+  // Honor ?next=<same-origin relative path> so OAuth consent (and other
+  // deep links) come back here after login/signup. Reject anything that
+  // isn't a same-origin relative path.
+  const nextParam = searchParams.get('next');
+  const safeNext = nextParam && nextParam.startsWith('/') && !nextParam.startsWith('//') ? nextParam : '/';
 
   const authSchema = z.object({
     email: z.string().email(t('auth.invalidEmail')),
@@ -56,9 +63,9 @@ const Auth = () => {
 
   useEffect(() => {
     if (user) {
-      navigate('/');
+      navigate(safeNext, { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, navigate, safeNext]);
 
   // Lockout countdown timer
   useEffect(() => {
@@ -91,7 +98,7 @@ const Auth = () => {
 
     const validation = authSchema.safeParse({ email, password });
     if (!validation.success) {
-      toast.error(validation.error.errors[0].message);
+      toast.error(validation.error.issues[0].message);
       setIsLoading(false);
       return;
     }
@@ -130,7 +137,7 @@ const Auth = () => {
         } else {
           setFailedAttempts(0);
           toast.success(t('auth.loginSuccess'));
-          navigate('/');
+          navigate(safeNext, { replace: true });
         }
       } else {
         const { error } = await signUp(email, password);
@@ -142,7 +149,7 @@ const Auth = () => {
           }
         } else {
           toast.success(t('auth.signupSuccess'));
-          navigate('/');
+          navigate(safeNext, { replace: true });
         }
       }
     } catch (error) {
