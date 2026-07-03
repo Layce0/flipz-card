@@ -63,9 +63,9 @@ const Auth = () => {
 
   useEffect(() => {
     if (user) {
-      navigate('/');
+      navigate(safeNext, { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, navigate, safeNext]);
 
   // Lockout countdown timer
   useEffect(() => {
@@ -137,7 +137,7 @@ const Auth = () => {
         } else {
           setFailedAttempts(0);
           toast.success(t('auth.loginSuccess'));
-          navigate('/');
+          navigate(safeNext, { replace: true });
         }
       } else {
         const { error } = await signUp(email, password);
@@ -149,7 +149,7 @@ const Auth = () => {
           }
         } else {
           toast.success(t('auth.signupSuccess'));
-          navigate('/');
+          navigate(safeNext, { replace: true });
         }
       }
     } catch (error) {
