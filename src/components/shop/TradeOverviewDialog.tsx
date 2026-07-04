@@ -67,7 +67,7 @@ export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2">
+        <Button variant="outline" className="gap-2" data-tour="trade-button">
           <ArrowRightLeft className="w-4 h-4" />
           Échanges disponibles
           {totalEligible > 0 && (
