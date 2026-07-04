@@ -199,6 +199,23 @@
     "step5Title": "Los Packs",
     "step5Desc": "¡Toca Packs para descubrir cómo obtener más!",
     "step6Title": "La Tienda",
-    "step6Desc": "¡Toca Tienda para comprar packs e intercambiar cartas!"
+    "step6Desc": "¡Toca Tienda para comprar packs e intercambiar cartas!",
+    "stepNavPacksTitle": "Vamos a los Packs",
+    "stepNavPacksDesc": "Toca la pestaña Packs para continuar tu aventura.",
+    "stepWelcomePackTitle": "Tu pack de bienvenida 🎁",
+    "stepWelcomePackDesc": "¡Un regalo! Abre tu primer pack gratis para descubrir 5 cartas.",
+    "openWelcomePack": "Abrir mi pack",
+    "packReceived": "¡Pack de bienvenida recibido!",
+    "packError": "No se pudo obtener el pack, continuamos",
+    "rarityCommonTitle": "Las Comunes",
+    "rarityCommonDesc": "Cartas básicas, fáciles de conseguir. Azules en pantalla.",
+    "rarityRareTitle": "Las Raras",
+    "rarityRareDesc": "Un poco más difíciles, brillan en verde.",
+    "rarityEpicTitle": "Las Épicas",
+    "rarityEpicDesc": "Raras y valiosas, se reconocen por su morado vivo.",
+    "rarityLegendaryTitle": "Las Legendarias",
+    "rarityLegendaryDesc": "¡Las más raras del juego, doradas y prestigiosas!",
+    "stepTradeTitle": "Intercambia tus duplicados",
+    "stepTradeDesc": "Aquí puedes intercambiar duplicados por nuevos packs. ¡Pruébalo cuando tengas uno!"
   }
 }

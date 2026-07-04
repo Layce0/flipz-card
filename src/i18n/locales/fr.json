@@ -199,6 +199,23 @@
     "step5Title": "Les Packs",
     "step5Desc": "Cliquez sur Packs pour découvrir comment en obtenir plus !",
     "step6Title": "La Boutique",
-    "step6Desc": "Cliquez sur Boutique pour acheter des packs et échanger des cartes !"
+    "step6Desc": "Cliquez sur Boutique pour acheter des packs et échanger des cartes !",
+    "stepNavPacksTitle": "Direction les Packs",
+    "stepNavPacksDesc": "Touche l'onglet Packs pour continuer ton aventure.",
+    "stepWelcomePackTitle": "Ton pack de bienvenue 🎁",
+    "stepWelcomePackDesc": "Tiens, un cadeau ! Ouvre ton premier pack offert pour découvrir 5 cartes.",
+    "openWelcomePack": "Ouvrir mon pack",
+    "packReceived": "Pack de bienvenue reçu !",
+    "packError": "Impossible de récupérer le pack, on continue",
+    "rarityCommonTitle": "Les Communes",
+    "rarityCommonDesc": "Les cartes de base, faciles à obtenir. Bleues à l'écran.",
+    "rarityRareTitle": "Les Rares",
+    "rarityRareDesc": "Un peu plus difficiles, elles brillent en vert.",
+    "rarityEpicTitle": "Les Épiques",
+    "rarityEpicDesc": "Rares et précieuses, reconnaissables à leur violet éclatant.",
+    "rarityLegendaryTitle": "Les Légendaires",
+    "rarityLegendaryDesc": "Les plus rares du jeu, dorées et prestigieuses !",
+    "stepTradeTitle": "Échange tes doublons",
+    "stepTradeDesc": "Ici, tu peux échanger tes doublons contre de nouveaux packs. Essaie dès qu'un doublon apparaît !"
   }
 }
