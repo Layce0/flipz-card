@@ -34,6 +34,7 @@ export const RarityTabs = memo(({ activeRarity, onRarityChange, counts, collecte
         return (
           <button
             key={rarity}
+            data-tour={`rarity-tab-${rarity}`}
             onClick={() => onRarityChange(rarity)}
             className={cn(
               "flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-display font-semibold transition-all duration-300 border",

@@ -199,6 +199,23 @@
     "step5Title": "Packs",
     "step5Desc": "Tap Packs to discover how to get more!",
     "step6Title": "The Shop",
-    "step6Desc": "Tap Shop to buy packs and trade cards!"
+    "step6Desc": "Tap Shop to buy packs and trade cards!",
+    "stepNavPacksTitle": "Off to the Packs",
+    "stepNavPacksDesc": "Tap the Packs tab to continue your adventure.",
+    "stepWelcomePackTitle": "Your welcome pack 🎁",
+    "stepWelcomePackDesc": "Here's a gift! Open your first free pack to reveal 5 cards.",
+    "openWelcomePack": "Open my pack",
+    "packReceived": "Welcome pack received!",
+    "packError": "Couldn't grab the pack, moving on",
+    "rarityCommonTitle": "Common cards",
+    "rarityCommonDesc": "Base cards, easy to get. Shown in blue.",
+    "rarityRareTitle": "Rare cards",
+    "rarityRareDesc": "A bit harder to find, they shine green.",
+    "rarityEpicTitle": "Epic cards",
+    "rarityEpicDesc": "Rare and valuable, spot them by their bright purple.",
+    "rarityLegendaryTitle": "Legendary cards",
+    "rarityLegendaryDesc": "The rarest of them all — golden and prestigious!",
+    "stepTradeTitle": "Trade your duplicates",
+    "stepTradeDesc": "Trade duplicate cards for new packs. Give it a try as soon as you have a duplicate!"
   }
 }

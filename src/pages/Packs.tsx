@@ -278,6 +278,7 @@ const Packs = () => {
           <img
             src={packBoosterImg}
             alt="Pack Flipz"
+            data-tour="pack-booster"
             className="relative z-[1] w-72 max-w-[80vw] h-auto drop-shadow-[0_0_40px_hsl(var(--primary)/0.6)] mb-8"
             draggable={false}
           />

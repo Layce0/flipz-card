@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Globe } from 'lucide-react';
+import { Globe, Gift, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useClaimMilestone } from '@/hooks/useCards';
@@ -19,7 +19,7 @@ const LANGUAGES = [
   { code: 'es', label: '🇪🇸 Español' },
 ];
 
-type InteractionType = 'none' | 'click-target' | 'flip-card';
+type InteractionType = 'none' | 'click-target' | 'flip-card' | 'open-welcome-pack';
 
 interface SpotlightStep {
   selector: string;
@@ -28,15 +28,22 @@ interface SpotlightStep {
   position: 'top' | 'bottom';
   interaction: InteractionType;
   navigateTo?: string;
+  onPage?: string;
 }
 
 const TOUR_STEPS: SpotlightStep[] = [
-  { selector: '[data-tour="logo"]', titleKey: 'onboarding.step1Title', descKey: 'onboarding.step1Desc', position: 'bottom', interaction: 'none' },
-  { selector: '[data-tour="timer"]', titleKey: 'onboarding.step2Title', descKey: 'onboarding.step2Desc', position: 'bottom', interaction: 'none' },
-  { selector: '[data-tour="card"]', titleKey: 'onboarding.step3Title', descKey: 'onboarding.step3Desc', position: 'top', interaction: 'flip-card' },
+  { selector: '[data-tour="logo"]', titleKey: 'onboarding.step1Title', descKey: 'onboarding.step1Desc', position: 'bottom', interaction: 'none', onPage: '/' },
+  { selector: '[data-tour="timer"]', titleKey: 'onboarding.step2Title', descKey: 'onboarding.step2Desc', position: 'bottom', interaction: 'none', onPage: '/' },
+  { selector: '[data-tour="card"]', titleKey: 'onboarding.step3Title', descKey: 'onboarding.step3Desc', position: 'top', interaction: 'flip-card', onPage: '/' },
+  { selector: '[data-tour="nav-packs"]', titleKey: 'onboarding.stepNavPacksTitle', descKey: 'onboarding.stepNavPacksDesc', position: 'top', interaction: 'click-target', navigateTo: '/packs' },
+  { selector: '[data-tour="pack-booster"]', titleKey: 'onboarding.stepWelcomePackTitle', descKey: 'onboarding.stepWelcomePackDesc', position: 'top', interaction: 'open-welcome-pack', onPage: '/packs' },
   { selector: '[data-tour="nav-collection"]', titleKey: 'onboarding.step4Title', descKey: 'onboarding.step4Desc', position: 'top', interaction: 'click-target', navigateTo: '/collection' },
-  { selector: '[data-tour="nav-packs"]', titleKey: 'onboarding.step5Title', descKey: 'onboarding.step5Desc', position: 'top', interaction: 'click-target', navigateTo: '/packs' },
+  { selector: '[data-tour="rarity-tab-common"]', titleKey: 'onboarding.rarityCommonTitle', descKey: 'onboarding.rarityCommonDesc', position: 'bottom', interaction: 'none', onPage: '/collection' },
+  { selector: '[data-tour="rarity-tab-rare"]', titleKey: 'onboarding.rarityRareTitle', descKey: 'onboarding.rarityRareDesc', position: 'bottom', interaction: 'none', onPage: '/collection' },
+  { selector: '[data-tour="rarity-tab-epic"]', titleKey: 'onboarding.rarityEpicTitle', descKey: 'onboarding.rarityEpicDesc', position: 'bottom', interaction: 'none', onPage: '/collection' },
+  { selector: '[data-tour="rarity-tab-legendary"]', titleKey: 'onboarding.rarityLegendaryTitle', descKey: 'onboarding.rarityLegendaryDesc', position: 'bottom', interaction: 'none', onPage: '/collection' },
   { selector: '[data-tour="nav-shop"]', titleKey: 'onboarding.step6Title', descKey: 'onboarding.step6Desc', position: 'top', interaction: 'click-target', navigateTo: '/shop' },
+  { selector: '[data-tour="trade-button"]', titleKey: 'onboarding.stepTradeTitle', descKey: 'onboarding.stepTradeDesc', position: 'bottom', interaction: 'none', onPage: '/shop' },
 ];
 
 interface Rect {
@@ -57,13 +64,14 @@ export const OnboardingTutorial = () => {
   const location = useLocation();
   const rafRef = useRef<number>();
   const { user } = useAuth();
-  
+
   const claimMilestone = useClaimMilestone();
   const [revealedCards, setRevealedCards] = useState<GameCard[]>([]);
   const [isRevealing, setIsRevealing] = useState(false);
+  const [claimingPack, setClaimingPack] = useState(false);
 
   useEffect(() => {
-    if (!user) return; // Only start onboarding after login
+    if (!user) return;
     const done = localStorage.getItem(ONBOARDING_KEY);
     if (!done) {
       const timer = setTimeout(() => setPhase('lang'), 800);
@@ -84,7 +92,16 @@ export const OnboardingTutorial = () => {
     return () => window.removeEventListener('flipz:replay-tutorial', handler);
   }, []);
 
-  // After navigating for a click-target step, auto-advance once we're on the right page
+  const advanceStep = useCallback(() => {
+    if (tourStep < TOUR_STEPS.length - 1) {
+      setTourStep(tourStep + 1);
+    } else {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      setPhase('finish');
+    }
+  }, [tourStep]);
+
+  // Auto-advance click-target steps once we're on the right page
   useEffect(() => {
     if (phase !== 'tour' || !waitingForInteraction) return;
     const step = TOUR_STEPS[tourStep];
@@ -93,15 +110,11 @@ export const OnboardingTutorial = () => {
       const timer = setTimeout(() => {
         setMinimized(false);
         setWaitingForInteraction(false);
-        if (tourStep < TOUR_STEPS.length - 1) {
-          setTourStep(tourStep + 1);
-        } else {
-          handleFinish();
-        }
-      }, 2000);
+        advanceStep();
+      }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [location.pathname, phase, tourStep, waitingForInteraction]);
+  }, [location.pathname, phase, tourStep, waitingForInteraction, advanceStep]);
 
   // Listen for card flip during flip-card step
   useEffect(() => {
@@ -109,26 +122,24 @@ export const OnboardingTutorial = () => {
     const step = TOUR_STEPS[tourStep];
     if (step.interaction !== 'flip-card') return;
 
+    let cancelled = false;
     const checkFlipped = () => {
+      if (cancelled) return;
       const cardInner = document.querySelector('[data-tour="card"] .flip-card-inner');
       if (cardInner?.classList.contains('flipped')) {
         setWaitingForInteraction(false);
         setMinimized(true);
         setTimeout(() => {
           setMinimized(false);
-          if (tourStep < TOUR_STEPS.length - 1) {
-            setTourStep(tourStep + 1);
-          } else {
-            handleFinish();
-          }
+          advanceStep();
         }, 2000);
         return;
       }
       requestAnimationFrame(checkFlipped);
     };
     const id = requestAnimationFrame(checkFlipped);
-    return () => cancelAnimationFrame(id);
-  }, [phase, tourStep, waitingForInteraction]);
+    return () => { cancelled = true; cancelAnimationFrame(id); };
+  }, [phase, tourStep, waitingForInteraction, advanceStep]);
 
   const measureTarget = useCallback(() => {
     if (phase !== 'tour') return;
@@ -143,6 +154,8 @@ export const OnboardingTutorial = () => {
         width: rect.width + padding * 2,
         height: rect.height + padding * 2,
       });
+    } else {
+      setTargetRect(null);
     }
     rafRef.current = requestAnimationFrame(measureTarget);
   }, [phase, tourStep]);
@@ -154,15 +167,15 @@ export const OnboardingTutorial = () => {
     }
   }, [phase, tourStep, measureTarget]);
 
-  // When entering a new step, set up interaction mode
+  // When entering a new step, set up interaction mode and navigate if needed
   useEffect(() => {
     if (phase !== 'tour') return;
     const step = TOUR_STEPS[tourStep];
-    if (step.interaction !== 'none') {
-      setWaitingForInteraction(true);
-    } else {
-      setWaitingForInteraction(false);
+    // Ensure we're on the right page for onPage steps
+    if (step.onPage && location.pathname !== step.onPage) {
+      navigate(step.onPage);
     }
+    setWaitingForInteraction(step.interaction !== 'none');
   }, [phase, tourStep]);
 
   const handleLanguageChange = (code: string) => {
@@ -171,43 +184,48 @@ export const OnboardingTutorial = () => {
   };
 
   const handleLangNext = () => {
-    // Navigate to home for the tour
     if (location.pathname !== '/') navigate('/');
     setPhase('tour');
   };
 
   const handleFinish = () => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    localStorage.setItem(ONBOARDING_KEY, 'true');
     setPhase('finish');
+  };
+
+  const handleSkip = () => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    localStorage.setItem(ONBOARDING_KEY, 'true');
+    setPhase('done');
   };
 
   const handleTourNext = () => {
     const step = TOUR_STEPS[tourStep];
-    // For interactive steps, don't allow manual next
-    if (step.interaction !== 'none' && !waitingForInteraction) {
-      // Already completed interaction, this shouldn't happen
-    }
-    if (step.interaction !== 'none') return; // must interact
-
-    if (tourStep < TOUR_STEPS.length - 1) {
-      setTourStep(tourStep + 1);
-    } else {
-      handleFinish();
-    }
+    if (step.interaction !== 'none') return;
+    advanceStep();
   };
 
-  const handleTourPrev = () => {
-    if (tourStep > 0) {
-      // Navigate back to home if needed
-      if (location.pathname !== '/') navigate('/');
-      setTimeout(() => setTourStep(tourStep - 1), 100);
-    }
-  };
-
-  const handleClickOverlay = () => {
-    const step = TOUR_STEPS[tourStep];
-    if (step.interaction === 'click-target' && step.navigateTo) {
-      // Let the user click the target element - don't block
+  const handleOpenWelcomePack = async () => {
+    if (claimingPack) return;
+    setClaimingPack(true);
+    try {
+      const res = await claimMilestone.mutateAsync(undefined);
+      if (res?.cards && res.cards.length > 0) {
+        setRevealedCards(res.cards);
+        setMinimized(true);
+        setIsRevealing(true);
+        toast.success(t('onboarding.packReceived', 'Pack de bienvenue reçu !'));
+      } else {
+        // No cards? just move on
+        advanceStep();
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error(t('onboarding.packError', 'Impossible de récupérer le pack, on continue'));
+      advanceStep();
+    } finally {
+      setClaimingPack(false);
     }
   };
 
@@ -244,7 +262,7 @@ export const OnboardingTutorial = () => {
             </div>
           </div>
           <div className="flex items-center justify-between px-6 pb-6">
-            <Button variant="ghost" size="sm" onClick={handleFinish} className="text-muted-foreground">
+            <Button variant="ghost" size="sm" onClick={handleSkip} className="text-muted-foreground">
               {t('onboarding.skip')}
             </Button>
             <Button variant="default" size="sm" onClick={handleLangNext}>
@@ -256,7 +274,7 @@ export const OnboardingTutorial = () => {
     );
   }
 
-  // Finish screen
+  // Finish screen (no more pack claim — already done during tour)
   if (phase === 'finish' && !isRevealing) {
     return (
       <Dialog open onOpenChange={() => {}}>
@@ -269,46 +287,46 @@ export const OnboardingTutorial = () => {
             <p className="text-muted-foreground text-sm leading-relaxed">
               {t('onboarding.finishDesc')}
             </p>
-            <div className="mt-2 px-4 py-2.5 rounded-xl bg-primary/10 border border-primary/20 space-y-1.5">
+            <div className="mt-2 px-4 py-2.5 rounded-xl bg-primary/10 border border-primary/20">
               <p className="text-xs text-muted-foreground">
                 💡 {t('onboarding.codeHint')} <span className="font-mono font-bold text-primary">debut</span>
-              </p>
-              <p className="text-[11px] text-muted-foreground/90 leading-snug">
-                🔄 Astuce : si tu obtiens plusieurs fois la même carte, tu pourras échanger tes doublons contre des boosters depuis l'onglet <span className="text-primary font-medium">Boutique</span>.
               </p>
             </div>
             <Button
               variant="gold"
               size="lg"
               className="mt-4 w-full text-base font-bold"
-              disabled={claimMilestone.isPending}
-              onClick={async () => {
-                try {
-                  const res = await claimMilestone.mutateAsync(undefined);
-                  // Mark onboarding done BEFORE showing the reveal,
-                  // so that if the user closes midway it's still marked.
-                  localStorage.setItem(ONBOARDING_KEY, 'true');
-                  if (res?.cards && res.cards.length > 0) {
-                    setRevealedCards(res.cards);
-                    setIsRevealing(true);
-                  } else {
-                    // No cards returned: just finish directly
-                    setPhase('done');
-                  }
-                  toast.success('Pack de bienvenue récupéré !');
-                } catch (e) {
-                  console.error(e);
-                  // Even on error, let the user proceed
-                  localStorage.setItem(ONBOARDING_KEY, 'true');
-                  setPhase('done');
-                }
+              onClick={() => {
+                localStorage.setItem(ONBOARDING_KEY, 'true');
+                setPhase('done');
               }}
             >
-              {claimMilestone.isPending ? 'Récupération...' : t('onboarding.start')}
+              {t('common.finish')}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
+    );
+  }
+
+  // Pack reveal takes over during tour or finish
+  if (isRevealing) {
+    return (
+      <PackRevealFlow
+        cards={revealedCards}
+        isOpen={isRevealing}
+        onClose={() => {
+          setIsRevealing(false);
+          setMinimized(false);
+          setRevealedCards([]);
+          if (phase === 'tour') {
+            advanceStep();
+          } else {
+            setPhase('done');
+          }
+        }}
+        packType="standard"
+      />
     );
   }
 
@@ -324,13 +342,13 @@ export const OnboardingTutorial = () => {
       </div>
     );
 
-    if (minimized) {
+    if (minimized || !targetRect) {
       return <>{goldenBorder}<div className="fixed inset-0 z-[100] pointer-events-none" /></>;
     }
     const step = TOUR_STEPS[tourStep];
     const isLast = tourStep === TOUR_STEPS.length - 1;
     const isInteractive = step.interaction !== 'none';
-    const allowClickThrough = isInteractive && waitingForInteraction;
+    const allowClickThrough = isInteractive && waitingForInteraction && step.interaction !== 'open-welcome-pack';
 
     // Tooltip position
     const tooltipStyle: React.CSSProperties = {};
@@ -349,7 +367,7 @@ export const OnboardingTutorial = () => {
       {goldenBorder}
       <div className={cn("fixed inset-0 z-[100]", allowClickThrough && "pointer-events-none")}>
         {/* Dark overlay with spotlight cutout */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-auto" style={{ pointerEvents: allowClickThrough ? 'none' : 'auto' }}>
+        <svg className="absolute inset-0 w-full h-full" style={{ pointerEvents: allowClickThrough ? 'none' : 'auto' }}>
           <defs>
             <mask id="spotlight-mask">
               <rect x="0" y="0" width="100%" height="100%" fill="white" />
@@ -408,7 +426,7 @@ export const OnboardingTutorial = () => {
         >
           <div className="bg-card border border-primary/30 rounded-2xl p-5 shadow-[0_0_30px_hsl(45_90%_55%_/_0.15)]">
             {/* Progress dots */}
-            <div className="flex gap-1.5 mb-4">
+            <div className="flex gap-1 mb-4">
               {TOUR_STEPS.map((_, i) => (
                 <div
                   key={i}
@@ -427,54 +445,51 @@ export const OnboardingTutorial = () => {
               {t(step.descKey)}
             </p>
 
-            {isInteractive && waitingForInteraction && (
-              <p className="text-primary text-xs font-semibold mb-3 animate-pulse">
-                👆 {t('onboarding.interactHint')}
-              </p>
-            )}
+            {step.interaction === 'open-welcome-pack' ? (
+              <Button
+                variant="gold"
+                size="lg"
+                className="w-full gap-2 font-bold"
+                disabled={claimingPack}
+                onClick={handleOpenWelcomePack}
+              >
+                {claimingPack ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /> {t('common.loading')}</>
+                ) : (
+                  <><Gift className="w-4 h-4" /> {t('onboarding.openWelcomePack', 'Ouvrir mon pack')}</>
+                )}
+              </Button>
+            ) : (
+              <>
+                {isInteractive && waitingForInteraction && (
+                  <p className="text-primary text-xs font-semibold mb-3 animate-pulse">
+                    👆 {t('onboarding.interactHint')}
+                  </p>
+                )}
 
-            <div className="flex items-center justify-between">
-              {tourStep > 0 ? (
-                <Button variant="ghost" size="sm" onClick={handleTourPrev}>
-                  {t('common.previous')}
-                </Button>
-              ) : (
-                <Button variant="ghost" size="sm" onClick={handleFinish} className="text-muted-foreground">
-                  {t('onboarding.skip')}
-                </Button>
-              )}
-              <span className="text-xs text-muted-foreground">
-                {tourStep + 1} / {TOUR_STEPS.length}
-              </span>
-              {isInteractive ? (
-                <span className="text-xs text-muted-foreground italic">
-                  {t('onboarding.waitAction')}
-                </span>
-              ) : (
-                <Button variant={isLast ? 'gold' : 'default'} size="sm" onClick={handleTourNext}>
-                  {isLast ? t('onboarding.start') : t('common.next')}
-                </Button>
-              )}
-            </div>
+                <div className="flex items-center justify-between">
+                  <Button variant="ghost" size="sm" onClick={handleSkip} className="text-muted-foreground">
+                    {t('onboarding.skip')}
+                  </Button>
+                  <span className="text-xs text-muted-foreground">
+                    {tourStep + 1} / {TOUR_STEPS.length}
+                  </span>
+                  {isInteractive ? (
+                    <span className="text-xs text-muted-foreground italic">
+                      {t('onboarding.waitAction')}
+                    </span>
+                  ) : (
+                    <Button variant={isLast ? 'gold' : 'default'} size="sm" onClick={handleTourNext}>
+                      {isLast ? t('common.finish') : t('common.next')}
+                    </Button>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
       </>
-    );
-  }
-
-  // When the user is in 'finish' phase with an active reveal, show the reveal instead of the dialog
-  if (isRevealing) {
-    return (
-      <PackRevealFlow
-        cards={revealedCards}
-        isOpen={isRevealing}
-        onClose={() => {
-          setIsRevealing(false);
-          setPhase('done');
-        }}
-        packType="lucky"
-      />
     );
   }
 
