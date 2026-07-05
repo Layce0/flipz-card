@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { MysteryCard } from '@/components/MysteryCard';
 import { PackOpeningAnimation } from '@/components/PackOpeningAnimation';
 import { PackSummary } from '@/components/shop/PackSummary';
-import { Play, Loader2, X, ChevronLeft, FastForward, Package } from 'lucide-react';
+import { Play, Loader2, X, ChevronLeft, FastForward } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserCards } from '@/hooks/useCards';
 import { useAdMob } from '@/hooks/useAdMob';
@@ -261,14 +261,9 @@ const Packs = () => {
         <div className="flex-1 flex flex-col items-center justify-center relative px-4 pt-12">
           {/* Page title */}
           <div className="text-center mb-6 z-10">
-            <div className="flex items-center justify-center gap-3 mb-2">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center glow-gold">
-                <Package className="w-6 h-6 text-primary" />
-              </div>
-              <h1 className="font-display text-5xl font-bold text-gradient-gold">
-                {t('packs.title', 'Pack quotidien')}
-              </h1>
-            </div>
+            <h1 className="font-display text-5xl font-bold text-gradient-gold mb-2">
+              {t('packs.title', 'Pack quotidien')}
+            </h1>
             <p className="text-sm text-muted-foreground">
               {t('packs.subtitle', 'Regarde une pub pour ouvrir ton pack gratuit')}
             </p>

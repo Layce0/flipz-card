@@ -691,3 +691,40 @@
   }
 }
 
+
+@layer utilities {
+  @keyframes page-flip-next {
+    from {
+      transform: perspective(1400px) rotateY(-95deg);
+      transform-origin: left center;
+      opacity: 0.2;
+      box-shadow: -20px 0 40px -10px rgba(0, 0, 0, 0.6);
+    }
+    to {
+      transform: perspective(1400px) rotateY(0deg);
+      transform-origin: left center;
+      opacity: 1;
+    }
+  }
+  @keyframes page-flip-prev {
+    from {
+      transform: perspective(1400px) rotateY(95deg);
+      transform-origin: right center;
+      opacity: 0.2;
+      box-shadow: 20px 0 40px -10px rgba(0, 0, 0, 0.6);
+    }
+    to {
+      transform: perspective(1400px) rotateY(0deg);
+      transform-origin: right center;
+      opacity: 1;
+    }
+  }
+  .animate-page-flip-next {
+    animation: page-flip-next 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+    backface-visibility: hidden;
+  }
+  .animate-page-flip-prev {
+    animation: page-flip-prev 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+    backface-visibility: hidden;
+  }
+}
