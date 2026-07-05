@@ -75,10 +75,10 @@ export const StreakLostDialog = ({ open, onClose, previousStreak }: StreakLostDi
             size="sm"
             className="justify-start gap-2 bg-muted/40 hover:bg-muted/60 text-foreground/90 font-normal"
             onClick={handlePay}
-            disabled={restore.isPending}
+            disabled={restore.isPending || paying}
           >
-            <Coins className="w-3.5 h-3.5" />
-            Restaurer contre paiement
+            {paying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Coins className="w-3.5 h-3.5" />}
+            Restaurer pour 0,10 €
           </Button>
           <button
             type="button"
