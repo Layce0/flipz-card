@@ -24,6 +24,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import OAuthConsent from "./pages/OAuthConsent";
+import StreakRestored from "./pages/StreakRestored";
 
 const queryClient = new QueryClient({
   defaultOptions: {
