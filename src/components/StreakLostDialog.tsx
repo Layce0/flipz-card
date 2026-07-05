@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Play, Coins } from 'lucide-react';
+import { Play, Coins, Loader2 } from 'lucide-react';
 import { useRestoreStreak } from '@/hooks/useWinstreak';
+import { invokeEdgeFunction } from '@/lib/edgeFunctions';
 import { toast } from 'sonner';
 
 interface StreakLostDialogProps {
@@ -12,10 +14,11 @@ interface StreakLostDialogProps {
 
 /**
  * Discrete, non-commercial modal shown when a user's winstreak resets.
- * Offers two low-key options: watch an ad or restore (paid — coming soon).
+ * Offers two low-key options: watch an ad or restore via a small payment.
  */
 export const StreakLostDialog = ({ open, onClose, previousStreak }: StreakLostDialogProps) => {
   const restore = useRestoreStreak();
+  const [paying, setPaying] = useState(false);
 
   const handleAd = async () => {
     try {
@@ -27,8 +30,20 @@ export const StreakLostDialog = ({ open, onClose, previousStreak }: StreakLostDi
     }
   };
 
-  const handlePay = () => {
-    toast.info('Restauration payante bientôt disponible');
+  const handlePay = async () => {
+    try {
+      setPaying(true);
+      const { data, error } = await invokeEdgeFunction('create-streak-restore-checkout', {
+        body: {},
+      });
+      if (error || data?.error || !data?.url) {
+        throw new Error(data?.error || 'Paiement indisponible');
+      }
+      window.location.href = data.url;
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Paiement indisponible');
+      setPaying(false);
+    }
   };
 
   return (
