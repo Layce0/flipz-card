@@ -86,7 +86,14 @@ export const CollectionBook = memo(({ allCards, collectedCardIds, cardCountMap, 
         <div className="absolute left-1/2 top-0 bottom-0 w-1 -translate-x-1/2 bg-gradient-to-b from-amber-700/50 via-amber-600/30 to-amber-700/50" />
         <div className="absolute inset-2 bg-gradient-to-r from-amber-50/5 via-transparent to-amber-50/5 rounded-xl pointer-events-none" />
         
-        <div className="grid grid-cols-2 gap-4 relative z-10">
+        <div
+          key={currentPage}
+          className={cn(
+            "grid grid-cols-2 gap-4 relative z-10 [transform-style:preserve-3d]",
+            flipDirection === 'next' && "animate-page-flip-next",
+            flipDirection === 'prev' && "animate-page-flip-prev"
+          )}
+        >
           {currentCards.map((card) => {
             const isCollected = collectedCardIds.has(card.id);
             const count = cardCountMap.get(card.id) || 0;
@@ -111,6 +118,7 @@ export const CollectionBook = memo(({ allCards, collectedCardIds, cardCountMap, 
 
       <div className="flex justify-between items-center mt-4 px-4">
         <Button variant="outline" size="icon" onClick={prevPage} disabled={currentPage === 0} className="bg-card/50">
+
           <ChevronLeft className="w-5 h-5" />
         </Button>
         
