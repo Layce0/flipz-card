@@ -107,6 +107,7 @@ const AppContent = () => {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
+          <Route path="/streak-restored" element={<StreakRestored />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
