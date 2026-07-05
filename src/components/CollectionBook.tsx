@@ -126,7 +126,7 @@ export const CollectionBook = memo(({ allCards, collectedCardIds, cardCountMap, 
           {pageButtons.map((pageIndex) => (
             <button
               key={pageIndex}
-              onClick={() => setCurrentPage(pageIndex)}
+              onClick={() => goToPage(pageIndex)}
               className={cn(
                 "w-8 h-8 rounded-lg text-sm font-medium transition-all",
                 currentPage === pageIndex 
