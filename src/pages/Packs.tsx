@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { MysteryCard } from '@/components/MysteryCard';
 import { PackOpeningAnimation } from '@/components/PackOpeningAnimation';
 import { PackSummary } from '@/components/shop/PackSummary';
-import { Play, Loader2, X, ChevronLeft, FastForward, Package } from 'lucide-react';
+import { Play, Loader2, X, ChevronLeft, FastForward } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserCards } from '@/hooks/useCards';
 import { useAdMob } from '@/hooks/useAdMob';
