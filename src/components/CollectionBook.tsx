@@ -17,6 +17,7 @@ interface CollectionBookProps {
 
 export const CollectionBook = memo(({ allCards, collectedCardIds, cardCountMap, obtainedAtMap, activeRarity, newCardIds, onCardClick }: CollectionBookProps) => {
   const [currentPage, setCurrentPage] = useState(0);
+  const [flipDirection, setFlipDirection] = useState<'next' | 'prev' | null>(null);
   const cardsPerPage = 4;
 
   const filteredCards = useMemo(() => {
@@ -53,15 +54,21 @@ export const CollectionBook = memo(({ allCards, collectedCardIds, cardCountMap, 
   if (prevRarityRef.current !== activeRarity) {
     prevRarityRef.current = activeRarity;
     setCurrentPage(0);
+    setFlipDirection(null);
   }
 
-  const nextPage = useCallback(() => {
-    setCurrentPage(prev => Math.min(prev + 1, totalPages - 1));
+  const goToPage = useCallback((target: number) => {
+    setCurrentPage(prev => {
+      const clamped = Math.max(0, Math.min(target, totalPages - 1));
+      if (clamped === prev) return prev;
+      setFlipDirection(clamped > prev ? 'next' : 'prev');
+      return clamped;
+    });
   }, [totalPages]);
 
-  const prevPage = useCallback(() => {
-    setCurrentPage(prev => Math.max(prev - 1, 0));
-  }, []);
+  const nextPage = useCallback(() => goToPage(currentPage + 1), [goToPage, currentPage]);
+  const prevPage = useCallback(() => goToPage(currentPage - 1), [goToPage, currentPage]);
+
 
   const handleCardClick = useCallback((card: GameCard, count: number) => {
     onCardClick?.(card, count);
