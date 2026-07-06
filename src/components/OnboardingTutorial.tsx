@@ -173,6 +173,11 @@ export const OnboardingTutorial = () => {
   useEffect(() => {
     if (phase !== 'tour') return;
     const step = TOUR_STEPS[tourStep];
+    // Skip the welcome pack step during replay (already claimed once)
+    if (isReplay && step.interaction === 'open-welcome-pack') {
+      advanceStep();
+      return;
+    }
     // Ensure we're on the right page for onPage steps
     if (step.onPage && location.pathname !== step.onPage) {
       navigate(step.onPage);
