@@ -14,7 +14,7 @@ interface PackSummaryProps {
 
 export const PackSummary = ({ cards, ownedSnapshot, onClose }: PackSummaryProps) => {
   const { t } = useTranslation();
-  const { getTitle } = useLocalizedCard();
+  const { getTitle, getDescription } = useLocalizedCard();
   const [selectedCard, setSelectedCard] = useState<GameCard | null>(null);
 
   const seen = new Set<string>();
