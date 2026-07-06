@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { GameCard, RARITY_CONFIG } from '@/types/card';
+import { X } from 'lucide-react';
+import { GameCard, RARITY_CONFIG, Rarity } from '@/types/card';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
 import { useLocalizedCard } from '@/hooks/useLocalizedCard';
-import { CardDetailDialog } from '@/components/CardDetailDialog';
+import { cn } from '@/lib/utils';
 
 interface PackSummaryProps {
   cards: GameCard[];
