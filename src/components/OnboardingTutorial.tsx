@@ -59,6 +59,7 @@ export const OnboardingTutorial = () => {
   const [targetRect, setTargetRect] = useState<Rect | null>(null);
   const [waitingForInteraction, setWaitingForInteraction] = useState(false);
   const [minimized, setMinimized] = useState(false);
+  const [isReplay, setIsReplay] = useState(false);
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
