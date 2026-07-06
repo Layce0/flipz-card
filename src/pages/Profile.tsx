@@ -26,7 +26,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { User, Settings, BarChart3, LogOut, Camera as CameraIcon, Lock, Save, GraduationCap, Info } from 'lucide-react';
+import { User, Settings, BarChart3, LogOut, Camera as CameraIcon, Lock, Save, GraduationCap, Info, FileText, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 
 const LANGUAGES = [
@@ -500,6 +500,32 @@ const Profile = () => {
                   >
                     <Info className="w-4 h-4 mr-2" />
                     {t('settings.privacyPolicy', 'Politique de confidentialité')}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      // Ouvrir les conditions d'utilisation
+                      window.open('https://layce0.github.io/flipz-app/#terms', '_blank');
+                    }}
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    {t('settings.terms', 'Conditions d\'utilisation')}
+                  </Button>
+                </div>
+
+                {/* Signaler une publicité */}
+                <div className="space-y-2">
+                  <Label>{t('settings.support', 'Support')}</Label>
+                  <Button
+                    variant="outline"
+                    className="w-full text-amber-500 hover:text-amber-600 hover:bg-amber-50"
+                    onClick={() => {
+                      window.open('mailto:wintak.group@gmail.com?subject=Signalement%20de%20publicit%C3%A9%20inappropri%C3%A9e', '_self');
+                    }}
+                  >
+                    <AlertTriangle className="w-4 h-4 mr-2" />
+                    {t('settings.reportAd', 'Signaler une publicité inappropriée')}
                   </Button>
                 </div>
 

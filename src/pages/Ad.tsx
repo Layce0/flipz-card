@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
 import { 
   Sparkles, Clock, Star, Gift, Smartphone, Gamepad2, 
   Volume2, VolumeX, RotateCcw, Trophy, ArrowDown, ChevronRight, Pointer, Flame
@@ -1416,18 +1417,20 @@ const Ad = () => {
             </a>
             
             {/* Bouton Google Play */}
-            <a 
-              href="https://play.google.com" 
-              target="_blank" 
-              rel="noreferrer"
-              className="btn-chrome-glint flex items-center justify-center gap-4 bg-gradient-to-b from-zinc-800 to-zinc-950 border border-white/10 px-8 py-3.5 rounded-2xl w-full hover:scale-105 active:scale-95 transition-all duration-300 shadow-xl"
-            >
-              <Gamepad2 className="w-7 h-7 text-white" />
-              <div className="flex flex-col text-left">
-                <span className="text-[8px] text-white/50 uppercase tracking-widest font-bold leading-none">Disponible sur</span>
-                <span className="text-base text-white font-black leading-none mt-1">Google Play</span>
-              </div>
-            </a>
+            {Capacitor.getPlatform() !== 'ios' && (
+              <a 
+                href="https://play.google.com" 
+                target="_blank" 
+                rel="noreferrer"
+                className="btn-chrome-glint flex items-center justify-center gap-4 bg-gradient-to-b from-zinc-800 to-zinc-950 border border-white/10 px-8 py-3.5 rounded-2xl w-full hover:scale-105 active:scale-95 transition-all duration-300 shadow-xl"
+              >
+                <Gamepad2 className="w-7 h-7 text-white" />
+                <div className="flex flex-col text-left">
+                  <span className="text-[8px] text-white/50 uppercase tracking-widest font-bold leading-none">Disponible sur</span>
+                  <span className="text-base text-white font-black leading-none mt-1">Google Play</span>
+                </div>
+              </a>
+            )}
 
           </div>
 
