@@ -176,6 +176,20 @@ export const OnboardingTutorial = () => {
       navigate(step.onPage);
     }
     setWaitingForInteraction(step.interaction !== 'none');
+
+    // For rarity tab steps, auto-click the tab and scroll it into view
+    if (step.selector.startsWith('[data-tour="rarity-tab-')) {
+      const tryActivate = (attempts = 0) => {
+        const el = document.querySelector(step.selector) as HTMLElement | null;
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+          el.click();
+        } else if (attempts < 20) {
+          setTimeout(() => tryActivate(attempts + 1), 100);
+        }
+      };
+      setTimeout(() => tryActivate(), 200);
+    }
   }, [phase, tourStep]);
 
   const handleLanguageChange = (code: string) => {
