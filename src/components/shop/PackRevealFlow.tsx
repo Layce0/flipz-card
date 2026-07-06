@@ -28,6 +28,7 @@ export const PackRevealFlow = ({ cards, isOpen, onClose, initialOwnedCardIds, pa
   const [cardRevealed, setCardRevealed] = useState(false);
   const [showPackAnimation, setShowPackAnimation] = useState(true);
   const [showSummary, setShowSummary] = useState(false);
+  const [skipToSummary, setSkipToSummary] = useState(false);
   const [slideDir, setSlideDir] = useState<{ x: number; y: number } | null>(null);
   const [dragX, setDragX] = useState(0);
   const [dragY, setDragY] = useState(0);
