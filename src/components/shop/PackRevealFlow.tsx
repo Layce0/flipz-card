@@ -69,7 +69,9 @@ export const PackRevealFlow = ({ cards, isOpen, onClose, initialOwnedCardIds, pa
     const normY = mag > 0 ? (dirY / mag) * 400 : 0;
     setSlideDir({ x: normX, y: normY });
     setTimeout(() => {
-      if (currentCardIndex < cards.length - 1) {
+      if (skipToSummary) {
+        setShowSummary(true);
+      } else if (currentCardIndex < cards.length - 1) {
         setCurrentCardIndex(prev => prev + 1);
         setCardRevealed(false);
       } else {
@@ -79,7 +81,20 @@ export const PackRevealFlow = ({ cards, isOpen, onClose, initialOwnedCardIds, pa
       setDragX(0);
       setDragY(0);
     }, 250);
-  }, [currentCardIndex, cards.length, dragX, dragY]);
+  }, [currentCardIndex, cards.length, dragX, dragY, skipToSummary]);
+
+  const handleSkip = useCallback(() => {
+    // Find next unrevealed legendary at/after current index
+    const startIdx = cardRevealed ? currentCardIndex + 1 : currentCardIndex;
+    const legendaryIdx = cards.findIndex((c, i) => i >= startIdx && c.rarity === 'legendary');
+    if (legendaryIdx !== -1) {
+      setCurrentCardIndex(legendaryIdx);
+      setCardRevealed(false);
+      setSkipToSummary(true);
+    } else {
+      setShowSummary(true);
+    }
+  }, [cards, currentCardIndex, cardRevealed]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (!cardRevealed) return;
