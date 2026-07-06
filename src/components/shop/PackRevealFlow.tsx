@@ -52,6 +52,7 @@ export const PackRevealFlow = ({ cards, isOpen, onClose, initialOwnedCardIds, pa
       setShowSummary(false);
       setCurrentCardIndex(0);
       setCardRevealed(false);
+      setSkipToSummary(false);
       setSlideDir(null);
       setDragX(0);
       setDragY(0);
