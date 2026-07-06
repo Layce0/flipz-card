@@ -59,6 +59,7 @@ export const OnboardingTutorial = () => {
   const [targetRect, setTargetRect] = useState<Rect | null>(null);
   const [waitingForInteraction, setWaitingForInteraction] = useState(false);
   const [minimized, setMinimized] = useState(false);
+  const [isReplay, setIsReplay] = useState(false);
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
@@ -86,6 +87,7 @@ export const OnboardingTutorial = () => {
       setTourStep(0);
       setWaitingForInteraction(false);
       setMinimized(false);
+      setIsReplay(true);
       setPhase('lang');
     };
     window.addEventListener('flipz:replay-tutorial', handler);
@@ -171,6 +173,11 @@ export const OnboardingTutorial = () => {
   useEffect(() => {
     if (phase !== 'tour') return;
     const step = TOUR_STEPS[tourStep];
+    // Skip the welcome pack step during replay (already claimed once)
+    if (isReplay && step.interaction === 'open-welcome-pack') {
+      advanceStep();
+      return;
+    }
     // Ensure we're on the right page for onPage steps
     if (step.onPage && location.pathname !== step.onPage) {
       navigate(step.onPage);
