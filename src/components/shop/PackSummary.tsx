@@ -89,12 +89,65 @@ export const PackSummary = ({ cards, ownedSnapshot, onClose }: PackSummaryProps)
         </div>
       </div>
 
-      <CardDetailDialog
-        card={selectedCard}
-        count={selectedCard ? counts[selectedCard.id] || 1 : 1}
-        open={!!selectedCard}
-        onOpenChange={(open) => !open && setSelectedCard(null)}
-      />
+      {selectedCard && (() => {
+        const config = RARITY_CONFIG[selectedCard.rarity as Rarity];
+        const count = counts[selectedCard.id] || 1;
+        return (
+          <div
+            className="fixed inset-0 z-[90] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
+            onClick={() => setSelectedCard(null)}
+          >
+            <div
+              className="relative w-full max-w-sm rounded-2xl overflow-hidden bg-card border-2 shadow-2xl animate-scale-in"
+              style={{ borderColor: config.color }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setSelectedCard(null)}
+                className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-background/80 flex items-center justify-center hover:bg-background transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="relative aspect-[3/4] w-full">
+                <img
+                  src={selectedCard.image_url}
+                  alt={getTitle(selectedCard)}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
+
+                <div className="absolute top-3 left-3 bg-primary text-primary-foreground px-3 py-1.5 rounded-full text-sm font-bold shadow-lg">
+                  ×{count}
+                </div>
+
+                <div
+                  className={cn(
+                    "absolute top-3 right-12 px-3 py-1 rounded-full text-xs font-semibold uppercase",
+                    config.bgClass
+                  )}
+                  style={{ color: selectedCard.rarity === 'legendary' ? 'hsl(240, 20%, 6%)' : 'white' }}
+                >
+                  {t(`rarity.${selectedCard.rarity}`)}
+                </div>
+
+                {selectedCard.rarity === 'legendary' && (
+                  <div className="shimmer absolute inset-0 pointer-events-none" />
+                )}
+              </div>
+
+              <div className="p-4 space-y-4">
+                <div>
+                  <h2 className="font-display text-xl text-foreground">{getTitle(selectedCard)}</h2>
+                  <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+                    {getDescription(selectedCard)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };
