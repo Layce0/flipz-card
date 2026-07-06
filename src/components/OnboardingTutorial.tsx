@@ -87,6 +87,7 @@ export const OnboardingTutorial = () => {
       setTourStep(0);
       setWaitingForInteraction(false);
       setMinimized(false);
+      setIsReplay(true);
       setPhase('lang');
     };
     window.addEventListener('flipz:replay-tutorial', handler);
