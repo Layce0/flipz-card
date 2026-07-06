@@ -28,6 +28,7 @@ export const PackRevealFlow = ({ cards, isOpen, onClose, initialOwnedCardIds, pa
   const [cardRevealed, setCardRevealed] = useState(false);
   const [showPackAnimation, setShowPackAnimation] = useState(true);
   const [showSummary, setShowSummary] = useState(false);
+  const [skipToSummary, setSkipToSummary] = useState(false);
   const [slideDir, setSlideDir] = useState<{ x: number; y: number } | null>(null);
   const [dragX, setDragX] = useState(0);
   const [dragY, setDragY] = useState(0);
@@ -51,6 +52,7 @@ export const PackRevealFlow = ({ cards, isOpen, onClose, initialOwnedCardIds, pa
       setShowSummary(false);
       setCurrentCardIndex(0);
       setCardRevealed(false);
+      setSkipToSummary(false);
       setSlideDir(null);
       setDragX(0);
       setDragY(0);
@@ -67,7 +69,9 @@ export const PackRevealFlow = ({ cards, isOpen, onClose, initialOwnedCardIds, pa
     const normY = mag > 0 ? (dirY / mag) * 400 : 0;
     setSlideDir({ x: normX, y: normY });
     setTimeout(() => {
-      if (currentCardIndex < cards.length - 1) {
+      if (skipToSummary) {
+        setShowSummary(true);
+      } else if (currentCardIndex < cards.length - 1) {
         setCurrentCardIndex(prev => prev + 1);
         setCardRevealed(false);
       } else {
@@ -77,7 +81,20 @@ export const PackRevealFlow = ({ cards, isOpen, onClose, initialOwnedCardIds, pa
       setDragX(0);
       setDragY(0);
     }, 250);
-  }, [currentCardIndex, cards.length, dragX, dragY]);
+  }, [currentCardIndex, cards.length, dragX, dragY, skipToSummary]);
+
+  const handleSkip = useCallback(() => {
+    // Find next unrevealed legendary at/after current index
+    const startIdx = cardRevealed ? currentCardIndex + 1 : currentCardIndex;
+    const legendaryIdx = cards.findIndex((c, i) => i >= startIdx && c.rarity === 'legendary');
+    if (legendaryIdx !== -1) {
+      setCurrentCardIndex(legendaryIdx);
+      setCardRevealed(false);
+      setSkipToSummary(true);
+    } else {
+      setShowSummary(true);
+    }
+  }, [cards, currentCardIndex, cardRevealed]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (!cardRevealed) return;
@@ -279,7 +296,7 @@ export const PackRevealFlow = ({ cards, isOpen, onClose, initialOwnedCardIds, pa
       <Button
         variant="ghost"
         size="sm"
-        onClick={() => setShowSummary(true)}
+        onClick={handleSkip}
         className="absolute bottom-6 left-1/2 -translate-x-1/2 gap-2 bg-card/20 hover:bg-card/30 backdrop-blur-sm border border-border/20 text-muted-foreground/70"
       >
         <FastForward className="w-4 h-4" />

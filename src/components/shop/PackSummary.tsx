@@ -1,8 +1,9 @@
+import { useState } from 'react';
 import { GameCard, RARITY_CONFIG } from '@/types/card';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
 import { useLocalizedCard } from '@/hooks/useLocalizedCard';
-import { cn } from '@/lib/utils';
+import { CardDetailDialog } from '@/components/CardDetailDialog';
 
 interface PackSummaryProps {
   cards: GameCard[];
@@ -13,6 +14,7 @@ interface PackSummaryProps {
 export const PackSummary = ({ cards, ownedSnapshot, onClose }: PackSummaryProps) => {
   const { t } = useTranslation();
   const { getTitle } = useLocalizedCard();
+  const [selectedCard, setSelectedCard] = useState<GameCard | null>(null);
 
   const seen = new Set<string>();
   const enriched = cards.map((c) => {
@@ -21,6 +23,11 @@ export const PackSummary = ({ cards, ownedSnapshot, onClose }: PackSummaryProps)
     return { card: c, isNew };
   });
   const newCount = enriched.filter((e) => e.isNew).length;
+
+  const counts = cards.reduce<Record<string, number>>((acc, c) => {
+    acc[c.id] = (acc[c.id] || 0) + 1;
+    return acc;
+  }, {});
 
   return (
     <div className="fixed inset-0 z-[70] bg-background flex flex-col items-center p-4 overflow-y-auto">
@@ -40,7 +47,12 @@ export const PackSummary = ({ cards, ownedSnapshot, onClose }: PackSummaryProps)
             const rarity = RARITY_CONFIG[card.rarity];
             const rarityColor = `hsl(var(--rarity-${card.rarity}))`;
             return (
-              <div key={idx} className="flex flex-col items-center">
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setSelectedCard(card)}
+                className="flex flex-col items-center focus:outline-none transition-transform active:scale-95 hover:scale-105"
+              >
                 <div
                   className="relative w-full aspect-[3/4] rounded-lg overflow-hidden border-2"
                   style={{
@@ -62,7 +74,7 @@ export const PackSummary = ({ cards, ownedSnapshot, onClose }: PackSummaryProps)
                 <p className="text-[10px] text-center mt-1 truncate w-full" style={{ color: rarityColor }}>
                   {rarity?.label}
                 </p>
-              </div>
+              </button>
             );
           })}
         </div>
@@ -75,6 +87,13 @@ export const PackSummary = ({ cards, ownedSnapshot, onClose }: PackSummaryProps)
           </Button>
         </div>
       </div>
+
+      <CardDetailDialog
+        card={selectedCard}
+        count={selectedCard ? counts[selectedCard.id] || 1 : 1}
+        open={!!selectedCard}
+        onOpenChange={(open) => !open && setSelectedCard(null)}
+      />
     </div>
   );
 };
