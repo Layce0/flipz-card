@@ -1,5 +1,7 @@
 import UIKit
 import Capacitor
+import AppTrackingTransparency
+import AdSupport
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -27,6 +29,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationDidBecomeActive(_ application: UIApplication) {
         // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+        // Request App Tracking Transparency authorization (required for AdMob)
+        if #available(iOS 14, *) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                ATTrackingManager.requestTrackingAuthorization { status in
+                    // Status: .authorized, .denied, .notDetermined, .restricted
+                    // AdMob will automatically adapt based on the authorization status
+                }
+            }
+        }
     }
 
     func applicationWillTerminate(_ application: UIApplication) {
