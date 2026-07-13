@@ -96,7 +96,9 @@ const Auth = () => {
 
     setIsLoading(true);
 
-    const validation = authSchema.safeParse({ email, password });
+    const cleanEmail = email.trim();
+
+    const validation = authSchema.safeParse({ email: cleanEmail, password });
     if (!validation.success) {
       toast.error(validation.error.issues[0].message);
       setIsLoading(false);
@@ -117,7 +119,7 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        const { error } = await signIn(email, password);
+        const { error } = await signIn(cleanEmail, password);
         if (error) {
           const newAttempts = failedAttempts + 1;
           setFailedAttempts(newAttempts);
@@ -140,7 +142,7 @@ const Auth = () => {
           navigate(safeNext, { replace: true });
         }
       } else {
-        const { error } = await signUp(email, password);
+        const { error } = await signUp(cleanEmail, password);
         if (error) {
           if (error.message.includes('already registered')) {
             toast.error(t('auth.emailAlreadyUsed'));
@@ -314,6 +316,29 @@ const Auth = () => {
               </>
             )}
           </Button>
+          
+          {/* Apple Review Demo Button */}
+          {isLogin && (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full mt-2"
+              onClick={async () => {
+                setIsLoading(true);
+                const { error } = await signIn('layce.industry.v2@gmail.com', '123456');
+                if (error) {
+                  toast.error(`Demo login failed: ${error.message}`);
+                } else {
+                  toast.success(t('auth.loginSuccess'));
+                  navigate(safeNext, { replace: true });
+                }
+                setIsLoading(false);
+              }}
+              disabled={isLoading || isLockedOut}
+            >
+              Mode Démo
+            </Button>
+          )}
         </form>
 
         {/* Toggle */}
