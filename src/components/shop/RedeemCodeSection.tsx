@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Ticket, Loader2, Check } from 'lucide-react';
@@ -19,6 +20,11 @@ export const RedeemCodeSection = ({ userCards }: RedeemCodeSectionProps) => {
   const [code, setCode] = useState('');
   const [isRedeeming, setIsRedeeming] = useState(false);
   const queryClient = useQueryClient();
+
+  // Promo codes are not permitted on iOS (App Store Guideline 3.1.1).
+  // Hide the section entirely on native iOS — use Apple IAP Offer Codes instead.
+  const isNativeIOS = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios';
+  if (isNativeIOS) return null;
 
   // Pack reveal state
   const [revealedCards, setRevealedCards] = useState<GameCard[]>([]);
