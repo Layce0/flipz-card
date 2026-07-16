@@ -38,12 +38,45 @@ const extractReceiptData = (transaction: any): string | null => {
   );
 };
 
+/**
+ * Wait for a product to appear in the store after initialization.
+ * The sandbox environment can be significantly slower than production,
+ * so we retry up to maxAttempts times with a delay between each.
+ */
+const waitForProduct = (
+  productId: string,
+  maxAttempts = 8,
+  delayMs = 750
+): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    let attempts = 0;
+
+    const attempt = () => {
+      attempts++;
+      const product = CdvPurchase.store.get(productId, CdvPurchase.Platform.APPLE_APPSTORE);
+      if (product) {
+        resolve(product);
+        return;
+      }
+      if (attempts >= maxAttempts) {
+        reject(new Error(`Product "${productId}" not found after ${maxAttempts} attempts`));
+        return;
+      }
+      setTimeout(attempt, delayMs);
+    };
+
+    attempt();
+  });
+};
+
 export const useAppleBilling = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [loadingPackId, setLoadingPackId] = useState<string | null>(null);
   const [prices, setPrices] = useState<Record<string, string>>({});
+  // True once CdvPurchase.store fires its "ready" event — products are loaded.
+  const [isStoreReady, setIsStoreReady] = useState(false);
 
   const isNativeIOS = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios';
 
@@ -163,7 +196,13 @@ export const useAppleBilling = () => {
         }
       });
 
-      // 5. Initialise — products will load asynchronously
+      // 5. Mark the store as ready once all products have been fetched from Apple.
+      //    This fires after initialize() completes and products are available.
+      CdvPurchase.store.when().ready(() => {
+        setIsStoreReady(true);
+      });
+
+      // 6. Initialise — products will load asynchronously; .ready() fires when done
       CdvPurchase.store.initialize([CdvPurchase.Platform.APPLE_APPSTORE]);
     } catch (e) {
       console.error('CdvPurchase init error', e);
@@ -188,16 +227,24 @@ export const useAppleBilling = () => {
         return;
       }
 
-      const product = CdvPurchase.store.get(productId, CdvPurchase.Platform.APPLE_APPSTORE);
-      if (!product) {
-        toast.error("Produit non disponible sur l'App Store. Vérifiez votre connexion.");
-        return;
-      }
-
       setLoading(true);
       setLoadingPackId(packId);
 
       try {
+        // Wait for the product to be available in the store.
+        // In the sandbox the store can take several seconds to fully load products
+        // after initialize() completes, so we retry with a backoff instead of
+        // failing immediately.
+        let product: any;
+        try {
+          product = await waitForProduct(productId);
+        } catch (_) {
+          toast.error(
+            t('shop.productNotAvailable', "Ce produit n'est pas encore disponible. Réessayez dans quelques secondes.")
+          );
+          return;
+        }
+
         await new Promise<void>((resolve, reject) => {
           // Register pending purchase context for the global listener
           pendingRef.current = {
@@ -213,7 +260,7 @@ export const useAppleBilling = () => {
           const offer = product.getOffer();
           if (!offer) {
             pendingRef.current = null;
-            reject(new Error("Aucune offre disponible pour ce produit"));
+            reject(new Error('Aucune offre disponible pour ce produit'));
             return;
           }
           offer.order().catch((err: any) => {
@@ -242,5 +289,5 @@ export const useAppleBilling = () => {
     [user, t, isNativeIOS],
   );
 
-  return { purchase, loading, loadingPackId, isNativeIOS, prices };
+  return { purchase, loading, loadingPackId, isNativeIOS, prices, isStoreReady };
 };

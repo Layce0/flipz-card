@@ -7,7 +7,7 @@ import { PackSection } from '@/components/shop/PackSection';
 import { TradeOverviewDialog } from '@/components/shop/TradeOverviewDialog';
 import { PackRevealFlow } from '@/components/shop/PackRevealFlow';
 import { Button } from '@/components/ui/button';
-import { Loader2, Sparkles } from 'lucide-react';
+import { Loader2, Sparkles, RefreshCw } from 'lucide-react';
 import { getPacksByType, TRADE_CONFIG } from '@/types/pack';
 import { Rarity } from '@/types/card';
 import { toast } from 'sonner';
@@ -235,12 +235,19 @@ const Shop = () => {
           </div>
         ) : (
           <>
+            {/* Show a banner while the iOS store is initializing */}
+            {appleBilling.isNativeIOS && !appleBilling.isStoreReady && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground py-3 px-4 rounded-xl bg-white/5 border border-white/10">
+                <RefreshCw className="w-4 h-4 animate-spin shrink-0" />
+                <span>{t('shop.storeLoading', 'Connexion à l\'App Store…')}</span>
+              </div>
+            )}
             <PackSection
               title={t('shop.standardPacks')}
               description={t('shop.standardPacksDesc')}
               packs={standardPacks}
               onPurchase={handlePurchase}
-              isLoading={!!loadingPackId || googleBilling.loading || appleBilling.loading}
+              isLoading={!!loadingPackId || googleBilling.loading || appleBilling.loading || (appleBilling.isNativeIOS && !appleBilling.isStoreReady)}
               loadingPackId={loadingPackId || googleBilling.loadingPackId || appleBilling.loadingPackId}
               localPrices={{ ...googleBilling.prices, ...appleBilling.prices }}
             />
@@ -249,7 +256,7 @@ const Shop = () => {
               description={t('shop.luckyPacksDesc')}
               packs={luckyPacks}
               onPurchase={handlePurchase}
-              isLoading={!!loadingPackId || googleBilling.loading || appleBilling.loading}
+              isLoading={!!loadingPackId || googleBilling.loading || appleBilling.loading || (appleBilling.isNativeIOS && !appleBilling.isStoreReady)}
               loadingPackId={loadingPackId || googleBilling.loadingPackId || appleBilling.loadingPackId}
               localPrices={{ ...googleBilling.prices, ...appleBilling.prices }}
             />
@@ -258,7 +265,7 @@ const Shop = () => {
               description={t('shop.ultraPacksDesc')}
               packs={ultraPacks}
               onPurchase={handlePurchase}
-              isLoading={!!loadingPackId || googleBilling.loading || appleBilling.loading}
+              isLoading={!!loadingPackId || googleBilling.loading || appleBilling.loading || (appleBilling.isNativeIOS && !appleBilling.isStoreReady)}
               loadingPackId={loadingPackId || googleBilling.loadingPackId || appleBilling.loadingPackId}
               localPrices={{ ...googleBilling.prices, ...appleBilling.prices }}
             />

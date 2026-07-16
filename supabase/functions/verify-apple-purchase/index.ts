@@ -46,6 +46,22 @@ const logStep = (step: string, details?: any) => {
   console.log(`[VERIFY-APPLE-PURCHASE] ${step}${detailsStr}`);
 };
 
+// Human-readable descriptions for Apple receipt validation status codes.
+// https://developer.apple.com/documentation/appstorereceipts/status
+const APPLE_STATUS_DESCRIPTIONS: Record<number, string> = {
+  0:     'Valid receipt',
+  21000: 'App Store could not read the JSON object',
+  21002: 'Receipt data malformed or missing',
+  21003: 'Receipt could not be authenticated',
+  21004: 'Shared secret does not match — check APPLE_SHARED_SECRET',
+  21005: 'Receipt server is not currently available',
+  21006: 'Receipt is valid but subscription has expired',
+  21007: 'Sandbox receipt sent to production — retrying against sandbox',
+  21008: 'Production receipt sent to sandbox',
+  21009: 'Internal data access error',
+  21010: 'User account not found — account may have been deleted',
+};
+
 const verifyAppleReceipt = async (receiptData: string): Promise<any> => {
   const sharedSecret = Deno.env.get("APPLE_SHARED_SECRET");
   if (!sharedSecret) throw new Error("APPLE_SHARED_SECRET non configurÚ");
@@ -64,17 +80,20 @@ const verifyAppleReceipt = async (receiptData: string): Promise<any> => {
   let data = await res.json();
 
   if (data.status === 21007) {
-    verifyUrl = "https://sandbox.itunes.apple.com/verifyReceipt";
+    logStep('Sandbox receipt detected, retrying against sandbox endpoint');
+    verifyUrl = 'https://sandbox.itunes.apple.com/verifyReceipt';
     res = await fetch(verifyUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(verifyPayload),
     });
     data = await res.json();
   }
 
   if (data.status !== 0) {
-    throw new Error(`Erreur validation Apple: status ${data.status}`);
+    const description = APPLE_STATUS_DESCRIPTIONS[data.status] ?? 'Unknown error';
+    logStep('Apple receipt validation failed', { status: data.status, description });
+    throw new Error(`Erreur validation Apple: status ${data.status} — ${description}`);
   }
 
   return data.receipt;
