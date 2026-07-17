@@ -106,12 +106,6 @@ jobs:
             -exportOptionsPlist exportOptions.plist \
             -exportPath $PWD/build/export
 
-      - name: Upload IPA Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: flipz-ios-app
-          path: ios/App/build/export/*.ipa
-
       - name: Upload to App Store Connect
         env:
           APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
@@ -133,9 +127,15 @@ jobs:
             --apiKey "$APP_STORE_CONNECT_API_KEY_ID" \
             --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID"
 
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        continue-on-error: true
+        with:
+          name: flipz-ios-app
+          path: ios/App/build/export/*.ipa
+          retention-days: 7
+
       - name: Clean up keychain
         if: always()
         run: |
           security delete-keychain $RUNNER_TEMP/app-signing.keychain-db || true
-# Trigger build
-# Trigger build after password
