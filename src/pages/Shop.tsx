@@ -7,7 +7,7 @@ import { PackSection } from '@/components/shop/PackSection';
 import { TradeOverviewDialog } from '@/components/shop/TradeOverviewDialog';
 import { PackRevealFlow } from '@/components/shop/PackRevealFlow';
 import { Button } from '@/components/ui/button';
-import { Loader2, Sparkles, RefreshCw } from 'lucide-react';
+import { Loader2, Sparkles, RefreshCw, AlertTriangle } from 'lucide-react';
 import { getPacksByType, TRADE_CONFIG } from '@/types/pack';
 import { Rarity } from '@/types/card';
 import { toast } from 'sonner';
@@ -27,6 +27,7 @@ const Shop = () => {
   const tradeCards = useTradeCards();
   const googleBilling = useGoogleBilling();
   const appleBilling = useAppleBilling();
+  const { storeError, retryInit } = appleBilling;
 
   const [loadingPackId, setLoadingPackId] = useState<string | null>(null);
   const [isTrading, setIsTrading] = useState(false);
@@ -235,11 +236,33 @@ const Shop = () => {
           </div>
         ) : (
           <>
-            {/* Show a banner while the iOS store is initializing */}
-            {appleBilling.isNativeIOS && !appleBilling.isStoreReady && (
+            {/* Informational banner while iOS store is initializing */}
+            {appleBilling.isNativeIOS && !appleBilling.isStoreReady && !storeError && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground py-3 px-4 rounded-xl bg-white/5 border border-white/10">
                 <RefreshCw className="w-4 h-4 animate-spin shrink-0" />
                 <span>{t('shop.storeLoading', 'Connexion à l\'App Store…')}</span>
+              </div>
+            )}
+            {/* Error banner with retry button if store init failed or timed out */}
+            {appleBilling.isNativeIOS && storeError && (
+              <div className="flex items-center justify-between gap-3 text-sm py-3 px-4 rounded-xl bg-orange-500/10 border border-orange-500/20">
+                <div className="flex items-center gap-2 text-orange-300">
+                  <AlertTriangle className="w-4 h-4 shrink-0" />
+                  <span>
+                    {storeError === 'timeout'
+                      ? t('shop.storeTimeout', 'L\'App Store met du temps à répondre. Vous pouvez quand même essayer d\'acheter.')
+                      : t('shop.storeError', 'Erreur de connexion à l\'App Store. Vous pouvez réessayer.')}
+                  </span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={retryInit}
+                  className="shrink-0 border-orange-500/30 text-orange-300 hover:bg-orange-500/20"
+                >
+                  <RefreshCw className="w-3 h-3 mr-1" />
+                  {t('shop.retry', 'Réessayer')}
+                </Button>
               </div>
             )}
             <PackSection
@@ -247,7 +270,7 @@ const Shop = () => {
               description={t('shop.standardPacksDesc')}
               packs={standardPacks}
               onPurchase={handlePurchase}
-              isLoading={!!loadingPackId || googleBilling.loading || appleBilling.loading || (appleBilling.isNativeIOS && !appleBilling.isStoreReady)}
+              isLoading={!!loadingPackId || googleBilling.loading || appleBilling.loading}
               loadingPackId={loadingPackId || googleBilling.loadingPackId || appleBilling.loadingPackId}
               localPrices={{ ...googleBilling.prices, ...appleBilling.prices }}
             />
@@ -256,7 +279,7 @@ const Shop = () => {
               description={t('shop.luckyPacksDesc')}
               packs={luckyPacks}
               onPurchase={handlePurchase}
-              isLoading={!!loadingPackId || googleBilling.loading || appleBilling.loading || (appleBilling.isNativeIOS && !appleBilling.isStoreReady)}
+              isLoading={!!loadingPackId || googleBilling.loading || appleBilling.loading}
               loadingPackId={loadingPackId || googleBilling.loadingPackId || appleBilling.loadingPackId}
               localPrices={{ ...googleBilling.prices, ...appleBilling.prices }}
             />
@@ -265,7 +288,7 @@ const Shop = () => {
               description={t('shop.ultraPacksDesc')}
               packs={ultraPacks}
               onPurchase={handlePurchase}
-              isLoading={!!loadingPackId || googleBilling.loading || appleBilling.loading || (appleBilling.isNativeIOS && !appleBilling.isStoreReady)}
+              isLoading={!!loadingPackId || googleBilling.loading || appleBilling.loading}
               loadingPackId={loadingPackId || googleBilling.loadingPackId || appleBilling.loadingPackId}
               localPrices={{ ...googleBilling.prices, ...appleBilling.prices }}
             />

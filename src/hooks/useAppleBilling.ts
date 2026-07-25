@@ -69,6 +69,9 @@ const waitForProduct = (
   });
 };
 
+/** Maximum time (ms) to wait for the store to become ready before unblocking the UI. */
+const STORE_INIT_TIMEOUT_MS = 15_000;
+
 export const useAppleBilling = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
@@ -77,11 +80,15 @@ export const useAppleBilling = () => {
   const [prices, setPrices] = useState<Record<string, string>>({});
   // True once CdvPurchase.store fires its "ready" event — products are loaded.
   const [isStoreReady, setIsStoreReady] = useState(false);
+  // Non-null when the store init failed or timed out — contains the error reason.
+  const [storeError, setStoreError] = useState<string | null>(null);
 
   const isNativeIOS = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios';
 
   // Tracks whether the store has already been initialized to prevent duplicate inits.
   const initializedRef = useRef(false);
+  // Safety timeout ref — cleared when .ready() fires.
+  const initTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // A pending purchase resolver/rejecter so the single global listener can
   // communicate back to the per-purchase Promise.
@@ -94,10 +101,18 @@ export const useAppleBilling = () => {
     finished: boolean;
   } | null>(null);
 
-  useEffect(() => {
-    if (!isNativeIOS || typeof CdvPurchase === 'undefined') return;
-    if (initializedRef.current) return;
-    initializedRef.current = true;
+  /** Core initialization logic — extracted so retryInit can reuse it. */
+  const initStore = useCallback(() => {
+    if (typeof CdvPurchase === 'undefined') {
+      console.warn('CdvPurchase is not available');
+      setStoreError('plugin_unavailable');
+      setIsStoreReady(true); // Unblock UI — purchases will fail individually with a clear message
+      return;
+    }
+
+    // Reset states for fresh / retry initialization
+    setStoreError(null);
+    setIsStoreReady(false);
 
     try {
       // 1. Register all products
@@ -199,15 +214,69 @@ export const useAppleBilling = () => {
       // 5. Mark the store as ready once all products have been fetched from Apple.
       //    This fires after initialize() completes and products are available.
       CdvPurchase.store.when().ready(() => {
+        if (initTimeoutRef.current) {
+          clearTimeout(initTimeoutRef.current);
+          initTimeoutRef.current = null;
+        }
+        setStoreError(null);
         setIsStoreReady(true);
       });
 
-      // 6. Initialise — products will load asynchronously; .ready() fires when done
+      // 5b. Listen for store-level errors so we can unblock the UI
+      CdvPurchase.store.when().error((err: any) => {
+        console.error('CdvPurchase store error:', err);
+        // Don't block the UI — individual purchases handle their own errors
+        if (!isStoreReady) {
+          setStoreError(err?.message || 'store_error');
+          setIsStoreReady(true);
+        }
+      });
+
+      // 6. Safety timeout — if .ready() never fires, unblock the UI after 15 seconds.
+      //    This is the CRITICAL FIX for the Apple rejection: without this, the store
+      //    spinner would spin forever in the sandbox environment.
+      if (initTimeoutRef.current) clearTimeout(initTimeoutRef.current);
+      initTimeoutRef.current = setTimeout(() => {
+        setIsStoreReady(current => {
+          if (!current) {
+            console.warn(`Apple store init timed out after ${STORE_INIT_TIMEOUT_MS}ms — forcing ready`);
+            setStoreError('timeout');
+            return true; // Unblock UI
+          }
+          return current;
+        });
+      }, STORE_INIT_TIMEOUT_MS);
+
+      // 7. Initialise — products will load asynchronously; .ready() fires when done
       CdvPurchase.store.initialize([CdvPurchase.Platform.APPLE_APPSTORE]);
-    } catch (e) {
+    } catch (e: any) {
       console.error('CdvPurchase init error', e);
+      setStoreError(e?.message || 'init_failed');
+      setIsStoreReady(true); // Unblock UI even on crash
     }
-  }, [isNativeIOS]);
+  }, [isNativeIOS, user?.id, t]);
+
+  // Auto-initialize on first mount for native iOS
+  useEffect(() => {
+    if (!isNativeIOS) return;
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+    initStore();
+
+    return () => {
+      if (initTimeoutRef.current) {
+        clearTimeout(initTimeoutRef.current);
+        initTimeoutRef.current = null;
+      }
+    };
+  }, [isNativeIOS, initStore]);
+
+  /** Allow the Shop UI to retry initialization after a timeout or error. */
+  const retryInit = useCallback(() => {
+    initializedRef.current = false;
+    initStore();
+    initializedRef.current = true;
+  }, [initStore]);
 
   const purchase = useCallback(
     async (packId: string, onSuccess: (cards: any[], packType: string) => void) => {
@@ -289,5 +358,5 @@ export const useAppleBilling = () => {
     [user, t, isNativeIOS],
   );
 
-  return { purchase, loading, loadingPackId, isNativeIOS, prices, isStoreReady };
+  return { purchase, loading, loadingPackId, isNativeIOS, prices, isStoreReady, storeError, retryInit };
 };
