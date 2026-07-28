@@ -10,7 +10,7 @@ export const GOOGLE_PLAY_PRODUCT_IDS: Record<string, string> = {
   standard_10: "pack_standard_10",
   standard_20: "pack_standard_20",
   standard_50: "pack_standard_50",
-  lucky_5: "pack_lucky_5",
+  lucky_5: "Pack_lucky_5",
   lucky_10: "pack_lucky_10",
   lucky_20: "pack_lucky_20",
   lucky_50: "pack_lucky_50",
@@ -62,7 +62,7 @@ export const useRevenueCat = () => {
               if (data.cards && data.cards.length > 0) {
                 setPurchasedCards(data.cards);
                 setShowPurchaseReward(true);
-                toast.success(`${data.cardCount} cartes reçues !`);
+                toast.success(`${data.cardCount} cartes reï¿½ues !`);
                 refetchCards();
               }
               resolve();

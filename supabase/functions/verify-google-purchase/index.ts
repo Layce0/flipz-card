@@ -11,7 +11,7 @@ const PACK_CONFIGS: Record<string, { cardCount: number; type: string }> = {
   pack_standard_10: { cardCount: 10, type: "standard" },
   pack_standard_20: { cardCount: 20, type: "standard" },
   pack_standard_50: { cardCount: 50, type: "standard" },
-  pack_lucky_5:     { cardCount: 5,  type: "lucky" },
+  Pack_lucky_5:     { cardCount: 5,  type: "lucky" },
   pack_lucky_10:    { cardCount: 10, type: "lucky" },
   pack_lucky_20:    { cardCount: 20, type: "lucky" },
   pack_lucky_50:    { cardCount: 50, type: "lucky" },

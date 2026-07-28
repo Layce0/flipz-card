@@ -12,7 +12,7 @@ const PACK_TO_PRODUCT: Record<string, string> = {
   standard_10: 'pack_standard_10',
   standard_20: 'pack_standard_20',
   standard_50: 'pack_standard_50',
-  lucky_5: 'pack_lucky_5',
+  lucky_5: 'Pack_lucky_5',
   lucky_10: 'pack_lucky_10',
   lucky_20: 'pack_lucky_20',
   lucky_50: 'pack_lucky_50',
