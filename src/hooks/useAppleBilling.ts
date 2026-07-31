@@ -187,16 +187,10 @@ export const useAppleBilling = () => {
         }
       });
 
-      // 3. Register the cancelled listener ONCE
-      CdvPurchase.store.when().cancelled(() => {
-        const pending = pendingRef.current;
-        if (!pending || pending.finished) return;
-        pending.finished = true;
-        pending.reject({ code: 'USER_CANCELED' });
-      });
+
 
       // 4. Fetch localised prices as products load
-      CdvPurchase.store.when().updated((product: any) => {
+      CdvPurchase.store.when().productUpdated((product: any) => {
         if (product.pricing?.price) {
           const packId = Object.keys(PACK_TO_PRODUCT).find(
             key => PACK_TO_PRODUCT[key] === product.id
@@ -213,7 +207,7 @@ export const useAppleBilling = () => {
 
       // 5. Mark the store as ready once all products have been fetched from Apple.
       //    This fires after initialize() completes and products are available.
-      CdvPurchase.store.when().ready(() => {
+      CdvPurchase.store.ready(() => {
         if (initTimeoutRef.current) {
           clearTimeout(initTimeoutRef.current);
           initTimeoutRef.current = null;
@@ -223,7 +217,7 @@ export const useAppleBilling = () => {
       });
 
       // 5b. Listen for store-level errors so we can unblock the UI
-      CdvPurchase.store.when().error((err: any) => {
+      CdvPurchase.store.error((err: any) => {
         console.error('CdvPurchase store error:', err);
         // Don't block the UI — individual purchases handle their own errors
         if (!isStoreReady) {
@@ -332,7 +326,15 @@ export const useAppleBilling = () => {
             reject(new Error('Aucune offre disponible pour ce produit'));
             return;
           }
-          offer.order().catch((err: any) => {
+          offer.order().then((err: any) => {
+            if (err) {
+              if (pendingRef.current && !pendingRef.current.finished) {
+                pendingRef.current.finished = true;
+                pendingRef.current = null;
+                reject(err);
+              }
+            }
+          }).catch((err: any) => {
             if (pendingRef.current && !pendingRef.current.finished) {
               pendingRef.current.finished = true;
               pendingRef.current = null;
@@ -342,7 +344,7 @@ export const useAppleBilling = () => {
         });
       } catch (err: any) {
         const code = err?.code || err?.message || 'UNKNOWN';
-        if (code === 'USER_CANCELED' || /cancel/i.test(String(code))) {
+        if (code === 'USER_CANCELED' || code === 6 || /cancel/i.test(String(code))) {
           toast.error(t('shop.purchaseCanceled'));
         } else {
           const debugMsg = err?.message || err?.code || JSON.stringify(err);
