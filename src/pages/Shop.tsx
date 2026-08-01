@@ -243,28 +243,21 @@ const Shop = () => {
                 <span>{t('shop.storeLoading', 'Connexion à l\'App Store…')}</span>
               </div>
             )}
-            {/* Error banner with retry button if store init failed or timed out */}
+            {/* Store slow to answer: discrete retry, no alarming error box */}
             {appleBilling.isNativeIOS && storeError && (
-              <div className="flex items-center justify-between gap-3 text-sm py-3 px-4 rounded-xl bg-orange-500/10 border border-orange-500/20">
-                <div className="flex items-center gap-2 text-orange-300">
-                  <AlertTriangle className="w-4 h-4 shrink-0" />
-                  <span>
-                    {storeError === 'timeout'
-                      ? t('shop.storeTimeout', 'L\'App Store met du temps à répondre. Vous pouvez quand même essayer d\'acheter.')
-                      : t('shop.storeError', 'Erreur de connexion à l\'App Store. Vous pouvez réessayer.')}
-                  </span>
-                </div>
+              <div className="flex justify-end">
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={retryInit}
-                  className="shrink-0 border-orange-500/30 text-orange-300 hover:bg-orange-500/20"
+                  className="text-muted-foreground hover:text-foreground"
                 >
                   <RefreshCw className="w-3 h-3 mr-1" />
                   {t('shop.retry', 'Réessayer')}
                 </Button>
               </div>
             )}
+
             <PackSection
               title={t('shop.standardPacks')}
               description={t('shop.standardPacksDesc')}
