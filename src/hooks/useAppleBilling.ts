@@ -344,18 +344,31 @@ export const useAppleBilling = () => {
             reject(new Error('Aucune offre disponible pour ce produit'));
             return;
           }
-          offer.order().catch((err: any) => {
-            if (pendingRef.current && !pendingRef.current.finished) {
-              pendingRef.current.finished = true;
-              pendingRef.current = null;
-              reject(err);
-            }
-          });
+          // order() resolves with an IError object (it does not always throw)
+          offer
+            .order()
+            .then((err: any) => {
+              if (!err) return;
+              if (pendingRef.current && !pendingRef.current.finished) {
+                pendingRef.current.finished = true;
+                pendingRef.current = null;
+                reject(err);
+              }
+            })
+            .catch((err: any) => {
+              if (pendingRef.current && !pendingRef.current.finished) {
+                pendingRef.current.finished = true;
+                pendingRef.current = null;
+                reject(err);
+              }
+            });
         });
       } catch (err: any) {
+        const cancelCode = CdvPurchase?.ErrorCode?.PAYMENT_CANCELLED;
         const code = err?.code || err?.message || 'UNKNOWN';
-        if (code === 'USER_CANCELED' || /cancel/i.test(String(code))) {
+        if (code === 'USER_CANCELED' || (cancelCode && err?.code === cancelCode) || /cancel/i.test(String(code))) {
           toast.error(t('shop.purchaseCanceled'));
+
         } else {
           const debugMsg = err?.message || err?.code || JSON.stringify(err);
           console.error('Apple Billing error:', err);
