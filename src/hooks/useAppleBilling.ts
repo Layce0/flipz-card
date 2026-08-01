@@ -114,106 +114,116 @@ export const useAppleBilling = () => {
     setStoreError(null);
     setIsStoreReady(false);
 
+    // 1. Register all products
     try {
-      // 1. Register all products
       const productsToRegister = Object.values(PACK_TO_PRODUCT).map(productId => ({
         id: productId,
         type: CdvPurchase.ProductType.CONSUMABLE,
         platform: CdvPurchase.Platform.APPLE_APPSTORE,
       }));
       CdvPurchase.store.register(productsToRegister);
+    } catch (e: any) {
+      console.error('CdvPurchase register error', e);
+    }
 
-      // 2. Register the approved listener ONCE — handles all purchases
-      CdvPurchase.store.when().approved(async (transaction: any) => {
-        const pending = pendingRef.current;
-        if (!pending || pending.finished) {
-          // No active purchase — finish stale transactions safely
-          try { transaction.finish(); } catch (_) {}
-          return;
-        }
-
-        // Only handle the product we're currently purchasing
-        const txProductId =
-          transaction.products?.[0]?.id ||
-          transaction.productId ||
-          transaction.id;
-
-        if (txProductId && txProductId !== pending.productId) {
-          // Not our transaction; let it pass
-          return;
-        }
-
-        pending.finished = true;
-
-        const receiptData = extractReceiptData(transaction);
-        const transactionId =
-          transaction.transactionIdentifier ||
-          transaction.transactionId ||
-          transaction.id;
-
-        if (!receiptData) {
-          try { transaction.finish(); } catch (_) {}
-          pending.reject(new Error('Apple receipt missing'));
-          return;
-        }
-
-        try {
-          const { data, error } = await invokeEdgeFunction('verify-apple-purchase', {
-            body: {
-              packId: pending.packId,
-              receiptData,
-              productId: pending.productId,
-              userId: user?.id,
-              transactionId,
-            },
-          });
-
-          if (error) throw error;
-
-          try { transaction.finish(); } catch (_) {}
-
-          if (data?.alreadyProcessed) {
-            toast.info(t('shop.alreadyProcessed', 'Achat déjà traité'));
-          } else if (data?.cards && data.cards.length > 0) {
-            const derivedPackType = pending.packId.split('_')[0] || 'standard';
-            toast.success(t('shop.cardsReceived', { count: data.cardCount }));
-            pending.onSuccess(data.cards, derivedPackType);
-          }
-
-          pending.resolve();
-        } catch (err) {
-          try { transaction.finish(); } catch (_) {}
-          pending.reject(err);
-        }
-      });
-
-      // 3. Register the cancelled listener ONCE
-      CdvPurchase.store.when().cancelled(() => {
-        const pending = pendingRef.current;
-        if (!pending || pending.finished) return;
-        pending.finished = true;
-        pending.reject({ code: 'USER_CANCELED' });
-      });
-
-      // 4. Fetch localised prices as products load
-      CdvPurchase.store.when().updated((product: any) => {
-        if (product.pricing?.price) {
-          const packId = Object.keys(PACK_TO_PRODUCT).find(
-            key => PACK_TO_PRODUCT[key] === product.id
-          );
-          if (packId) {
-            setPrices(prev =>
-              prev[packId] === product.pricing.price
-                ? prev
-                : { ...prev, [packId]: product.pricing.price }
+    // 2. Register event listeners (cordova-plugin-purchase v13 `When` API).
+    //    NOTE: `When` has no `cancelled`, `ready` or `error` methods — those live
+    //    on `store` itself. Each registration is guarded so a failure never
+    //    prevents store.initialize() from running.
+    try {
+      CdvPurchase.store
+        .when()
+        .productUpdated((product: any) => {
+          if (product?.pricing?.price) {
+            const packId = Object.keys(PACK_TO_PRODUCT).find(
+              key => PACK_TO_PRODUCT[key] === product.id
             );
+            if (packId) {
+              setPrices(prev =>
+                prev[packId] === product.pricing.price
+                  ? prev
+                  : { ...prev, [packId]: product.pricing.price }
+              );
+            }
           }
-        }
-      });
+        })
+        .approved(async (transaction: any) => {
+          const pending = pendingRef.current;
+          if (!pending || pending.finished) {
+            // No active purchase — finish stale transactions safely
+            try { transaction.finish(); } catch (_) {}
+            return;
+          }
 
-      // 5. Mark the store as ready once all products have been fetched from Apple.
-      //    This fires after initialize() completes and products are available.
-      CdvPurchase.store.when().ready(() => {
+          // Only handle the product we're currently purchasing
+          const txProductId =
+            transaction.products?.[0]?.id ||
+            transaction.productId ||
+            transaction.id;
+
+          if (txProductId && txProductId !== pending.productId) {
+            // Not our transaction; let it pass
+            return;
+          }
+
+          pending.finished = true;
+
+          const receiptData = extractReceiptData(transaction);
+          const transactionId =
+            transaction.transactionIdentifier ||
+            transaction.transactionId ||
+            transaction.id;
+
+          if (!receiptData) {
+            try { transaction.finish(); } catch (_) {}
+            pending.reject(new Error('Apple receipt missing'));
+            return;
+          }
+
+          try {
+            const { data, error } = await invokeEdgeFunction('verify-apple-purchase', {
+              body: {
+                packId: pending.packId,
+                receiptData,
+                productId: pending.productId,
+                userId: user?.id,
+                transactionId,
+              },
+            });
+
+            if (error) throw error;
+
+            try { transaction.finish(); } catch (_) {}
+
+            if (data?.alreadyProcessed) {
+              toast.info(t('shop.alreadyProcessed', 'Achat déjà traité'));
+            } else if (data?.cards && data.cards.length > 0) {
+              const derivedPackType = pending.packId.split('_')[0] || 'standard';
+              toast.success(t('shop.cardsReceived', { count: data.cardCount }));
+              pending.onSuccess(data.cards, derivedPackType);
+            }
+
+            pending.resolve();
+          } catch (err) {
+            try { transaction.finish(); } catch (_) {}
+            pending.reject(err);
+          }
+        })
+        .finished((transaction: any) => {
+          // A transaction reaching CANCELLED state means the user aborted.
+          if (transaction?.state !== CdvPurchase.TransactionState?.CANCELLED) return;
+          const pending = pendingRef.current;
+          if (!pending || pending.finished) return;
+          pending.finished = true;
+          pending.reject({ code: 'USER_CANCELED' });
+        });
+    } catch (e: any) {
+      console.error('CdvPurchase listener registration error', e);
+    }
+
+    // 3. Store-level ready / error callbacks (on `store`, not on `when()`)
+    try {
+      CdvPurchase.store.ready(() => {
         if (initTimeoutRef.current) {
           clearTimeout(initTimeoutRef.current);
           initTimeoutRef.current = null;
@@ -222,32 +232,33 @@ export const useAppleBilling = () => {
         setIsStoreReady(true);
       });
 
-      // 5b. Listen for store-level errors so we can unblock the UI
-      CdvPurchase.store.when().error((err: any) => {
+      CdvPurchase.store.error((err: any) => {
+        // Don't surface store-level noise in the UI — individual purchases
+        // report their own errors. Just log it.
         console.error('CdvPurchase store error:', err);
-        // Don't block the UI — individual purchases handle their own errors
-        if (!isStoreReady) {
-          setStoreError(err?.message || 'store_error');
-          setIsStoreReady(true);
-        }
       });
+    } catch (e: any) {
+      console.error('CdvPurchase ready/error hook registration failed', e);
+    }
 
-      // 6. Safety timeout — if .ready() never fires, unblock the UI after 15 seconds.
-      //    This is the CRITICAL FIX for the Apple rejection: without this, the store
-      //    spinner would spin forever in the sandbox environment.
-      if (initTimeoutRef.current) clearTimeout(initTimeoutRef.current);
-      initTimeoutRef.current = setTimeout(() => {
-        setIsStoreReady(current => {
-          if (!current) {
-            console.warn(`Apple store init timed out after ${STORE_INIT_TIMEOUT_MS}ms — forcing ready`);
-            setStoreError('timeout');
-            return true; // Unblock UI
-          }
-          return current;
-        });
-      }, STORE_INIT_TIMEOUT_MS);
+    // 4. Safety timeout — if ready() never fires, unblock the UI after 15 seconds.
+    if (initTimeoutRef.current) clearTimeout(initTimeoutRef.current);
+    initTimeoutRef.current = setTimeout(() => {
+      const alreadyReady = (() => {
+        try { return !!CdvPurchase.store.isReady; } catch (_) { return false; }
+      })();
+      if (alreadyReady) {
+        setStoreError(null);
+        setIsStoreReady(true);
+        return;
+      }
+      console.warn(`Apple store init timed out after ${STORE_INIT_TIMEOUT_MS}ms — forcing ready`);
+      setStoreError('timeout');
+      setIsStoreReady(true); // Unblock UI
+    }, STORE_INIT_TIMEOUT_MS);
 
-      // 7. Initialise — products will load asynchronously; .ready() fires when done
+    // 5. Initialise — products load asynchronously; ready() fires when done
+    try {
       CdvPurchase.store.initialize([CdvPurchase.Platform.APPLE_APPSTORE]);
     } catch (e: any) {
       console.error('CdvPurchase init error', e);
@@ -255,6 +266,7 @@ export const useAppleBilling = () => {
       setIsStoreReady(true); // Unblock UI even on crash
     }
   }, [isNativeIOS, user?.id, t]);
+
 
   // Auto-initialize on first mount for native iOS
   useEffect(() => {
