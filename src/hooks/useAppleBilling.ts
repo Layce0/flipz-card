@@ -28,14 +28,22 @@ const PACK_TO_PRODUCT: Record<string, string> = {
  * on the version and transaction state — we try all known paths.
  */
 const extractReceiptData = (transaction: any): string | null => {
-  return (
-    transaction?.nativePurchase?.appStoreReceipt ||
-    transaction?.receipt?.nativeData?.appStoreReceipt ||
-    transaction?.nativePurchase?.receipt ||
-    transaction?.receipt ||
-    transaction?.transactionReceipt ||
-    null
-  );
+  const candidates = [
+    // cordova-plugin-purchase v13 (StoreKit 1): the application receipt is
+    // carried by the transaction's parent SKApplicationReceipt.
+    transaction?.parentReceipt?.nativeData?.appStoreReceipt,
+    transaction?.receipt?.nativeData?.appStoreReceipt,
+    transaction?.nativePurchase?.appStoreReceipt,
+    transaction?.nativePurchase?.receipt,
+    transaction?.transactionReceipt,
+    // Keep legacy shapes last, but never send a Receipt object to the backend.
+    transaction?.receipt,
+  ];
+
+  return candidates.find(
+    (candidate): candidate is string =>
+      typeof candidate === 'string' && candidate.trim().length > 0
+  ) ?? null;
 };
 
 /**
@@ -175,7 +183,8 @@ export const useAppleBilling = () => {
             transaction.id;
 
           if (!receiptData) {
-            try { transaction.finish(); } catch (_) {}
+            // Do not finish an unverified transaction: StoreKit must be able to
+            // redeliver it after the receipt becomes available.
             pending.reject(new Error('Apple receipt missing'));
             return;
           }
@@ -205,7 +214,8 @@ export const useAppleBilling = () => {
 
             pending.resolve();
           } catch (err) {
-            try { transaction.finish(); } catch (_) {}
+            // Keep failed verifications pending so StoreKit can redeliver the
+            // approved transaction instead of consuming a purchase with no cards.
             pending.reject(err);
           }
         })
@@ -259,7 +269,10 @@ export const useAppleBilling = () => {
 
     // 5. Initialise — products load asynchronously; ready() fires when done
     try {
-      CdvPurchase.store.initialize([CdvPurchase.Platform.APPLE_APPSTORE]);
+      CdvPurchase.store.initialize([{
+        platform: CdvPurchase.Platform.APPLE_APPSTORE,
+        options: { needAppReceipt: true },
+      }]);
     } catch (e: any) {
       console.error('CdvPurchase init error', e);
       setStoreError(e?.message || 'init_failed');
