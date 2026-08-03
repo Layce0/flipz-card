@@ -158,8 +158,8 @@ export const useAppleBilling = () => {
         .approved(async (transaction: any) => {
           const pending = pendingRef.current;
           if (!pending || pending.finished) {
-            // No active purchase — finish stale transactions safely
-            try { transaction.finish(); } catch (_) {}
+            // Never consume an approved transaction without server verification.
+            // StoreKit will redeliver it when the app has an active purchase flow.
             return;
           }
 
