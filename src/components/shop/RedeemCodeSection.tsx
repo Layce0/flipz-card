@@ -91,11 +91,15 @@ export const RedeemCodeSection = ({ userCards }: RedeemCodeSectionProps) => {
       <section className="mt-8">
         <div className="flex items-center gap-2 mb-3">
           <Ticket className="w-5 h-5 text-primary" />
-          <h2 className="font-display text-lg text-foreground">Code Promo 🎁</h2>
+          <h2 className="font-display text-lg text-foreground">
+            {isNativeIOS ? 'Code cadeau 🎁' : 'Code Promo 🎁'}
+          </h2>
         </div>
         <div className="p-4 rounded-2xl bg-card/60 border border-border">
           <p className="text-xs text-muted-foreground mb-3 leading-snug">
-            Entre un code cadeau distribué sur nos réseaux sociaux ou caché dans l'application.
+            {isNativeIOS
+              ? "Entre un code cadeau gratuit offert par l'équipe FLIPZ ou lors d'un événement."
+              : "Entre un code cadeau distribué sur nos réseaux sociaux ou caché dans l'application."}
           </p>
           <div className="flex gap-2">
             <Input
