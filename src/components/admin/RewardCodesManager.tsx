@@ -44,6 +44,7 @@ export const RewardCodesManager = () => {
     // General
     max_uses: '',
     expires_in_hours: '',
+    is_gift: true,
   });
 
   const { data: codes = [], isLoading } = useQuery({
