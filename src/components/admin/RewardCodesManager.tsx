@@ -89,6 +89,7 @@ export const RewardCodesManager = () => {
           reward_config,
           expires_at,
           max_uses: formData.max_uses ? parseInt(formData.max_uses) : null,
+          is_gift: formData.is_gift,
           created_by: user?.id,
         });
 
