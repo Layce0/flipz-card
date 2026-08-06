@@ -35,12 +35,13 @@ Deno.serve(async (req) => {
 
     const userId = claimsData.claims.sub as string
 
-    const { code } = await req.json()
+    const { code, platform } = await req.json()
     if (!code || typeof code !== 'string') {
       return new Response(JSON.stringify({ error: 'Code invalide' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
+    const isIOS = typeof platform === 'string' && platform.toLowerCase() === 'ios'
 
     const trimmedCode = code.trim()
 
