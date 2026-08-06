@@ -74,6 +74,15 @@ Deno.serve(async (req) => {
       })
     }
 
+    // App Store Guideline 3.1.1: only free gift codes may be redeemed on iOS
+    if (isIOS && rewardCode.is_gift === false) {
+      return new Response(JSON.stringify({ error: "Ce code n'est pas disponible sur iPhone" }), {
+        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+
+
     // Check expiry
     if (rewardCode.expires_at && new Date(rewardCode.expires_at) < new Date()) {
       return new Response(JSON.stringify({ error: 'Ce code a expiré' }), {
