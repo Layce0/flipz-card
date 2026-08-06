@@ -1,0 +1,1 @@
+ALTER TABLE public.reward_codes ADD COLUMN IF NOT EXISTS is_gift boolean NOT NULL DEFAULT true;

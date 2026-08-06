@@ -35,12 +35,13 @@ Deno.serve(async (req) => {
 
     const userId = claimsData.claims.sub as string
 
-    const { code } = await req.json()
+    const { code, platform } = await req.json()
     if (!code || typeof code !== 'string') {
       return new Response(JSON.stringify({ error: 'Code invalide' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
+    const isIOS = typeof platform === 'string' && platform.toLowerCase() === 'ios'
 
     const trimmedCode = code.trim()
 
@@ -72,6 +73,15 @@ Deno.serve(async (req) => {
         status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
+
+    // App Store Guideline 3.1.1: only free gift codes may be redeemed on iOS
+    if (isIOS && rewardCode.is_gift === false) {
+      return new Response(JSON.stringify({ error: "Ce code n'est pas disponible sur iPhone" }), {
+        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+
 
     // Check expiry
     if (rewardCode.expires_at && new Date(rewardCode.expires_at) < new Date()) {

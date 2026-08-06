@@ -21,10 +21,9 @@ export const RedeemCodeSection = ({ userCards }: RedeemCodeSectionProps) => {
   const [isRedeeming, setIsRedeeming] = useState(false);
   const queryClient = useQueryClient();
 
-  // Promo codes are not permitted on iOS (App Store Guideline 3.1.1).
-  // Hide the section entirely on native iOS — use Apple IAP Offer Codes instead.
+  // On iOS, only free gift codes are accepted (App Store Guideline 3.1.1):
+  // the backend rejects any code not flagged as a free gift.
   const isNativeIOS = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios';
-  if (isNativeIOS) return null;
 
   // Pack reveal state
   const [revealedCards, setRevealedCards] = useState<GameCard[]>([]);
@@ -46,7 +45,7 @@ export const RedeemCodeSection = ({ userCards }: RedeemCodeSectionProps) => {
       );
 
       const { data, error } = await invokeEdgeFunction('redeem-code', {
-        body: { code: code.trim() }
+        body: { code: code.trim(), platform: Capacitor.getPlatform() }
       });
 
       if (error) throw error;
@@ -92,11 +91,15 @@ export const RedeemCodeSection = ({ userCards }: RedeemCodeSectionProps) => {
       <section className="mt-8">
         <div className="flex items-center gap-2 mb-3">
           <Ticket className="w-5 h-5 text-primary" />
-          <h2 className="font-display text-lg text-foreground">Code Promo 🎁</h2>
+          <h2 className="font-display text-lg text-foreground">
+            {isNativeIOS ? 'Code cadeau 🎁' : 'Code Promo 🎁'}
+          </h2>
         </div>
         <div className="p-4 rounded-2xl bg-card/60 border border-border">
           <p className="text-xs text-muted-foreground mb-3 leading-snug">
-            Entre un code cadeau distribué sur nos réseaux sociaux ou caché dans l'application.
+            {isNativeIOS
+              ? "Entre un code cadeau gratuit offert par l'équipe FLIPZ ou lors d'un événement."
+              : "Entre un code cadeau distribué sur nos réseaux sociaux ou caché dans l'application."}
           </p>
           <div className="flex gap-2">
             <Input

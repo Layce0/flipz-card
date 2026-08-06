@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Ticket, Plus, Loader2, Trash2, Copy } from 'lucide-react';
@@ -44,6 +45,7 @@ export const RewardCodesManager = () => {
     // General
     max_uses: '',
     expires_in_hours: '',
+    is_gift: true,
   });
 
   const { data: codes = [], isLoading } = useQuery({
@@ -88,6 +90,7 @@ export const RewardCodesManager = () => {
           reward_config,
           expires_at,
           max_uses: formData.max_uses ? parseInt(formData.max_uses) : null,
+          is_gift: formData.is_gift,
           created_by: user?.id,
         });
 
@@ -100,6 +103,7 @@ export const RewardCodesManager = () => {
       setFormData({
         code: '', reward_type: 'pack', card_count: 5, card_id: '',
         luck_multiplier: 2, pack_bonus: 'bonus_1', max_uses: '', expires_in_hours: '',
+        is_gift: true,
       });
     },
     onError: (error: any) => {
@@ -360,7 +364,22 @@ export const RewardCodesManager = () => {
                 className="bg-card border-border"
               />
             </div>
+
+            <label className="flex items-start gap-3 p-3 rounded-xl bg-card border border-border cursor-pointer">
+              <Checkbox
+                checked={formData.is_gift}
+                onCheckedChange={(v) => setFormData({ ...formData, is_gift: v === true })}
+                className="mt-0.5"
+              />
+              <span className="text-sm text-foreground">
+                Code cadeau gratuit
+                <span className="block text-xs text-muted-foreground">
+                  Requis pour que le code soit utilisable sur iPhone (jamais vendu).
+                </span>
+              </span>
+            </label>
           </div>
+
 
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setShowCreate(false)}>

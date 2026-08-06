@@ -470,6 +470,7 @@ export type Database = {
           expires_at: string | null
           id: string
           is_active: boolean
+          is_gift: boolean
           max_uses: number | null
           reward_config: Json
           reward_type: string
@@ -481,6 +482,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           is_active?: boolean
+          is_gift?: boolean
           max_uses?: number | null
           reward_config?: Json
           reward_type: string
@@ -492,6 +494,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           is_active?: boolean
+          is_gift?: boolean
           max_uses?: number | null
           reward_config?: Json
           reward_type?: string
