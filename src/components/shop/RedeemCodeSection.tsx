@@ -45,7 +45,7 @@ export const RedeemCodeSection = ({ userCards }: RedeemCodeSectionProps) => {
       );
 
       const { data, error } = await invokeEdgeFunction('redeem-code', {
-        body: { code: code.trim() }
+        body: { code: code.trim(), platform: Capacitor.getPlatform() }
       });
 
       if (error) throw error;
