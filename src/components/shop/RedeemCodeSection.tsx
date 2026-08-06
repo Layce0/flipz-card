@@ -21,10 +21,9 @@ export const RedeemCodeSection = ({ userCards }: RedeemCodeSectionProps) => {
   const [isRedeeming, setIsRedeeming] = useState(false);
   const queryClient = useQueryClient();
 
-  // Promo codes are not permitted on iOS (App Store Guideline 3.1.1).
-  // Hide the section entirely on native iOS — use Apple IAP Offer Codes instead.
+  // On iOS, only free gift codes are accepted (App Store Guideline 3.1.1):
+  // the backend rejects any code not flagged as a free gift.
   const isNativeIOS = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios';
-  if (isNativeIOS) return null;
 
   // Pack reveal state
   const [revealedCards, setRevealedCards] = useState<GameCard[]>([]);
