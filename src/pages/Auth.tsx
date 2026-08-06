@@ -316,29 +316,7 @@ const Auth = () => {
               </>
             )}
           </Button>
-          
-          {/* Apple Review Demo Button */}
-          {isLogin && (
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full mt-2"
-              onClick={async () => {
-                setIsLoading(true);
-                const { error } = await signIn('layce.industry.v2@gmail.com', '123456');
-                if (error) {
-                  toast.error(`Demo login failed: ${error.message}`);
-                } else {
-                  toast.success(t('auth.loginSuccess'));
-                  navigate(safeNext, { replace: true });
-                }
-                setIsLoading(false);
-              }}
-              disabled={isLoading || isLockedOut}
-            >
-              Mode Démo
-            </Button>
-          )}
+
         </form>
 
         {/* Toggle */}
