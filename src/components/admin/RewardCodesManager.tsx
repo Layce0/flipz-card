@@ -363,7 +363,22 @@ export const RewardCodesManager = () => {
                 className="bg-card border-border"
               />
             </div>
+
+            <label className="flex items-start gap-3 p-3 rounded-xl bg-card border border-border cursor-pointer">
+              <Checkbox
+                checked={formData.is_gift}
+                onCheckedChange={(v) => setFormData({ ...formData, is_gift: v === true })}
+                className="mt-0.5"
+              />
+              <span className="text-sm text-foreground">
+                Code cadeau gratuit
+                <span className="block text-xs text-muted-foreground">
+                  Requis pour que le code soit utilisable sur iPhone (jamais vendu).
+                </span>
+              </span>
+            </label>
           </div>
+
 
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setShowCreate(false)}>
