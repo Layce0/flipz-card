@@ -101,6 +101,7 @@ export const RewardCodesManager = () => {
       setFormData({
         code: '', reward_type: 'pack', card_count: 5, card_id: '',
         luck_multiplier: 2, pack_bonus: 'bonus_1', max_uses: '', expires_in_hours: '',
+        is_gift: true,
       });
     },
     onError: (error: any) => {
