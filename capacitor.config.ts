@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.cardquest.flipz',
+  appId: 'com.wintak.flipz',
   appName: 'FLIPZ',
   webDir: 'dist',
   plugins: {
