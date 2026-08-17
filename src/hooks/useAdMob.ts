@@ -5,7 +5,7 @@ import { AdMob, InterstitialAdPluginEvents } from '@capacitor-community/admob';
 import type { AdOptions } from '@capacitor-community/admob';
 
 // Production ad unit ID for interstitials
-const INTERSTITIAL_AD_ID = 'ca-app-pub-3940256099942544/1033173712';
+const INTERSTITIAL_AD_ID = 'ca-app-pub-6340983480597130/7607679191';
 
 let admobInitialized = false;
 
@@ -38,7 +38,7 @@ export const useAdMob = () => {
 
   useEffect(() => {
     if (isNative) {
-      initializeAdMob(isAdmin ?? true);
+      initializeAdMob(isAdmin ?? false);
     }
   }, [isNative]);
 
@@ -81,7 +81,7 @@ export const useAdMob = () => {
     try {
       const options: AdOptions = {
         adId: INTERSTITIAL_AD_ID,
-        isTesting: isAdmin ?? true,
+        isTesting: isAdmin ?? false,
       };
 
       await AdMob.prepareInterstitial(options);

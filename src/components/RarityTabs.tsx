@@ -46,8 +46,10 @@ export const RarityTabs = memo(({ activeRarity, onRarityChange, counts, collecte
               isActive
                 ? {
                     borderColor: activeColor,
-                    backgroundColor: `${activeColor}15`,
+                    backgroundColor: `${activeColor}20`,
                     color: activeColor,
+                    // Force la couleur sur iOS WebKit qui peut ignorer `color` sur les boutons
+                    WebkitTextFillColor: activeColor,
                     boxShadow: `0 0 20px ${activeColor}30`,
                   }
                 : undefined
@@ -57,12 +59,15 @@ export const RarityTabs = memo(({ activeRarity, onRarityChange, counts, collecte
               className="w-4 h-4"
               style={isActive ? { color: activeColor } : undefined}
             />
-            <span>{rarity === 'all' ? 'Toutes' : config?.label}</span>
+            <span style={isActive ? { color: activeColor, WebkitTextFillColor: activeColor } : undefined}>
+              {rarity === 'all' ? 'Toutes' : config?.label}
+            </span>
             <span
               className={cn(
                 "text-[10px] px-1.5 py-0.5 rounded-full font-medium",
-                isActive ? "bg-white/10" : "bg-muted/50"
+                isActive ? "bg-white/20" : "bg-muted/50"
               )}
+              style={isActive ? { color: activeColor, WebkitTextFillColor: activeColor } : undefined}
             >
               {collectedCounts ? `${collected}/${count}` : count}
             </span>
