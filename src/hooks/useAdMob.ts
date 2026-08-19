@@ -78,46 +78,95 @@ export const useAdMob = () => {
 
     setIsLoading(true);
 
+    let failedToLoadHandle: { remove: () => void } | null = null;
+
     try {
       const options: AdOptions = {
         adId: INTERSTITIAL_AD_ID,
         isTesting: isAdmin ?? false,
       };
 
-      await AdMob.prepareInterstitial(options);
+      // Listen for load failures (no fill is very common on iOS)
+      let loadFailed = false;
+      try {
+        failedToLoadHandle = await AdMob.addListener(
+          InterstitialAdPluginEvents.FailedToLoad,
+          () => {
+            loadFailed = true;
+          }
+        );
+      } catch (e) {
+        console.warn('Could not attach FailedToLoad listener:', e);
+      }
+
+      // Timeout of 10s on preparation: never block the user
+      await Promise.race([
+        AdMob.prepareInterstitial(options),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('PREPARE_TIMEOUT')), 10000)
+        ),
+      ]);
+
+      failedToLoadHandle?.remove();
+      failedToLoadHandle = null;
+
+      if (loadFailed) {
+        // No ad available: let the user continue anyway
+        setIsLoading(false);
+        return true;
+      }
 
       return new Promise<boolean>((resolve) => {
+        let settled = false;
+
         const setupListeners = async () => {
+          let safetyTimer: ReturnType<typeof setTimeout> | null = null;
+
+          const cleanup = () => {
+            dismissHandle?.remove();
+            failHandle?.remove();
+            if (safetyTimer) clearTimeout(safetyTimer);
+          };
+
+          const finish = (value: boolean) => {
+            if (settled) return;
+            settled = true;
+            cleanup();
+            setIsLoading(false);
+            resolve(value);
+          };
+
           const dismissHandle = await AdMob.addListener(
             InterstitialAdPluginEvents.Dismissed,
-            () => {
-              dismissHandle.remove();
-              failHandle.remove();
-              setIsLoading(false);
-              resolve(true);
-            }
+            () => finish(true)
           );
 
           const failHandle = await AdMob.addListener(
             InterstitialAdPluginEvents.FailedToShow,
-            () => {
-              dismissHandle.remove();
-              failHandle.remove();
-              setIsLoading(false);
-              resolve(false);
-            }
+            () => finish(true)
           );
 
-          AdMob.showInterstitial();
+          // Safety timer: if nothing happens within 15s, unblock the flow
+          safetyTimer = setTimeout(() => finish(true), 15000);
+
+          try {
+            await AdMob.showInterstitial();
+          } catch (e) {
+            console.warn('showInterstitial failed:', e);
+            finish(true);
+          }
         };
+
         setupListeners();
       });
     } catch (error) {
       console.error('Failed to show interstitial ad:', error);
+      failedToLoadHandle?.remove();
       setIsLoading(false);
-      return false;
+      // Graceful fallback: never block the free pack because of ads
+      return true;
     }
-  }, [isNative]);
+  }, [isNative, isAdmin]);
 
   return { showInterstitial, isLoading, isNative, showFakeAd, fakeAdCountdown, dismissFakeAd };
 };
