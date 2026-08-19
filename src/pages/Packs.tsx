@@ -71,7 +71,12 @@ const Packs = () => {
       const status = (error as any)?.status;
 
       if (payloadError) {
-        if (status === 429 || payloadError.includes('Free pack already claimed today')) {
+        if (
+          parsedError?.code === 'FREE_PACK_RATE_LIMIT' ||
+          (data as any)?.code === 'FREE_PACK_RATE_LIMIT' ||
+          status === 429 ||
+          payloadError.includes('Free pack already claimed today')
+        ) {
           const hours = Math.max(1, Math.ceil(retryAfter / 3600));
           toast.error(t('packs.alreadyClaimed', `Pack déjà réclamé ! Reviens dans ~${hours}h`));
           return;
