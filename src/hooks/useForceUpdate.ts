@@ -29,7 +29,7 @@ export function useForceUpdate() {
       try {
         // Get current app version
         const appInfo = await CapApp.getInfo();
-        const currentVersion = appInfo.version; // versionName
+        const currentVersion = appInfo.build; // build number (CURRENT_PROJECT_VERSION)
 
         // Get minimum version from database
         const { data, error } = await supabase
