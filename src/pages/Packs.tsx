@@ -21,7 +21,7 @@ const Packs = () => {
   const { user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { showInterstitial, isLoading: isAdLoading, showFakeAd, fakeAdCountdown, dismissFakeAd } = useAdMob();
+  const { showInterstitial, showFakeAd, fakeAdCountdown, dismissFakeAd } = useAdMob();
   const [isWatchingAd, setIsWatchingAd] = useState(false);
   const [revealedCards, setRevealedCards] = useState<GameCard[]>([]);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
@@ -71,7 +71,7 @@ const Packs = () => {
       const status = (error as any)?.status;
 
       if (payloadError) {
-        if (status === 429 || payloadError.includes('Free pack already claimed today')) {
+        if (parsedError?.code === 'FREE_PACK_RATE_LIMIT' || payloadError.includes('Free pack already claimed today')) {
           const hours = Math.max(1, Math.ceil(retryAfter / 3600));
           toast.error(t('packs.alreadyClaimed', `Pack déjà réclamé ! Reviens dans ~${hours}h`));
           return;

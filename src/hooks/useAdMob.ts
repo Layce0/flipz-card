@@ -84,40 +84,77 @@ export const useAdMob = () => {
         isTesting: isAdmin ?? false,
       };
 
-      await AdMob.prepareInterstitial(options);
+      // Timeout de sécurité : si AdMob ne répond pas en 10s on laisse passer
+      const prepareWithTimeout = Promise.race([
+        AdMob.prepareInterstitial(options),
+        new Promise<void>((_, reject) =>
+          setTimeout(() => reject(new Error('AdMob prepareInterstitial timeout')), 10000)
+        ),
+      ]);
+
+      await prepareWithTimeout;
 
       return new Promise<boolean>((resolve) => {
-        const setupListeners = async () => {
-          const dismissHandle = await AdMob.addListener(
-            InterstitialAdPluginEvents.Dismissed,
-            () => {
-              dismissHandle.remove();
-              failHandle.remove();
-              setIsLoading(false);
-              resolve(true);
-            }
-          );
-
-          const failHandle = await AdMob.addListener(
-            InterstitialAdPluginEvents.FailedToShow,
-            () => {
-              dismissHandle.remove();
-              failHandle.remove();
-              setIsLoading(false);
-              resolve(false);
-            }
-          );
-
-          AdMob.showInterstitial();
+        let settled = false;
+        const settle = (result: boolean) => {
+          if (settled) return;
+          settled = true;
+          setIsLoading(false);
+          resolve(result);
         };
-        setupListeners();
+
+        // Timeout de sécurité sur showInterstitial : si l'ad ne se ferme pas en 15s on continue
+        const safetyTimer = setTimeout(() => {
+          console.warn('AdMob interstitial safety timeout — resolving gracefully');
+          dismissHandle?.then(h => h.remove()).catch(() => {});
+          failShowHandle?.then(h => h.remove()).catch(() => {});
+          failLoadHandle?.then(h => h.remove()).catch(() => {});
+          settle(true);
+        }, 15000);
+
+        const cleanup = () => {
+          clearTimeout(safetyTimer);
+          dismissHandle?.then(h => h.remove()).catch(() => {});
+          failShowHandle?.then(h => h.remove()).catch(() => {});
+          failLoadHandle?.then(h => h.remove()).catch(() => {});
+        };
+
+        const dismissHandle = AdMob.addListener(
+          InterstitialAdPluginEvents.Dismissed,
+          () => { cleanup(); settle(true); }
+        );
+
+        const failShowHandle = AdMob.addListener(
+          InterstitialAdPluginEvents.FailedToShow,
+          () => {
+            console.warn('AdMob FailedToShow — resolving gracefully');
+            cleanup();
+            settle(true); // graceful : on ouvre quand même le pack
+          }
+        );
+
+        // FailedToLoad peut aussi survenir après prepareInterstitial dans certaines versions
+        const failLoadHandle = AdMob.addListener(
+          'interstitialAdFailedToLoad' as any,
+          () => {
+            console.warn('AdMob FailedToLoad — resolving gracefully');
+            cleanup();
+            settle(true); // graceful : on ouvre quand même le pack
+          }
+        );
+
+        AdMob.showInterstitial().catch((e: unknown) => {
+          console.warn('AdMob showInterstitial error:', e);
+          cleanup();
+          settle(true); // graceful
+        });
       });
     } catch (error) {
-      console.error('Failed to show interstitial ad:', error);
+      console.warn('AdMob prepareInterstitial failed (no fill or timeout) — resolving gracefully:', error);
       setIsLoading(false);
-      return false;
+      return true; // graceful : pas de pub = on ouvre quand même le pack
     }
-  }, [isNative]);
+  }, [isNative, isAdmin]);
 
   return { showInterstitial, isLoading, isNative, showFakeAd, fakeAdCountdown, dismissFakeAd };
 };
