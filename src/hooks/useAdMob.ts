@@ -1,11 +1,13 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { useAuth } from '@/contexts/AuthContext';
-import { AdMob, InterstitialAdPluginEvents } from '@capacitor-community/admob';
-import type { AdOptions } from '@capacitor-community/admob';
+import { AdMob, RewardAdPluginEvents } from '@capacitor-community/admob';
+import type { RewardAdOptions } from '@capacitor-community/admob';
 
-// Production ad unit ID for interstitials
-const INTERSTITIAL_AD_ID = 'ca-app-pub-6340983480597130/7607679191';
+const REWARDED_AD_ID_IOS = 'ca-app-pub-6340983480597130/7607679191';
+const REWARDED_AD_ID_ANDROID = 'ca-app-pub-6340983480597130/7607679191'; // TODO: Update with real Android ID
+const TEST_REWARDED_AD_ID_ANDROID = 'ca-app-pub-3940256099942544/5224354917';
+const TEST_REWARDED_AD_ID_IOS = 'ca-app-pub-3940256099942544/1712485313';
 
 let admobInitialized = false;
 
@@ -40,7 +42,7 @@ export const useAdMob = () => {
     if (isNative) {
       initializeAdMob(isAdmin ?? false);
     }
-  }, [isNative]);
+  }, [isNative, isAdmin]);
 
   const [showFakeAd, setShowFakeAd] = useState(false);
   const [fakeAdCountdown, setFakeAdCountdown] = useState(5);
@@ -53,7 +55,7 @@ export const useAdMob = () => {
     fakeAdResolveRef.current = null;
   }, []);
 
-  const showInterstitial = useCallback(async (): Promise<boolean> => {
+  const showRewardedAd = useCallback(async (): Promise<boolean> => {
     if (!isNative) {
       setIsLoading(true);
       setFakeAdCountdown(5);
@@ -79,16 +81,20 @@ export const useAdMob = () => {
     setIsLoading(true);
 
     try {
-      const options: AdOptions = {
-        adId: INTERSTITIAL_AD_ID,
-        isTesting: isAdmin ?? false,
+      const isTestMode = (isAdmin ?? false) || import.meta.env.DEV;
+      const testAdId = Capacitor.getPlatform() === 'ios' ? TEST_REWARDED_AD_ID_IOS : TEST_REWARDED_AD_ID_ANDROID;
+      const prodAdId = Capacitor.getPlatform() === 'ios' ? REWARDED_AD_ID_IOS : REWARDED_AD_ID_ANDROID;
+
+      const options: RewardAdOptions = {
+        adId: isTestMode ? testAdId : prodAdId,
+        isTesting: isTestMode,
       };
 
       // Timeout de sécurité : si AdMob ne répond pas en 10s on laisse passer
       const prepareWithTimeout = Promise.race([
-        AdMob.prepareInterstitial(options),
+        AdMob.prepareRewardVideoAd(options),
         new Promise<void>((_, reject) =>
-          setTimeout(() => reject(new Error('AdMob prepareInterstitial timeout')), 10000)
+          setTimeout(() => reject(new Error('AdMob prepareRewardVideoAd timeout')), 10000)
         ),
       ]);
 
@@ -103,12 +109,13 @@ export const useAdMob = () => {
           resolve(result);
         };
 
-        // Timeout de sécurité sur showInterstitial : si l'ad ne se ferme pas en 15s on continue
+        // Timeout de sécurité sur showRewardVideoAd : si l'ad ne se ferme pas en 15s on continue
         const safetyTimer = setTimeout(() => {
-          console.warn('AdMob interstitial safety timeout — resolving gracefully');
+          console.warn('AdMob rewarded safety timeout — resolving gracefully');
           dismissHandle?.then(h => h.remove()).catch(() => {});
           failShowHandle?.then(h => h.remove()).catch(() => {});
           failLoadHandle?.then(h => h.remove()).catch(() => {});
+          rewardedHandle?.then(h => h.remove()).catch(() => {});
           settle(true);
         }, 15000);
 
@@ -117,15 +124,16 @@ export const useAdMob = () => {
           dismissHandle?.then(h => h.remove()).catch(() => {});
           failShowHandle?.then(h => h.remove()).catch(() => {});
           failLoadHandle?.then(h => h.remove()).catch(() => {});
+          rewardedHandle?.then(h => h.remove()).catch(() => {});
         };
 
         const dismissHandle = AdMob.addListener(
-          InterstitialAdPluginEvents.Dismissed,
+          RewardAdPluginEvents.Dismissed,
           () => { cleanup(); settle(true); }
         );
 
         const failShowHandle = AdMob.addListener(
-          InterstitialAdPluginEvents.FailedToShow,
+          RewardAdPluginEvents.FailedToShow,
           () => {
             console.warn('AdMob FailedToShow — resolving gracefully');
             cleanup();
@@ -133,9 +141,9 @@ export const useAdMob = () => {
           }
         );
 
-        // FailedToLoad peut aussi survenir après prepareInterstitial dans certaines versions
+        // FailedToLoad
         const failLoadHandle = AdMob.addListener(
-          'interstitialAdFailedToLoad' as any,
+          'rewardVideoAdFailedToLoad' as any,
           () => {
             console.warn('AdMob FailedToLoad — resolving gracefully');
             cleanup();
@@ -143,18 +151,25 @@ export const useAdMob = () => {
           }
         );
 
-        AdMob.showInterstitial().catch((e: unknown) => {
-          console.warn('AdMob showInterstitial error:', e);
+        const rewardedHandle = AdMob.addListener(
+          RewardAdPluginEvents.Rewarded,
+          () => {
+            // L'utilisateur a obtenu la récompense
+          }
+        );
+
+        AdMob.showRewardVideoAd().catch((e: unknown) => {
+          console.warn('AdMob showRewardVideoAd error:', e);
           cleanup();
           settle(true); // graceful
         });
       });
     } catch (error) {
-      console.warn('AdMob prepareInterstitial failed (no fill or timeout) — resolving gracefully:', error);
+      console.warn('AdMob prepareRewardVideoAd failed (no fill or timeout) — resolving gracefully:', error);
       setIsLoading(false);
       return true; // graceful : pas de pub = on ouvre quand même le pack
     }
   }, [isNative, isAdmin]);
 
-  return { showInterstitial, isLoading, isNative, showFakeAd, fakeAdCountdown, dismissFakeAd };
+  return { showRewardedAd, isLoading, isNative, showFakeAd, fakeAdCountdown, dismissFakeAd };
 };
