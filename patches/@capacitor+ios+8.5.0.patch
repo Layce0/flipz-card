@@ -1,0 +1,25 @@
+diff --git a/node_modules/@capacitor/ios/Capacitor/Capacitor/CAPPluginCall.swift b/node_modules/@capacitor/ios/Capacitor/Capacitor/CAPPluginCall.swift
+index b4ae0eb..da1c27e 100644
+--- a/node_modules/@capacitor/ios/Capacitor/Capacitor/CAPPluginCall.swift
++++ b/node_modules/@capacitor/ios/Capacitor/Capacitor/CAPPluginCall.swift
+@@ -42,7 +42,19 @@ extension CAPPluginCall: JSValueContainer {
+         successHandler(CAPPluginCallResult(data), self)
+     }
+ 
+-    func reject(_ message: String, _ code: String? = nil, _ error: Error? = nil, _ data: PluginCallResultData? = nil) {
++    func reject(_ message: String) {
++        errorHandler(CAPPluginCallError(message: message, code: nil, error: nil, data: nil))
++    }
++
++    func reject(_ message: String, _ code: String?) {
++        errorHandler(CAPPluginCallError(message: message, code: code, error: nil, data: nil))
++    }
++
++    func reject(_ message: String, _ code: String?, _ error: Error?) {
++        errorHandler(CAPPluginCallError(message: message, code: code, error: error, data: nil))
++    }
++
++    func reject(_ message: String, _ code: String?, _ error: Error?, _ data: PluginCallResultData?) {
+         errorHandler(CAPPluginCallError(message: message, code: code, error: error, data: data))
+     }
+ 
