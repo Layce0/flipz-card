@@ -1,0 +1,45 @@
+diff --git a/node_modules/@capacitor/preferences/ios/Sources/PreferencesPlugin/PreferencesPlugin.swift b/node_modules/@capacitor/preferences/ios/Sources/PreferencesPlugin/PreferencesPlugin.swift
+index 1234567..abcdefg 100644
+--- a/node_modules/@capacitor/preferences/ios/Sources/PreferencesPlugin/PreferencesPlugin.swift
++++ b/node_modules/@capacitor/preferences/ios/Sources/PreferencesPlugin/PreferencesPlugin.swift
+@@ -18,7 +18,7 @@ public class PreferencesPlugin: CAPPlugin, CAPBridgedPlugin {
+     private var preferences = Preferences(with: PreferencesConfiguration())
+ 
+     @objc func configure(_ call: CAPPluginCall) {
+-        let group = call.getString("group")
++        let group = call.options["group"] as? String
+         let configuration: PreferencesConfiguration
+ 
+         if let group = group {
+@@ -36,7 +36,7 @@ public class PreferencesPlugin: CAPPlugin, CAPBridgedPlugin {
+ 
+     @objc func get(_ call: CAPPluginCall) {
+-        guard let key = call.getString("key") else {
+-            call.reject("Must provide a key")
++        guard let key = call.options["key"] as? String else {
++            call.reject(message: "Must provide a key")
+             return
+         }
+ 
+@@ -49,9 +49,9 @@ public class PreferencesPlugin: CAPPlugin, CAPBridgedPlugin {
+ 
+     @objc func set(_ call: CAPPluginCall) {
+-        guard let key = call.getString("key") else {
+-            call.reject("Must provide a key")
++        guard let key = call.options["key"] as? String else {
++            call.reject(message: "Must provide a key")
+             return
+         }
+-        let value = call.getString("value", "")
++        let value = call.options["value"] as? String ?? ""
+ 
+         preferences.set(value, for: key)
+@@ -60,8 +60,8 @@ public class PreferencesPlugin: CAPPlugin, CAPBridgedPlugin {
+ 
+     @objc func remove(_ call: CAPPluginCall) {
+-        guard let key = call.getString("key") else {
+-            call.reject("Must provide a key")
++        guard let key = call.options["key"] as? String else {
++            call.reject(message: "Must provide a key")
+             return
+         }

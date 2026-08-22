@@ -78,7 +78,10 @@ jobs:
             -archivePath $PWD/build/App.xcarchive \
             -sdk iphoneos \
             -destination 'generic/platform=iOS' \
-            CODE_SIGN_STYLE=Manual
+            CODE_SIGN_STYLE=Manual \
+            ONLY_ACTIVE_ARCH=NO \
+            EXCLUDED_ARCHS='x86_64 i386' \
+            EXCLUDED_ARCHS__EFFECTIVE_PLATFORM_SUFFIX_iphonesimulator='arm64 x86_64 i386'
 
       - name: Export IPA
         run: |

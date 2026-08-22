@@ -1,0 +1,76 @@
+diff --git a/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsPlugin.swift b/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsPlugin.swift
+index a9ac9bd..1856965 100644
+--- a/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsPlugin.swift
++++ b/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsPlugin.swift
+@@ -100,7 +100,7 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
+ 
+     /// Reject a call with an OutSystems structured error (`code` + `message`).
+     private func reject(_ call: CAPPluginCall, _ error: LocalNotificationsError, _ underlying: Error? = nil) {
+-        call.reject(error.message, error.code, underlying)
++        call.reject(message: error.message, code: error.code, error: underlying, data: nil)
+     }
+ 
+     override public func load() {
+@@ -150,7 +150,7 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
+     }
+ 
+     private func performSchedule(_ call: CAPPluginCall, onlyExisting: Bool) {
+-        guard let notifications = call.getArray("notifications", JSObject.self) else {
++        guard let notifications = call.options["notifications"] as? [JSObject] else {
+             self.reject(call, .invalidNotificationsArray)
+             return
+         }
+@@ -273,7 +273,7 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
+      * Cancel notifications by id
+      */
+     @objc func cancel(_ call: CAPPluginCall) {
+-        guard let notifications = call.getArray("notifications", JSObject.self), notifications.count > 0 else {
++        guard let notifications = call.options["notifications"] as? [JSObject], notifications.count > 0 else {
+             self.reject(call, .invalidNotificationsArray)
+             return
+         }
+@@ -303,7 +303,7 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
+      * Get notifications (pending and/or delivered) matching the supplied ids.
+      */
+     @objc func getByIds(_ call: CAPPluginCall) {
+-        guard let idsArray = call.getArray("ids") else {
++        guard let idsArray = call.options["ids"] as? [Any] else {
+             self.reject(call, .missingIds)
+             return
+         }
+@@ -334,7 +334,7 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
+      * (`SCHEDULED` = pending, `TRIGGERED` = delivered).
+      */
+     @objc func getAll(_ call: CAPPluginCall) {
+-        let state = call.getString("state")
++        let state = call.options["state"] as? String
+         let center = UNUserNotificationCenter.current()
+ 
+         if state == "SCHEDULED" {
+@@ -384,7 +384,7 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
+      * Register allowed action types that a notification may present.
+      */
+     @objc func registerActionTypes(_ call: CAPPluginCall) {
+-        guard let types = call.getArray("types", JSObject.self) else {
++        guard let types = call.options["types"] as? [JSObject] else {
+             return
+         }
+ 
+@@ -845,7 +845,7 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
+      * Remove specified notifications from Notification Center
+      */
+     @objc func removeDeliveredNotifications(_ call: CAPPluginCall) {
+-        guard let notifications = call.getArray("notifications", JSObject.self) else {
++        guard let notifications = call.options["notifications"] as? [JSObject] else {
+             self.reject(call, .invalidRemoveList)
+             return
+         }
+@@ -859,7 +859,7 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
+      * Remove delivered notifications from Notification Center by id.
+      */
+     @objc func removeDeliveredNotificationsById(_ call: CAPPluginCall) {
+-        guard let idsArray = call.getArray("ids") else {
++        guard let idsArray = call.options["ids"] as? [Any] else {
+             self.reject(call, .missingIds)
+             return
+         }
