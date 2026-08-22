@@ -8,7 +8,7 @@ on:
 jobs:
   build_ios:
     name: Build iOS IPA
-    runs-on: macos-15
+    runs-on: macos-14
 
     steps:
       - name: Checkout repository
@@ -68,10 +68,6 @@ jobs:
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$PP_UUID.mobileprovision
           echo "Installed provisioning profile with UUID: $PP_UUID"
 
-      - name: Pre-cache Simulators and Download iOS Platform
-        run: |
-          xcodebuild -downloadPlatform iOS || true
-          xcrun simctl list devices available || true
 
       - name: Build and Archive iOS App
         run: |
