@@ -1,5 +1,5 @@
 diff --git a/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsHandler.swift b/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsHandler.swift
-index 7d4cee8..d8a700c 100644
+index 7d4cee8..e9e9371 100644
 --- a/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsHandler.swift
 +++ b/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsHandler.swift
 @@ -42,7 +42,7 @@ public class LocalNotificationsHandler: NSObject, NotificationHandlerProtocol {
@@ -61,15 +61,10 @@ index 7d4cee8..d8a700c 100644
  
          return notification
 diff --git a/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsPlugin.swift b/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsPlugin.swift
-index a9ac9bd..a6dc32b 100644
+index a9ac9bd..86674f2 100644
 --- a/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsPlugin.swift
 +++ b/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsPlugin.swift
-@@ -100,11 +100,11 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
- 
-     /// Reject a call with an OutSystems structured error (`code` + `message`).
-     private func reject(_ call: CAPPluginCall, _ error: LocalNotificationsError, _ underlying: Error? = nil) {
--        call.reject(error.message, error.code, underlying, nil)
-+        call.reject(error.message, error.code, underlying)
+@@ -104,7 +104,7 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
      }
  
      override public func load() {
@@ -123,7 +118,7 @@ index a9ac9bd..a6dc32b 100644
              return
          }
  
-@@ -802,7 +802,7 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
+@@ -802,7 +802,12 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
              return nil
          }
  
@@ -137,7 +132,7 @@ index a9ac9bd..a6dc32b 100644
      }
  
      /**
-@@ -845,7 +845,7 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
+@@ -845,7 +850,7 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
       * Remove specified notifications from Notification Center
       */
      @objc func removeDeliveredNotifications(_ call: CAPPluginCall) {
@@ -146,7 +141,7 @@ index a9ac9bd..a6dc32b 100644
              self.reject(call, .invalidRemoveList)
              return
          }
-@@ -859,7 +859,7 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
+@@ -859,7 +864,7 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
       * Remove delivered notifications from Notification Center by id.
       */
      @objc func removeDeliveredNotificationsById(_ call: CAPPluginCall) {
