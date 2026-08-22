@@ -1,16 +1,83 @@
+diff --git a/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsHandler.swift b/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsHandler.swift
+index 7d4cee8..d8a700c 100644
+--- a/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsHandler.swift
++++ b/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsHandler.swift
+@@ -42,7 +42,7 @@ public class LocalNotificationsHandler: NSObject, NotificationHandlerProtocol {
+             }
+         }
+ 
+-        if let optionsArray = self.plugin?.getConfig().getArray("presentationOptions") as? [String] {
++        if let optionsArray = self.plugin?.getConfigValue("presentationOptions") as? [String] {
+             var presentationOptions = UNNotificationPresentationOptions.init()
+ 
+             optionsArray.forEach { option in
+@@ -124,31 +124,28 @@ public class LocalNotificationsHandler: NSObject, NotificationHandlerProtocol {
+             "body": request.content.body
+         ]
+ 
+-        if let userInfo = JSTypes.coerceDictionaryToJSObject(request.content.userInfo) {
+-            // `extra` is documented as `any`, not just an object. Only dictionaries
+-            // need per-key Date normalization; anything else is passed through
+-            // as-is rather than substituting the whole userInfo object.
+-            if var extraDict = userInfo["cap_extra"] as? JSObject {
+-                for(key, value) in extraDict {
+-                    if let date = value as? Date {
+-                        let dateString = ISO8601DateFormatter().string(from: date)
+-                        extraDict[key] = dateString
+-                    }
+-                }
+-                notification["extra"] = extraDict
+-            } else if let extraValue = userInfo["cap_extra"] {
+-                notification["extra"] = extraValue
+-            }
++        let userInfo = request.content.userInfo
+         
+-            if var schedule = userInfo["cap_schedule"] as? JSObject {
+-                // convert schedule at date to string
+-                if let date = schedule["at"] as? Date {
++        if var extraDict = userInfo["cap_extra"] as? JSObject {
++            for(key, value) in extraDict {
++                if let date = value as? Date {
+                     let dateString = ISO8601DateFormatter().string(from: date)
+-                    schedule["at"] = dateString
++                    extraDict[key] = dateString
+                 }
++            }
++            notification["extra"] = extraDict
++        } else if let extraValue = userInfo["cap_extra"] {
++            notification["extra"] = extraValue
++        }
+ 
+-                notification["schedule"] = schedule
++        if var schedule = userInfo["cap_schedule"] as? JSObject {
++            // convert schedule at date to string
++            if let date = schedule["at"] as? Date {
++                let dateString = ISO8601DateFormatter().string(from: date)
++                schedule["at"] = dateString
+             }
++
++            notification["schedule"] = schedule
+         }
+ 
+         return notification
 diff --git a/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsPlugin.swift b/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsPlugin.swift
-index a9ac9bd..1856965 100644
+index a9ac9bd..a6dc32b 100644
 --- a/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsPlugin.swift
 +++ b/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsPlugin.swift
-@@ -100,7 +100,7 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
+@@ -100,11 +100,11 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
  
      /// Reject a call with an OutSystems structured error (`code` + `message`).
      private func reject(_ call: CAPPluginCall, _ error: LocalNotificationsError, _ underlying: Error? = nil) {
 -        call.reject(error.message, error.code, underlying)
-+        call.reject(message: error.message, code: error.code, error: underlying, data: nil)
++        call.reject(error.message, error.code, underlying, nil)
      }
  
      override public func load() {
+-        self.bridge?.notificationRouter.localNotificationHandler = self.notificationDelegationHandler
++        (self.bridge as? CapacitorBridge)?.notificationRouter.localNotificationHandler = self.notificationDelegationHandler
+         self.notificationDelegationHandler.plugin = self
+         self.shouldStringifyDatesInCalls = false
+     }
 @@ -150,7 +150,7 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
      }
  
@@ -56,6 +123,15 @@ index a9ac9bd..1856965 100644
              return
          }
  
+@@ -802,7 +802,7 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
+             return nil
+         }
+ 
+-        return bridge?.localURL(fromWebURL: webURL)
++        return (bridge as? CapacitorBridge)?.localURL(fromWebURL: webURL)
+     }
+ 
+     /**
 @@ -845,7 +845,7 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
       * Remove specified notifications from Notification Center
       */
