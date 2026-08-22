@@ -893,7 +893,7 @@ new file mode 100644
 index 0000000..a1dc02c
 Binary files /dev/null and b/node_modules/@capacitor/preferences/android/bin/src/main/java/com/capacitorjs/plugins/preferences/PreferencesPlugin.class differ
 diff --git a/node_modules/@capacitor/preferences/ios/Sources/PreferencesPlugin/PreferencesPlugin.swift b/node_modules/@capacitor/preferences/ios/Sources/PreferencesPlugin/PreferencesPlugin.swift
-index d7ea0ae..1831cd7 100644
+index d7ea0ae..d74132e 100644
 --- a/node_modules/@capacitor/preferences/ios/Sources/PreferencesPlugin/PreferencesPlugin.swift
 +++ b/node_modules/@capacitor/preferences/ios/Sources/PreferencesPlugin/PreferencesPlugin.swift
 @@ -18,7 +18,7 @@ public class PreferencesPlugin: CAPPlugin, CAPBridgedPlugin {
@@ -905,25 +905,22 @@ index d7ea0ae..1831cd7 100644
          let configuration: PreferencesConfiguration
  
          if let group = group {
-@@ -36,8 +36,8 @@ public class PreferencesPlugin: CAPPlugin, CAPBridgedPlugin {
+@@ -36,7 +36,7 @@ public class PreferencesPlugin: CAPPlugin, CAPBridgedPlugin {
      }
  
      @objc func get(_ call: CAPPluginCall) {
 -        guard let key = call.getString("key") else {
--            call.reject("Must provide a key")
 +        guard let key = call.options["key"] as? String else {
-+            call.reject(message: "Must provide a key")
+             call.reject("Must provide a key")
              return
          }
- 
-@@ -49,19 +49,19 @@ public class PreferencesPlugin: CAPPlugin, CAPBridgedPlugin {
+@@ -49,18 +49,18 @@ public class PreferencesPlugin: CAPPlugin, CAPBridgedPlugin {
      }
  
      @objc func set(_ call: CAPPluginCall) {
 -        guard let key = call.getString("key") else {
--            call.reject("Must provide a key")
 +        guard let key = call.options["key"] as? String else {
-+            call.reject(message: "Must provide a key")
+             call.reject("Must provide a key")
              return
          }
 -        let value = call.getString("value", "")
@@ -935,9 +932,7 @@ index d7ea0ae..1831cd7 100644
  
      @objc func remove(_ call: CAPPluginCall) {
 -        guard let key = call.getString("key") else {
--            call.reject("Must provide a key")
 +        guard let key = call.options["key"] as? String else {
-+            call.reject(message: "Must provide a key")
+             call.reject("Must provide a key")
              return
          }
- 
