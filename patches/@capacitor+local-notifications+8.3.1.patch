@@ -44,7 +44,7 @@ index 7d4cee8..d8a700c 100644
                  }
 +            }
 +            notification["extra"] = extraDict
-+        } else if let extraValue = userInfo["cap_extra"] {
++        } else if let extraValue = userInfo["cap_extra"] as? JSValue {
 +            notification["extra"] = extraValue
 +        }
  
@@ -68,8 +68,8 @@ index a9ac9bd..a6dc32b 100644
  
      /// Reject a call with an OutSystems structured error (`code` + `message`).
      private func reject(_ call: CAPPluginCall, _ error: LocalNotificationsError, _ underlying: Error? = nil) {
--        call.reject(error.message, error.code, underlying)
-+        call.reject(error.message, error.code, underlying, nil)
+-        call.reject(error.message, error.code, underlying, nil)
++        call.reject(error.message, error.code, underlying)
      }
  
      override public func load() {
@@ -128,7 +128,12 @@ index a9ac9bd..a6dc32b 100644
          }
  
 -        return bridge?.localURL(fromWebURL: webURL)
-+        return (bridge as? CapacitorBridge)?.localURL(fromWebURL: webURL)
++        if webURL.scheme == "res" {
++            return bridge?.config.appLocation.appendingPathComponent(webURL.path)
++        } else if webURL.scheme == "file" {
++            return webURL
++        }
++        return nil
      }
  
      /**
