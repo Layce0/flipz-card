@@ -77,7 +77,7 @@ jobs:
             -configuration Release \
             -archivePath $PWD/build/App.xcarchive \
             -sdk iphoneos \
-            -destination 'generic/platform=iOS'
+            CODE_SIGN_STYLE=Manual
 
       - name: Export IPA
         run: |
