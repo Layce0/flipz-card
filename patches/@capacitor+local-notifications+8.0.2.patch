@@ -1,0 +1,122 @@
+diff --git a/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsHandler.swift b/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsHandler.swift
+index e0bf257..95a1912 100644
+--- a/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsHandler.swift
++++ b/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsHandler.swift
+@@ -89,7 +89,7 @@ public class LocalNotificationsHandler: NSObject, NotificationHandlerProtocol {
+             "body": request.content.body
+         ]
+ 
+-        if let userInfo = JSTypes.coerceDictionaryToJSObject(request.content.userInfo) {
++        if let userInfo = request.content.userInfo as? JSObject {
+             var extra = userInfo["cap_extra"] as? JSObject ?? userInfo
+ 
+             // check for any dates and convert them to strings
+diff --git a/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsPlugin.swift b/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsPlugin.swift
+index 463be9a..10668a2 100644
+--- a/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsPlugin.swift
++++ b/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsPlugin.swift
+@@ -57,15 +57,15 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
+      * Schedule a notification.
+      */
+     @objc func schedule(_ call: CAPPluginCall) {
+-        guard let notifications = call.getArray("notifications", JSObject.self) else {
+-            call.reject("Must provide notifications array as notifications option")
++        guard let notifications = call.getArray("notifications") as? [JSObject] else {
++            call.reject("Must provide notifications array as notifications option", nil, nil, nil)
+             return
+         }
+         var ids = [String]()
+ 
+         for notification in notifications {
+             guard let identifier = notification["id"] as? Int else {
+-                call.reject("Notification missing identifier")
++                call.reject("Notification missing identifier", nil, nil, nil)
+                 return
+             }
+ 
+@@ -76,7 +76,7 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
+                 content = try makeNotificationContent(notification)
+             } catch {
+                 CAPLog.print(error.localizedDescription)
+-                call.reject("Unable to make notification", nil, error)
++                call.reject("Unable to make notification", nil, error, nil)
+                 return
+             }
+ 
+@@ -87,7 +87,7 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
+                     try trigger = handleScheduledNotification(call, schedule)
+                 }
+             } catch {
+-                call.reject("Unable to create notification, trigger failed", nil, error)
++                call.reject("Unable to create notification, trigger failed", nil, error, nil)
+                 return
+             }
+ 
+@@ -100,7 +100,7 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
+             center.add(request) { (error: Error?) in
+                 if let theError = error {
+                     CAPLog.print(theError.localizedDescription)
+-                    call.reject(theError.localizedDescription)
++                    call.reject(theError.localizedDescription, nil, nil, nil)
+                 }
+             }
+ 
+@@ -123,7 +123,7 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
+     @objc override public func requestPermissions(_ call: CAPPluginCall) {
+         self.notificationDelegationHandler.requestPermissions { granted, error in
+             guard error == nil else {
+-                call.reject(error!.localizedDescription)
++                call.reject(error!.localizedDescription, nil, nil, nil)
+                 return
+             }
+             call.resolve(["display": granted ? "granted" : "denied"])
+@@ -161,8 +161,8 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
+      * Cancel notifications by id
+      */
+     @objc func cancel(_ call: CAPPluginCall) {
+-        guard let notifications = call.getArray("notifications", JSObject.self), notifications.count > 0 else {
+-            call.reject("Must supply notifications to cancel")
++        guard let notifications = call.getArray("notifications") as? [JSObject], notifications.count > 0 else {
++            call.reject("Must supply notifications to cancel", nil, nil, nil)
+             return
+         }
+ 
+@@ -201,7 +201,7 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
+      * Register allowed action types that a notification may present.
+      */
+     @objc func registerActionTypes(_ call: CAPPluginCall) {
+-        guard let types = call.getArray("types", JSObject.self) else {
++        guard let types = call.getArray("types") as? [JSObject] else {
+             return
+         }
+ 
+@@ -289,7 +289,7 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
+             let dateInfo = Calendar.current.dateComponents(in: TimeZone.current, from: at)
+ 
+             if dateInfo.date! < Date() {
+-                call.reject("Scheduled time must be *after* current time")
++                call.reject("Scheduled time must be *after* current time", nil, nil, nil)
+                 return nil
+             }
+ 
+@@ -552,7 +552,8 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
+             return nil
+         }
+ 
+-        return bridge?.localURL(fromWebURL: webURL)
++        let urlString = webURL.absoluteString.replacingOccurrences(of: "capacitor://localhost/_capacitor_file_", with: "file://")
++        return URL(string: urlString)
+     }
+ 
+     /**
+@@ -595,8 +596,8 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
+      * Remove specified notifications from Notification Center
+      */
+     @objc func removeDeliveredNotifications(_ call: CAPPluginCall) {
+-        guard let notifications = call.getArray("notifications", JSObject.self) else {
+-            call.reject("Must supply notifications to remove")
++        guard let notifications = call.getArray("notifications") as? [JSObject] else {
++            call.reject("Must supply notifications to remove", nil, nil, nil)
+             return
+         }
+ 
