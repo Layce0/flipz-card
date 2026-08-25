@@ -68,9 +68,10 @@ jobs:
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$PP_UUID.mobileprovision
           echo "Installed provisioning profile with UUID: $PP_UUID"
 
-      - name: Set build number
+      - name: Set app version and build number
         run: |
           cd ios/App
+          agvtool new-marketing-version 1.46
           agvtool new-version -all ${{ github.run_number }}
 
       - name: Build and Archive iOS App
