@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Play, Coins, Loader2 } from 'lucide-react';
 import { useRestoreStreak } from '@/hooks/useWinstreak';
+import { useAdMob } from '@/hooks/useAdMob';
 import { invokeEdgeFunction } from '@/lib/edgeFunctions';
 import { toast } from 'sonner';
 
