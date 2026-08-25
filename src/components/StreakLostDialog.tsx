@@ -19,14 +19,24 @@ interface StreakLostDialogProps {
  */
 export const StreakLostDialog = ({ open, onClose, previousStreak }: StreakLostDialogProps) => {
   const restore = useRestoreStreak();
+  const { showRewardedAd } = useAdMob();
   const [paying, setPaying] = useState(false);
+  const [watchingAd, setWatchingAd] = useState(false);
 
   const handleAd = async () => {
     try {
+      setWatchingAd(true);
+      const adWatched = await showRewardedAd();
+      setWatchingAd(false);
+      if (!adWatched) {
+        toast.error('Regarde la pub en entier pour restaurer ta série');
+        return;
+      }
       await restore.mutateAsync();
       toast.success('Série restaurée');
       onClose();
     } catch (e: unknown) {
+      setWatchingAd(false);
       toast.error(e instanceof Error ? e.message : 'Restauration impossible');
     }
   };
