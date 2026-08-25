@@ -120,7 +120,7 @@ export const useAdMob = () => {
     const platform = Capacitor.getPlatform();
     const adId = isTestMode
       ? platform === 'ios' ? TEST_REWARDED_AD_UNIT_IOS : TEST_REWARDED_AD_UNIT_ANDROID
-      : REWARDED_AD_UNIT;
+      : platform === 'ios' ? REWARDED_AD_UNIT_IOS : REWARDED_AD_UNIT_ANDROID;
 
     const options: RewardAdOptions = { adId, isTesting: isTestMode };
 
