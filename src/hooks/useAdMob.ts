@@ -9,7 +9,8 @@ import { useAuth } from '@/contexts/AuthContext';
 // Configuration des unités publicitaires
 // ---------------------------------------------------------------------------
 const ADMOB_APP_ID = 'ca-app-pub-6340983480597130~9251933354';
-const REWARDED_AD_UNIT = 'ca-app-pub-6340983480597130/7607679191';
+const REWARDED_AD_UNIT_IOS = 'ca-app-pub-6340983480597130/7607679191';
+const REWARDED_AD_UNIT_ANDROID = 'ca-app-pub-6340983480597130/9963115881';
 
 // Unités de test officielles Google (mode test admin / dev uniquement)
 const TEST_REWARDED_AD_UNIT_IOS = 'ca-app-pub-3940256099942544/1712485313';
