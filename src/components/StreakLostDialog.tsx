@@ -76,9 +76,9 @@ export const StreakLostDialog = ({ open, onClose, previousStreak }: StreakLostDi
             size="sm"
             className="justify-start gap-2 bg-muted/40 hover:bg-muted/60 text-foreground/90 font-normal"
             onClick={handleAd}
-            disabled={restore.isPending}
+            disabled={restore.isPending || watchingAd || paying}
           >
-            <Play className="w-3.5 h-3.5" />
+            {watchingAd ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
             Regarder une pub
           </Button>
           <Button
