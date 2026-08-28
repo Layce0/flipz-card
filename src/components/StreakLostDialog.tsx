@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSfx } from '@/hooks/useSfx';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Play, Coins, Loader2 } from 'lucide-react';
@@ -19,6 +20,13 @@ interface StreakLostDialogProps {
 export const StreakLostDialog = ({ open, onClose, previousStreak }: StreakLostDialogProps) => {
   const restore = useRestoreStreak();
   const [paying, setPaying] = useState(false);
+  const { play } = useSfx();
+
+  useEffect(() => {
+    if (open) {
+      play('streakLost');
+    }
+  }, [open, play]);
 
   const handleAd = async () => {
     try {

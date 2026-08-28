@@ -1,3 +1,4 @@
+import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { invokeEdgeFunction } from '@/lib/edgeFunctions';
@@ -140,40 +141,28 @@ export const isCardNew = (
   return !existingCard || existingCard.count === 0;
 };
 
-// Fetch user card stats
+// Fetch user card stats (derived from useUserCards to avoid duplicate request)
 export const useUserCardStats = (userId: string | undefined) => {
-  return useQuery({
-    queryKey: ['user-card-stats', userId],
-    queryFn: async () => {
-      if (!userId) return { total: 0, common: 0, rare: 0, epic: 0, legendary: 0 };
-      
-      const { data, error } = await supabase
-        .from('user_cards')
-        .select('card_id, cards(rarity)')
-        .eq('user_id', userId);
-      
-      if (error) throw error;
-      
-      const stats = {
-        total: data?.length || 0,
-        common: 0,
-        rare: 0,
-        epic: 0,
-        legendary: 0,
-      };
-      
-      data?.forEach((item: any) => {
-        const rarity = item.cards?.rarity as Rarity | undefined;
-        if (rarity && rarity in stats) {
-          stats[rarity]++;
-        }
-      });
-      
-      return stats;
-    },
-    enabled: !!userId,
-  });
+  const { data: userCards, isLoading } = useUserCards(userId);
+
+  const stats = React.useMemo(() => {
+    const s = { total: 0, common: 0, rare: 0, epic: 0, legendary: 0 };
+    if (!userCards) return s;
+    
+    userCards.forEach((card) => {
+      s.total += card.count;
+      const rarity = card.rarity as Rarity;
+      if (rarity && rarity in s) {
+        s[rarity] += card.count;
+      }
+    });
+    
+    return s;
+  }, [userCards]);
+
+  return { data: stats, isLoading };
 };
+
 
 // Get today's card - random per user based on date + userId + 12h UTC period.
 // While the 12h cooldown is still running, we keep the card from the period in

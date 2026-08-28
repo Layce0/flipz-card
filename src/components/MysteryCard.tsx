@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, memo, useRef } from 'react';
+import { useSfx } from '@/hooks/useSfx';
 import { GameCard, RARITY_CONFIG } from '@/types/card';
 import { cn } from '@/lib/utils';
 import cardBackImage from '@/assets/card-back.png';
@@ -25,6 +26,7 @@ interface MysteryCardProps {
 
 export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'md', isNew = false, persistFlip = false }: MysteryCardProps) => {
   const { getTitle, getDescription } = useLocalizedCard();
+  const { play } = useSfx();
   const [flipped, setFlipped] = useState(() => isRevealed);
   const [skipTransition, setSkipTransition] = useState(() => isRevealed);
   const [showParticles, setShowParticles] = useState(false);
@@ -74,6 +76,10 @@ export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'm
   const handleClick = () => {
     if (!flipped && onReveal) {
       setFlipped(true);
+      play('cardFlip');
+      if (card.rarity === 'legendary') {
+        play('legendaryReveal');
+      }
       spawnParticles();
       onReveal();
     }

@@ -16,6 +16,7 @@ import { invokeEdgeFunction } from '@/lib/edgeFunctions';
 import { GameCard } from '@/types/card';
 import { cn } from '@/lib/utils';
 import packBoosterImg from '@/assets/pack-booster.png';
+import { useSfx } from '@/hooks/useSfx';
 
 const Packs = () => {
   const { user, isLoading: authLoading } = useAuth();
@@ -32,6 +33,7 @@ const Packs = () => {
   const { data: userCards = [] } = useUserCards(user?.id);
   const [ownedSnapshot, setOwnedSnapshot] = useState<Set<string>>(new Set());
   const queryClient = useQueryClient();
+  const { play } = useSfx();
 
   const currentCardIsNew = useMemo(() => {
     const cardId = revealedCards[currentCardIndex]?.id;
@@ -108,6 +110,7 @@ const Packs = () => {
   const handleRevealCard = async () => {
     if (!user || currentCardIndex >= revealedCards.length) return;
     if (!cardRevealed) {
+      play('cardFlip');
       setCardRevealed(true);
     }
   };
@@ -119,6 +122,7 @@ const Packs = () => {
     const normX = mag > 0 ? (dirX / mag) * 400 : -300;
     const normY = mag > 0 ? (dirY / mag) * 400 : 0;
     setSlideDir({ x: normX, y: normY });
+    play('cardSwipe');
     setTimeout(() => {
       if (currentCardIndex < revealedCards.length - 1) {
         setCurrentCardIndex(prev => prev + 1);
@@ -131,7 +135,7 @@ const Packs = () => {
       setDragX(0);
       setDragY(0);
     }, 250);
-  }, [currentCardIndex, revealedCards.length, dragX, dragY, t, queryClient]);
+  }, [currentCardIndex, revealedCards.length, dragX, dragY, t, queryClient, play]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (!cardRevealed) return;

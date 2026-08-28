@@ -14,6 +14,7 @@ import { useUserStreak, useUpdateStreak } from '@/hooks/useWinstreak';
 import { useNotifications } from '@/hooks/useNotifications';
 import { toast } from 'sonner';
 import { StreakLostDialog } from '@/components/StreakLostDialog';
+import { useSfx } from '@/hooks/useSfx';
 const flipzLogo = '/flipz-logo-new.png';
 
 // Isolated timer component to avoid re-rendering the entire page every second
@@ -76,6 +77,7 @@ const Index = () => {
   const { user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { play } = useSfx();
 
   // Lazy load lottie JSON data
   useEffect(() => {
@@ -128,6 +130,7 @@ const Index = () => {
       if (result?.code === 'ALREADY_COLLECTED' || result?.bypassed) {
         toast.info(t('home.alreadyCollected'));
       } else {
+        play('collectSuccess');
         toast.success(t('home.cardAdded'));
       }
     } catch (error: any) {
@@ -146,11 +149,12 @@ const Index = () => {
   }, [todayCard, userCards]);
 
   const handleCatClick = useCallback(() => {
+    play('catMeow');
     if (!isRunning) {
       setIsRunning(true);
       if (!catRunData) import('@/assets/lottie-cat-run.json').then(m => setCatRunData(m.default));
     }
-  }, [isRunning, catRunData]);
+  }, [isRunning, catRunData, play]);
 
   const handleCatAnimationEnd = useCallback(() => setIsRunning(false), []);
 

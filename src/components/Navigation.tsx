@@ -5,12 +5,14 @@ import { Home, BookOpen, Package, Shield, LogIn, ShoppingBag, User } from 'lucid
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNewCardIndicator } from '@/hooks/useNewCardIndicator';
+import { useSfx } from '@/hooks/useSfx';
 
 export const Navigation = memo(() => {
   const location = useLocation();
   const { user, isAdmin } = useAuth();
   const { t } = useTranslation();
   const { hasNewCards } = useNewCardIndicator();
+  const { play } = useSfx();
 
   const navItems = useMemo(() => [
     { path: '/', icon: Home, labelKey: 'nav.home', show: true, badge: false, tour: 'nav-home' },
@@ -33,6 +35,9 @@ export const Navigation = memo(() => {
             <Link
               key={path}
               to={path}
+              onClick={() => {
+                if (!isActive) play('navClick');
+              }}
               data-tour={tour || undefined}
               className={cn(
                 "relative flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-all duration-300",

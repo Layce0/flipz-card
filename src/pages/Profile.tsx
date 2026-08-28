@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useSfx } from '@/hooks/useSfx';
 import { useNavigate } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
@@ -26,7 +27,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { User, Settings, BarChart3, LogOut, Camera as CameraIcon, Lock, Save, GraduationCap, Info, FileText, AlertTriangle } from 'lucide-react';
+import { User, Settings, BarChart3, LogOut, Camera as CameraIcon, Lock, Save, GraduationCap, Info, FileText, AlertTriangle, Volume2, VolumeX } from 'lucide-react';
 import { toast } from 'sonner';
 
 const LANGUAGES = [
@@ -61,6 +62,24 @@ const Profile = () => {
   const [changingPassword, setChangingPassword] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toggleMute, getMuted, play } = useSfx();
+  const [sfxMuted, setSfxMuted] = useState(() => getMuted());
+  const [sfxVolume, setSfxVolume] = useState<number>(() => {
+    try { return parseFloat(localStorage.getItem('flipz_sfx_volume') || '1'); } catch { return 1; }
+  });
+
+  const handleToggleMute = () => {
+    const next = toggleMute();
+    setSfxMuted(next);
+    if (!next) play('navClick', sfxVolume);
+  };
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = parseFloat(e.target.value);
+    setSfxVolume(v);
+    try { localStorage.setItem('flipz_sfx_volume', String(v)); } catch {}
+    if (!sfxMuted) play('navClick', v);
+  };
 
   /** Convert a data-URL to a File for Supabase upload */
   const dataUrlToFile = (dataUrl: string, filename: string): File => {
@@ -469,6 +488,53 @@ const Profile = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                {/* SFX */}
+                <div className="space-y-3">
+                  <Label>Effets sonores (SFX)</Label>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border/50">
+                    <div className="flex items-center gap-3">
+                      {sfxMuted
+                        ? <VolumeX className="w-5 h-5 text-muted-foreground" />
+                        : <Volume2 className="w-5 h-5 text-primary" />
+                      }
+                      <div>
+                        <p className="text-sm font-medium">{sfxMuted ? 'Sons désactivés' : 'Sons activés'}</p>
+                        <p className="text-xs text-muted-foreground">Effets sonores en jeu</p>
+                      </div>
+                    </div>
+                    <button
+                      id="sfx-toggle"
+                      onClick={handleToggleMute}
+                      className={`relative w-12 h-6 rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                        sfxMuted ? 'bg-muted-foreground/30' : 'bg-primary'
+                      }`}
+                      aria-label="Toggle SFX"
+                    >
+                      <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${
+                        sfxMuted ? 'translate-x-0' : 'translate-x-6'
+                      }`} />
+                    </button>
+                  </div>
+
+                  {!sfxMuted && (
+                    <div className="flex items-center gap-3 px-1">
+                      <VolumeX className="w-4 h-4 text-muted-foreground shrink-0" />
+                      <input
+                        id="sfx-volume"
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.05"
+                        value={sfxVolume}
+                        onChange={handleVolumeChange}
+                        className="flex-1 h-2 rounded-full accent-primary cursor-pointer"
+                        aria-label="Volume SFX"
+                      />
+                      <Volume2 className="w-4 h-4 text-primary shrink-0" />
+                    </div>
+                  )}
                 </div>
 
                 {/* Replay tutorial */}

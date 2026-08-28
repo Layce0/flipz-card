@@ -14,17 +14,20 @@ import { GlobalGifsOverlay } from "@/components/GlobalGifsOverlay";
 import { GiftRevealPopup } from "@/components/GiftRevealPopup";
 import { ForceUpdateDialog } from "@/components/ForceUpdateDialog";
 import { useForceUpdate } from "@/hooks/useForceUpdate";
-import Index from "./pages/Index";
-import Collection from "./pages/Collection";
-import Packs from "./pages/Packs";
-import Shop from "./pages/Shop";
-import Admin from "./pages/Admin";
-import Auth from "./pages/Auth";
-import ResetPassword from "./pages/ResetPassword";
-import Profile from "./pages/Profile";
-import NotFound from "./pages/NotFound";
-import OAuthConsent from "./pages/OAuthConsent";
-import StreakRestored from "./pages/StreakRestored";
+import { SplashScreen } from "@/components/SplashScreen";
+import { useAuth } from "@/contexts/AuthContext";
+
+const Index = lazy(() => import("./pages/Index"));
+const Collection = lazy(() => import("./pages/Collection"));
+const Packs = lazy(() => import("./pages/Packs"));
+const Shop = lazy(() => import("./pages/Shop"));
+const Admin = lazy(() => import("./pages/Admin"));
+const Auth = lazy(() => import("./pages/Auth"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Profile = lazy(() => import("./pages/Profile"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
+const StreakRestored = lazy(() => import("./pages/StreakRestored"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -74,9 +77,6 @@ const RouteSeo = () => {
   return <Seo title={meta.title} description={meta.description} path={pathname} />;
 };
 
-import { SplashScreen } from "@/components/SplashScreen";
-import { useAuth } from "@/contexts/AuthContext";
-
 const AppContent = () => {
   const { updateRequired, storeUrl } = useForceUpdate();
   const { isLoading: isAuthLoading } = useAuth();
@@ -97,19 +97,21 @@ const AppContent = () => {
       <GlobalGifsOverlay />
       <GiftRevealPopup />
       <main>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/collection" element={<Collection />} />
-          <Route path="/packs" element={<Packs />} />
-          <Route path="/shop" element={<Shop />} />
-          <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
-          <Route path="/streak-restored" element={<StreakRestored />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen text-muted-foreground">Chargement...</div>}>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/collection" element={<Collection />} />
+            <Route path="/packs" element={<Packs />} />
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
+            <Route path="/streak-restored" element={<StreakRestored />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
       </main>
     </div>
   );

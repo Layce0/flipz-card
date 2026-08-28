@@ -1,4 +1,5 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { useSfx } from '@/hooks/useSfx';
 
 export type PackAnimationType = 'standard' | 'lucky' | 'ultra' | 'free';
 
@@ -19,6 +20,7 @@ const GLOW_COLORS: Record<string, string> = {
 // Component removed to keep the opening clean
 
 export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free', packId }: PackOpeningAnimationProps) => {
+  const { play } = useSfx();
   const getImageUrl = () => {
     let base = 'pack-sachet';
     
@@ -41,6 +43,18 @@ export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free', pa
   const packRef = useRef<HTMLDivElement>(null);
   
   const glowColor = GLOW_COLORS[packType] || GLOW_COLORS.free;
+
+  const ambientParticles = useMemo(() => {
+    return Array.from({ length: 15 }).map((_, i) => ({
+      id: i,
+      width: Math.random() * 3 + 1,
+      height: Math.random() * 3 + 1,
+      left: `${Math.random() * 100}%`,
+      top: `${Math.random() * 100}%`,
+      duration: 10 + Math.random() * 10,
+      delay: -(Math.random() * 10),
+    }));
+  }, []);
 
   // Reset state when a new pack is opened
   useEffect(() => {
@@ -70,15 +84,17 @@ export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free', pa
     setTapCount(newCount);
     
     if (newCount < 3) {
+      play('packTap');
       triggerShake();
     } else {
       // Climax
+      play('packTear');
       setIsTearing(true);
       setTimeout(() => {
         onComplete();
       }, 800); // Snappy reveal before the pieces fully disappear
     }
-  }, [tapCount, isTearing, onComplete, triggerShake]);
+  }, [tapCount, isTearing, onComplete, triggerShake, play]);
 
   if (!isOpen) return null;
 
@@ -90,17 +106,17 @@ export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free', pa
     >
       {/* Floating ambient particles (always on) */}
       <div className="absolute inset-0 z-0 pointer-events-none opacity-30">
-        {Array.from({ length: 15 }).map((_, i) => (
+        {ambientParticles.map((p) => (
           <div
-            key={i}
+            key={p.id}
             className="absolute rounded-full bg-white"
             style={{
-              width: Math.random() * 3 + 1,
-              height: Math.random() * 3 + 1,
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animation: `ambient-drift ${10 + Math.random() * 10}s linear infinite`,
-              animationDelay: `-${Math.random() * 10}s`,
+              width: p.width,
+              height: p.height,
+              left: p.left,
+              top: p.top,
+              animation: `ambient-drift ${p.duration}s linear infinite`,
+              animationDelay: `${p.delay}s`,
             }}
           />
         ))}
