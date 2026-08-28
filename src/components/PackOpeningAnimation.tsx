@@ -39,8 +39,22 @@ export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free', pa
   const [tapCount, setTapCount] = useState(0);
   const [isTearing, setIsTearing] = useState(false);
   const packRef = useRef<HTMLDivElement>(null);
-  
+
   const glowColor = GLOW_COLORS[packType] || GLOW_COLORS.free;
+
+  // Burst particles generated once per opening
+  const burstParticles = useRef(
+    Array.from({ length: 36 }).map(() => {
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 120 + Math.random() * 260;
+      return {
+        bx: Math.cos(angle) * dist,
+        by: Math.sin(angle) * dist,
+        size: 3 + Math.random() * 7,
+        delay: Math.random() * 0.15,
+      };
+    })
+  ).current;
 
   // Reset state when a new pack is opened
   useEffect(() => {
@@ -50,17 +64,28 @@ export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free', pa
     }
   }, [isOpen]);
 
+  const vibrate = useCallback((pattern: number | number[]) => {
+    try {
+      navigator.vibrate?.(pattern);
+    } catch {
+      /* haptics unsupported */
+    }
+  }, []);
+
   // Shake logic
   const triggerShake = useCallback(() => {
     if (!packRef.current) return;
-    const intensity = tapCount * 2;
-    packRef.current.animate([
-      { transform: 'translate(0,0) rotate(0deg)' },
-      { transform: `translate(-${intensity}px, ${intensity}px) rotate(-1deg)` },
-      { transform: `translate(${intensity}px, -${intensity}px) rotate(1deg)` },
-      { transform: `translate(-${intensity/2}px, -${intensity/2}px) rotate(0deg)` },
-      { transform: 'translate(0,0) rotate(0deg)' }
-    ], { duration: 300, easing: 'ease-out' });
+    const intensity = tapCount * 3 + 2;
+    packRef.current.animate(
+      [
+        { transform: 'translate(0,0) rotate(0deg) scale(1)' },
+        { transform: `translate(-${intensity}px, ${intensity}px) rotate(-2deg) scale(1.04)` },
+        { transform: `translate(${intensity}px, -${intensity}px) rotate(2deg) scale(0.99)` },
+        { transform: `translate(-${intensity / 2}px, -${intensity / 2}px) rotate(-1deg) scale(1.02)` },
+        { transform: 'translate(0,0) rotate(0deg) scale(1)' },
+      ],
+      { duration: 380, easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }
+    );
   }, [tapCount]);
 
   const handleTap = useCallback(() => {
@@ -68,17 +93,19 @@ export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free', pa
 
     const newCount = tapCount + 1;
     setTapCount(newCount);
-    
+
     if (newCount < 3) {
+      vibrate(newCount === 1 ? 25 : 45);
       triggerShake();
     } else {
       // Climax
+      vibrate([0, 40, 60, 120]);
       setIsTearing(true);
       setTimeout(() => {
         onComplete();
-      }, 800); // Snappy reveal before the pieces fully disappear
+      }, 950);
     }
-  }, [tapCount, isTearing, onComplete, triggerShake]);
+  }, [tapCount, isTearing, onComplete, triggerShake, vibrate]);
 
   if (!isOpen) return null;
 
@@ -106,17 +133,62 @@ export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free', pa
         ))}
       </div>
 
+      {/* Rising background glow with each tap */}
+      <div
+        className="absolute inset-0 z-0 pointer-events-none transition-opacity duration-500"
+        style={{
+          background: `radial-gradient(circle at 50% 45%, ${glowColor} 0%, transparent 55%)`,
+          opacity: tapCount * 0.12,
+        }}
+      />
+
+      {/* Climax: full screen flash + light burst */}
+      {isTearing && (
+        <>
+          <div
+            className="absolute inset-0 z-30 pointer-events-none pack-screen-flash"
+            style={{ background: `radial-gradient(circle at 50% 50%, white 0%, ${glowColor} 40%, transparent 75%)` }}
+          />
+          <div className="absolute inset-0 z-30 pointer-events-none flex items-center justify-center">
+            <div
+              className="rounded-full premium-core-light"
+              style={{ background: `radial-gradient(circle, white 0%, ${glowColor} 45%, transparent 70%)` }}
+            />
+          </div>
+          {/* Particle explosion */}
+          <div className="absolute inset-0 z-40 pointer-events-none flex items-center justify-center">
+            {burstParticles.map((p, i) => (
+              <div
+                key={i}
+                className="absolute rounded-full pack-burst-particle"
+                style={
+                  {
+                    width: p.size,
+                    height: p.size,
+                    background: i % 3 === 0 ? 'white' : glowColor,
+                    boxShadow: `0 0 12px ${glowColor}`,
+                    animationDelay: `${p.delay}s`,
+                    ['--bx' as string]: `${p.bx}px`,
+                    ['--by' as string]: `${p.by}px`,
+                  } as React.CSSProperties
+                }
+              />
+            ))}
+          </div>
+        </>
+      )}
+
       <div ref={packRef} className="relative z-20 pointer-events-none flex items-center justify-center">
         {!isTearing ? (
-          <div className="relative">
+          <div className={`relative ${tapCount >= 2 ? 'pack-pre-tear-shake' : ''}`}>
             {/* Energy Aura building up */}
-            <div 
+            <div
               className="absolute inset-0 rounded-full transition-all duration-300"
               style={{
                 background: `radial-gradient(circle, ${glowColor} 0%, transparent 70%)`,
                 filter: 'blur(30px)',
-                opacity: tapCount * 0.3,
-                transform: `scale(${1 + tapCount * 0.2})`,
+                opacity: tapCount * 0.4,
+                transform: `scale(${1 + tapCount * 0.25})`,
               }}
             />
             <img
@@ -124,14 +196,38 @@ export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free', pa
               alt="Pack"
               className="w-80 h-auto select-none relative z-10 transition-transform duration-300"
               style={{
-                filter: `drop-shadow(0 10px 25px rgba(0,0,0,0.8))`,
-                transform: `scale(${1 + tapCount * 0.05})`,
+                filter: `drop-shadow(0 10px 25px rgba(0,0,0,0.8)) drop-shadow(0 0 ${tapCount * 14}px ${glowColor})`,
+                transform: `scale(${1 + tapCount * 0.06})`,
               }}
               draggable={false}
             />
+            {/* Seam light growing along the tear line */}
+            {tapCount > 0 && (
+              <div
+                className="absolute left-0 right-0 z-20 pointer-events-none"
+                style={{
+                  top: '17%',
+                  height: 3,
+                  background: `linear-gradient(90deg, transparent, white, transparent)`,
+                  opacity: tapCount * 0.35,
+                  filter: `blur(2px) drop-shadow(0 0 8px ${glowColor})`,
+                }}
+              />
+            )}
           </div>
         ) : (
           <div className="relative w-80 flex flex-col items-center justify-center">
+            {/* Glowing seam at the tear */}
+            <div
+              className="absolute left-0 right-0 z-20 pack-seam-glow"
+              style={{
+                top: '17%',
+                height: 6,
+                background: `linear-gradient(90deg, transparent, white 30%, white 70%, transparent)`,
+                filter: `drop-shadow(0 0 18px ${glowColor})`,
+              }}
+            />
+
             {/* Top slice flying off */}
             <div 
               className="w-80 absolute top-0 z-10 premium-tear-top"
@@ -164,7 +260,7 @@ export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free', pa
       {!isTearing && (
         <div className="z-20 mt-16 flex flex-col items-center gap-4 pointer-events-none">
           <p className="text-xs font-semibold tracking-[0.2em] uppercase text-white/50 animate-pulse">
-            Appuyez pour ouvrir
+            {tapCount === 0 ? 'Appuyez pour ouvrir' : tapCount === 1 ? 'Encore...' : 'Presque !'}
           </p>
           <div className="flex gap-3">
             {[0, 1, 2].map((i) => (
@@ -174,7 +270,7 @@ export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free', pa
                 style={{
                   backgroundColor: i < tapCount ? 'white' : 'rgba(255,255,255,0.1)',
                   boxShadow: i < tapCount ? `0 0 10px white, 0 0 20px ${glowColor}` : 'none',
-                  transform: i < tapCount ? 'scale(1.2)' : 'scale(1)',
+                  transform: i < tapCount ? 'scale(1.3)' : 'scale(1)',
                 }}
               />
             ))}
