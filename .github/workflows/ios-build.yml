@@ -8,14 +8,14 @@ on:
 jobs:
   build_ios:
     name: Build iOS IPA
-    runs-on: macos-14
+    runs-on: macos-15
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set Xcode Version
-        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+        run: sudo xcode-select -s /Applications/Xcode_26.0.1.app/Contents/Developer
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -68,6 +68,11 @@ jobs:
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$PP_UUID.mobileprovision
           echo "Installed provisioning profile with UUID: $PP_UUID"
 
+      - name: Set app version and build number
+        run: |
+          cd ios/App
+          agvtool new-marketing-version 1.47
+          agvtool new-version -all ${{ github.run_number }}
 
       - name: Build and Archive iOS App
         run: |

@@ -1,175 +1,216 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Capacitor } from '@capacitor/core';
-import { useAuth } from '@/contexts/AuthContext';
+import type { PluginListenerHandle } from '@capacitor/core';
 import { AdMob, RewardAdPluginEvents } from '@capacitor-community/admob';
 import type { RewardAdOptions } from '@capacitor-community/admob';
+import { useAuth } from '@/contexts/AuthContext';
 
-const REWARDED_AD_ID_IOS = 'ca-app-pub-6340983480597130/7607679191';
-const REWARDED_AD_ID_ANDROID = 'ca-app-pub-6340983480597130/7607679191'; // TODO: Update with real Android ID
-const TEST_REWARDED_AD_ID_ANDROID = 'ca-app-pub-3940256099942544/5224354917';
-const TEST_REWARDED_AD_ID_IOS = 'ca-app-pub-3940256099942544/1712485313';
+// ---------------------------------------------------------------------------
+// Configuration des unités publicitaires
+// ---------------------------------------------------------------------------
+const ADMOB_APP_ID = 'ca-app-pub-6340983480597130~9251933354';
+const REWARDED_AD_UNIT_IOS = 'ca-app-pub-6340983480597130/7607679191';
+const REWARDED_AD_UNIT_ANDROID = 'ca-app-pub-6340983480597130/9963115881';
 
-let admobInitialized = false;
+// Unités de test officielles Google (mode test admin / dev uniquement)
+const TEST_REWARDED_AD_UNIT_IOS = 'ca-app-pub-3940256099942544/1712485313';
+const TEST_REWARDED_AD_UNIT_ANDROID = 'ca-app-pub-3940256099942544/5224354917';
 
-const initializeAdMob = async (isTesting: boolean) => {
-  if (admobInitialized) return;
-  if (!Capacitor.isNativePlatform()) return;
-  
-  try {
-    if (Capacitor.getPlatform() === 'ios') {
-      try {
-        await AdMob.requestTrackingAuthorization();
-      } catch (e) {
-        console.warn('ATT request failed or not supported:', e);
+const PREPARE_TIMEOUT_MS = 12000;
+const SHOW_TIMEOUT_MS = 60000;
+
+// ---------------------------------------------------------------------------
+// Initialisation (une seule fois par session native)
+// ---------------------------------------------------------------------------
+let initPromise: Promise<boolean> | null = null;
+
+const ensureAdMobInitialized = (isTesting: boolean): Promise<boolean> => {
+  if (!Capacitor.isNativePlatform()) return Promise.resolve(false);
+  if (initPromise) return initPromise;
+
+  initPromise = (async () => {
+    try {
+      if (Capacitor.getPlatform() === 'ios') {
+        try {
+          await AdMob.requestTrackingAuthorization();
+        } catch (e) {
+          console.warn('[AdMob] ATT request failed or unsupported:', e);
+        }
       }
+      await AdMob.initialize({ initializeForTesting: isTesting });
+      console.log('[AdMob] Initialized with app id', ADMOB_APP_ID);
+      return true;
+    } catch (error) {
+      console.error('[AdMob] Initialization failed:', error);
+      initPromise = null; // autorise une nouvelle tentative au prochain appel
+      return false;
     }
+  })();
 
-    await AdMob.initialize({
-      initializeForTesting: isTesting,
-    });
-    admobInitialized = true;
-  } catch (error) {
-    console.error('AdMob initialization failed:', error);
-  }
+  return initPromise;
 };
 
+const withTimeout = <T,>(promise: Promise<T>, ms: number, label: string): Promise<T> =>
+  Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`[AdMob] ${label} timeout`)), ms)
+    ),
+  ]);
+
+// ---------------------------------------------------------------------------
+// Hook
+// ---------------------------------------------------------------------------
 export const useAdMob = () => {
   const [isLoading, setIsLoading] = useState(false);
   const isNative = Capacitor.isNativePlatform();
   const { isAdmin } = useAuth();
+  const isTestMode = (isAdmin ?? false) || import.meta.env.DEV;
 
+  // Pré-initialise le SDK dès que possible sur natif
   useEffect(() => {
     if (isNative) {
-      initializeAdMob(isAdmin ?? false);
+      ensureAdMobInitialized(isTestMode);
     }
-  }, [isNative, isAdmin]);
+  }, [isNative, isTestMode]);
 
+  // -------------------- Faussse pub web (aperçu / tests) --------------------
   const [showFakeAd, setShowFakeAd] = useState(false);
   const [fakeAdCountdown, setFakeAdCountdown] = useState(5);
   const fakeAdResolveRef = useRef<((val: boolean) => void) | null>(null);
+  const fakeAdIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const dismissFakeAd = useCallback(() => {
+  const finishFakeAd = useCallback((result: boolean) => {
+    if (fakeAdIntervalRef.current) {
+      clearInterval(fakeAdIntervalRef.current);
+      fakeAdIntervalRef.current = null;
+    }
     setShowFakeAd(false);
     setIsLoading(false);
-    fakeAdResolveRef.current?.(true);
+    fakeAdResolveRef.current?.(result);
     fakeAdResolveRef.current = null;
   }, []);
 
-  const showRewardedAd = useCallback(async (): Promise<boolean> => {
-    if (!isNative) {
-      setIsLoading(true);
-      setFakeAdCountdown(5);
-      setShowFakeAd(true);
+  const dismissFakeAd = useCallback(() => finishFakeAd(true), [finishFakeAd]);
 
-      return new Promise<boolean>((resolve) => {
-        fakeAdResolveRef.current = resolve;
-        let count = 5;
-        const interval = setInterval(() => {
-          count--;
-          setFakeAdCountdown(count);
-          if (count <= 0) {
-            clearInterval(interval);
-            setShowFakeAd(false);
-            setIsLoading(false);
-            resolve(true);
-            fakeAdResolveRef.current = null;
-          }
-        }, 1000);
-      });
+  const showFakeRewardedAd = useCallback((): Promise<boolean> => {
+    setIsLoading(true);
+    setFakeAdCountdown(5);
+    setShowFakeAd(true);
+
+    return new Promise<boolean>((resolve) => {
+      fakeAdResolveRef.current = resolve;
+      let count = 5;
+      fakeAdIntervalRef.current = setInterval(() => {
+        count--;
+        setFakeAdCountdown(count);
+        if (count <= 0) finishFakeAd(true);
+      }, 1000);
+    });
+  }, [finishFakeAd]);
+
+  // ------------------------- Pub rewarded native ---------------------------
+  const showNativeRewardedAd = useCallback(async (): Promise<boolean> => {
+    const initialized = await ensureAdMobInitialized(isTestMode);
+    if (!initialized) {
+      // Repli gracieux : pas de SDK = on laisse passer pour ne pas bloquer le jeu
+      return true;
+    }
+
+    const platform = Capacitor.getPlatform();
+    const adId = isTestMode
+      ? platform === 'ios' ? TEST_REWARDED_AD_UNIT_IOS : TEST_REWARDED_AD_UNIT_ANDROID
+      : platform === 'ios' ? REWARDED_AD_UNIT_IOS : REWARDED_AD_UNIT_ANDROID;
+
+    const options: RewardAdOptions = { adId, isTesting: isTestMode };
+
+    // 1. Chargement de la pub (avec timeout)
+    try {
+      await withTimeout(AdMob.prepareRewardVideoAd(options), PREPARE_TIMEOUT_MS, 'prepareRewardVideoAd');
+    } catch (error) {
+      console.warn('[AdMob] prepare failed (no fill / timeout) — graceful pass:', error);
+      return true; // Repli gracieux : pas de pub disponible = récompense quand même
+    }
+
+    // 2. Affichage + écoute du cycle de vie
+    return new Promise<boolean>((resolve) => {
+      let settled = false;
+      let rewardEarned = false;
+      const handles: PluginListenerHandle[] = [];
+
+      const cleanup = () => {
+        handles.forEach((h) => h.remove().catch(() => {}));
+        handles.length = 0;
+        clearTimeout(safetyTimer);
+      };
+
+      const settle = (result: boolean) => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        setIsLoading(false);
+        resolve(result);
+      };
+
+      // Timer de sécurité : si l'annonce ne se ferme jamais, on débloque
+      const safetyTimer = setTimeout(() => {
+        console.warn('[AdMob] show safety timeout — graceful pass');
+        settle(true);
+      }, SHOW_TIMEOUT_MS);
+
+      const listen = async () => {
+        handles.push(
+          await AdMob.addListener(RewardAdPluginEvents.Rewarded, () => {
+            rewardEarned = true;
+          }),
+          await AdMob.addListener(RewardAdPluginEvents.Dismissed, () => {
+            // Fermé : récompense accordée seulement si la vidéo a été vue en entier
+            settle(rewardEarned);
+          }),
+          await AdMob.addListener(RewardAdPluginEvents.FailedToLoad, (error) => {
+            console.warn('[AdMob] FailedToLoad — graceful pass:', error);
+            settle(true); // Repli gracieux
+          }),
+          await AdMob.addListener(RewardAdPluginEvents.FailedToShow, (error) => {
+            console.warn('[AdMob] FailedToShow — graceful pass:', error);
+            settle(true); // Repli gracieux
+          }),
+        );
+
+        if (settled) {
+          cleanup();
+          return;
+        }
+
+        try {
+          await AdMob.showRewardVideoAd();
+        } catch (error) {
+          console.warn('[AdMob] showRewardVideoAd threw — graceful pass:', error);
+          settle(true);
+        }
+      };
+
+      listen();
+    });
+  }, [isTestMode]);
+
+  // ------------------------------- API publique ----------------------------
+  const showRewardedAd = useCallback(async (): Promise<boolean> => {
+    if (isLoading) return false;
+
+    if (!isNative) {
+      return showFakeRewardedAd();
     }
 
     setIsLoading(true);
-
     try {
-      const isTestMode = (isAdmin ?? false) || import.meta.env.DEV;
-      const testAdId = Capacitor.getPlatform() === 'ios' ? TEST_REWARDED_AD_ID_IOS : TEST_REWARDED_AD_ID_ANDROID;
-      const prodAdId = Capacitor.getPlatform() === 'ios' ? REWARDED_AD_ID_IOS : REWARDED_AD_ID_ANDROID;
-
-      const options: RewardAdOptions = {
-        adId: isTestMode ? testAdId : prodAdId,
-        isTesting: isTestMode,
-      };
-
-      // Timeout de sécurité : si AdMob ne répond pas en 10s on laisse passer
-      const prepareWithTimeout = Promise.race([
-        AdMob.prepareRewardVideoAd(options),
-        new Promise<void>((_, reject) =>
-          setTimeout(() => reject(new Error('AdMob prepareRewardVideoAd timeout')), 10000)
-        ),
-      ]);
-
-      await prepareWithTimeout;
-
-      return new Promise<boolean>((resolve) => {
-        let settled = false;
-        const settle = (result: boolean) => {
-          if (settled) return;
-          settled = true;
-          setIsLoading(false);
-          resolve(result);
-        };
-
-        // Timeout de sécurité sur showRewardVideoAd : si l'ad ne se ferme pas en 15s on continue
-        const safetyTimer = setTimeout(() => {
-          console.warn('AdMob rewarded safety timeout — resolving gracefully');
-          dismissHandle?.then(h => h.remove()).catch(() => {});
-          failShowHandle?.then(h => h.remove()).catch(() => {});
-          failLoadHandle?.then(h => h.remove()).catch(() => {});
-          rewardedHandle?.then(h => h.remove()).catch(() => {});
-          settle(true);
-        }, 15000);
-
-        const cleanup = () => {
-          clearTimeout(safetyTimer);
-          dismissHandle?.then(h => h.remove()).catch(() => {});
-          failShowHandle?.then(h => h.remove()).catch(() => {});
-          failLoadHandle?.then(h => h.remove()).catch(() => {});
-          rewardedHandle?.then(h => h.remove()).catch(() => {});
-        };
-
-        const dismissHandle = AdMob.addListener(
-          RewardAdPluginEvents.Dismissed,
-          () => { cleanup(); settle(true); }
-        );
-
-        const failShowHandle = AdMob.addListener(
-          RewardAdPluginEvents.FailedToShow,
-          () => {
-            console.warn('AdMob FailedToShow — resolving gracefully');
-            cleanup();
-            settle(true); // graceful : on ouvre quand même le pack
-          }
-        );
-
-        // FailedToLoad
-        const failLoadHandle = AdMob.addListener(
-          'rewardVideoAdFailedToLoad' as any,
-          () => {
-            console.warn('AdMob FailedToLoad — resolving gracefully');
-            cleanup();
-            settle(true); // graceful : on ouvre quand même le pack
-          }
-        );
-
-        const rewardedHandle = AdMob.addListener(
-          RewardAdPluginEvents.Rewarded,
-          () => {
-            // L'utilisateur a obtenu la récompense
-          }
-        );
-
-        AdMob.showRewardVideoAd().catch((e: unknown) => {
-          console.warn('AdMob showRewardVideoAd error:', e);
-          cleanup();
-          settle(true); // graceful
-        });
-      });
+      return await showNativeRewardedAd();
     } catch (error) {
-      console.warn('AdMob prepareRewardVideoAd failed (no fill or timeout) — resolving gracefully:', error);
+      console.warn('[AdMob] unexpected error — graceful pass:', error);
       setIsLoading(false);
-      return true; // graceful : pas de pub = on ouvre quand même le pack
+      return true;
     }
-  }, [isNative, isAdmin]);
+  }, [isLoading, isNative, showFakeRewardedAd, showNativeRewardedAd]);
 
   return { showRewardedAd, isLoading, isNative, showFakeAd, fakeAdCountdown, dismissFakeAd };
 };
