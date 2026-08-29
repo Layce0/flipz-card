@@ -27,7 +27,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { User, Settings, BarChart3, LogOut, Camera as CameraIcon, Lock, Save, GraduationCap, Info, FileText, AlertTriangle, Volume2, VolumeX } from 'lucide-react';
+import { User, Settings, BarChart3, LogOut, Camera as CameraIcon, Lock, Save, GraduationCap, Info, FileText, AlertTriangle, Volume2, VolumeX, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 
 const LANGUAGES = [
@@ -43,7 +43,7 @@ interface ProfileData {
 }
 
 const Profile = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState(true);
@@ -67,6 +67,14 @@ const Profile = () => {
   const [sfxVolume, setSfxVolume] = useState<number>(() => {
     try { return parseFloat(localStorage.getItem('flipz_sfx_volume') || '1'); } catch { return 1; }
   });
+  const [hideAdmin, setHideAdmin] = useState(() => localStorage.getItem('flipz_hide_admin') === 'true');
+
+  const handleToggleAdmin = () => {
+    const next = !hideAdmin;
+    setHideAdmin(next);
+    localStorage.setItem('flipz_hide_admin', String(next));
+    window.dispatchEvent(new CustomEvent('flipz:admin-visibility-changed'));
+  };
 
   const handleToggleMute = () => {
     const next = toggleMute();
@@ -553,6 +561,31 @@ const Profile = () => {
                     {t('settings.replayTutorial', 'Revoir le tutoriel')}
                   </Button>
                 </div>
+
+                {isAdmin && (
+                  <div className="space-y-2">
+                    <Label>Onglet Modérateur</Label>
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border/50">
+                      <div className="flex items-center gap-3">
+                        <Shield className="w-5 h-5 text-primary" />
+                        <div>
+                          <p className="text-sm font-medium">{hideAdmin ? 'Onglet masqué' : 'Onglet visible'}</p>
+                          <p className="text-xs text-muted-foreground">Afficher ou masquer l'onglet modérateur</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleToggleAdmin}
+                        className={`relative w-12 h-6 rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                          hideAdmin ? 'bg-muted-foreground/30' : 'bg-primary'
+                        }`}
+                      >
+                        <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${
+                          hideAdmin ? 'translate-x-0' : 'translate-x-6'
+                        }`} />
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label>{t('settings.privacy', 'Légal')}</Label>

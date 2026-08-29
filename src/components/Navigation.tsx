@@ -1,4 +1,4 @@
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Home, BookOpen, Package, Shield, LogIn, ShoppingBag, User } from 'lucide-react';
@@ -14,15 +14,23 @@ export const Navigation = memo(() => {
   const { hasNewCards } = useNewCardIndicator();
   const { play } = useSfx();
 
+  const [hideAdmin, setHideAdmin] = useState(() => localStorage.getItem('flipz_hide_admin') === 'true');
+
+  useEffect(() => {
+    const handler = () => setHideAdmin(localStorage.getItem('flipz_hide_admin') === 'true');
+    window.addEventListener('flipz:admin-visibility-changed', handler);
+    return () => window.removeEventListener('flipz:admin-visibility-changed', handler);
+  }, []);
+
   const navItems = useMemo(() => [
     { path: '/', icon: Home, labelKey: 'nav.home', show: true, badge: false, tour: 'nav-home' },
     { path: '/collection', icon: BookOpen, labelKey: 'nav.collection', show: true, badge: hasNewCards, tour: 'nav-collection' },
     { path: '/packs', icon: Package, labelKey: 'nav.packs', show: true, badge: false, tour: 'nav-packs' },
     { path: '/shop', icon: ShoppingBag, labelKey: 'nav.shop', show: !!user, badge: false, tour: 'nav-shop' },
-    { path: '/admin', icon: Shield, labelKey: 'nav.admin', show: isAdmin, badge: false, tour: '' },
+    { path: '/admin', icon: Shield, labelKey: 'nav.admin', show: isAdmin && !hideAdmin, badge: false, tour: '' },
     { path: '/profile', icon: User, labelKey: 'nav.profile', show: !!user, badge: false, tour: 'nav-profile' },
     { path: '/auth', icon: LogIn, labelKey: 'nav.login', show: !user, badge: false, tour: 'nav-login' },
-  ], [user, isAdmin, hasNewCards]);
+  ], [user, isAdmin, hideAdmin, hasNewCards]);
 
   const visibleItems = useMemo(() => navItems.filter(item => item.show), [navItems]);
 
