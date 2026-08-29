@@ -77,7 +77,7 @@ export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'm
     if (!flipped && onReveal) {
       setFlipped(true);
       play('cardFlip');
-      if (card.rarity === 'legendary') {
+      if (card.rarity === 'legendary' || card.rarity === 'epic') {
         play('legendaryReveal');
       }
       spawnParticles();

@@ -25,6 +25,8 @@ export type SfxName = keyof typeof sfxFiles;
 // Preload (lazy)
 const audioCache: Partial<Record<SfxName, HTMLAudioElement>> = {};
 
+import { useEffect } from 'react';
+
 export const useSfx = () => {
   const isMuted = (): boolean => {
     try {
@@ -80,4 +82,48 @@ export const useSfx = () => {
   const getMuted = isMuted;
 
   return { play, toggleMute, getMuted };
+};
+
+/**
+ * useGlobalClickSfx — Hook global pour jouer automatiquement nav-click.wav
+ * sur tous les boutons, onglets, badges, liens et éléments interactifs de l'application.
+ */
+export const useGlobalClickSfx = () => {
+  const { play } = useSfx();
+
+  useEffect(() => {
+    let lastPlayTime = 0;
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+
+      // Ne pas déclencher navClick sur les cartes à retourner ou zones exclues
+      if (
+        target.closest('.flip-card') ||
+        target.closest('[data-no-nav-sfx]') ||
+        target.closest('.no-click-sfx')
+      ) {
+        return;
+      }
+
+      // Détecter tout bouton, onglet, badge cliquable, lien ou composant interactif
+      const interactive = target.closest(
+        'button, [role="button"], [role="tab"], [role="menuitem"], [role="option"], a[href], input[type="button"], input[type="submit"]'
+      );
+
+      if (interactive) {
+        const now = Date.now();
+        // Léger anti-rebond pour éviter les doubles déclenchements
+        if (now - lastPlayTime > 50) {
+          lastPlayTime = now;
+          play('navClick');
+        }
+      }
+    };
+
+    document.addEventListener('click', handleClick, { capture: true });
+    return () => {
+      document.removeEventListener('click', handleClick, { capture: true });
+    };
+  }, [play]);
 };

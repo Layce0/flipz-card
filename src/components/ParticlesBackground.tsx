@@ -26,10 +26,10 @@ export const ParticlesBackground = memo(() => {
     const particles: Particle[] = [];
     // Fewer particles on mobile for 60fps
     const isMobile = window.innerWidth < 768;
-    const PARTICLE_COUNT = isMobile ? 18 : 35;
+    const PARTICLE_COUNT = isMobile ? 8 : 20;
 
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio, 2);
+      const dpr = isMobile ? 1 : Math.min(window.devicePixelRatio, 1.5);
       canvas.width = window.innerWidth * dpr;
       canvas.height = window.innerHeight * dpr;
       canvas.style.width = `${window.innerWidth}px`;
@@ -42,7 +42,10 @@ export const ParticlesBackground = memo(() => {
     // Pause when tab is hidden
     const handleVisibility = () => {
       isVisible = !document.hidden;
-      if (isVisible) animate();
+      if (isVisible) {
+        lastTime = performance.now();
+        animate(lastTime);
+      }
     };
     document.addEventListener('visibilitychange', handleVisibility);
 
@@ -53,17 +56,26 @@ export const ParticlesBackground = memo(() => {
       particles.push({
         x: Math.random() * w,
         y: h * 0.65 + Math.random() * h * 0.35,
-        size: Math.random() * 2.5 + 0.5,
-        speedX: (Math.random() - 0.5) * 0.3,
-        speedY: (Math.random() - 0.5) * 0.2 - 0.1,
-        opacity: Math.random() * 0.7 + 0.3,
+        size: Math.random() * 2 + 1,
+        speedX: (Math.random() - 0.5) * 0.2,
+        speedY: (Math.random() - 0.5) * 0.15 - 0.08,
+        opacity: Math.random() * 0.5 + 0.3,
         pulse: Math.random() * Math.PI * 2,
-        pulseSpeed: Math.random() * 0.02 + 0.01,
+        pulseSpeed: Math.random() * 0.015 + 0.01,
       });
     }
 
-    const animate = () => {
+    let lastTime = performance.now();
+    const frameInterval = isMobile ? 1000 / 30 : 1000 / 60; // 30 FPS on mobile to save CPU/GPU
+
+    const animate = (time: number) => {
       if (!isVisible) return;
+
+      animationId = requestAnimationFrame(animate);
+
+      const elapsed = time - lastTime;
+      if (elapsed < frameInterval) return;
+      lastTime = time - (elapsed % frameInterval);
 
       const cw = window.innerWidth;
       const ch = window.innerHeight;
@@ -87,26 +99,15 @@ export const ParticlesBackground = memo(() => {
           p.y = ch;
         }
 
-        // Single glow circle instead of gradient (much cheaper)
-        ctx.globalAlpha = currentOpacity * 0.3;
-        ctx.fillStyle = 'hsl(275, 85%, 75%)';
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Core dot
         ctx.globalAlpha = currentOpacity;
-        ctx.fillStyle = 'hsl(275, 90%, 85%)';
+        ctx.fillStyle = 'hsl(275, 85%, 80%)';
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fill();
       }
-
-      ctx.globalAlpha = 1;
-      animationId = requestAnimationFrame(animate);
     };
 
-    animate();
+    animationId = requestAnimationFrame(animate);
 
     return () => {
       cancelAnimationFrame(animationId);

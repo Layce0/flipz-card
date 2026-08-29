@@ -16,6 +16,7 @@ import { ForceUpdateDialog } from "@/components/ForceUpdateDialog";
 import { useForceUpdate } from "@/hooks/useForceUpdate";
 import { SplashScreen } from "@/components/SplashScreen";
 import { useAuth } from "@/contexts/AuthContext";
+import { useGlobalClickSfx } from "@/hooks/useSfx";
 
 const Index = lazy(() => import("./pages/Index"));
 const Collection = lazy(() => import("./pages/Collection"));
@@ -78,6 +79,7 @@ const RouteSeo = () => {
 };
 
 const AppContent = () => {
+  useGlobalClickSfx();
   const { updateRequired, storeUrl } = useForceUpdate();
   const { isLoading: isAuthLoading } = useAuth();
 

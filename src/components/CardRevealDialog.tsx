@@ -7,6 +7,7 @@ import { GameCard } from '@/types/card';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCollectCard } from '@/hooks/useCards';
+import { useSfx } from '@/hooks/useSfx';
 
 interface CardRevealDialogProps {
   cards: GameCard[];
@@ -33,6 +34,7 @@ export const CardRevealDialog = ({
    const [isDragging, setIsDragging] = useState(false);
    const { user } = useAuth();
    const collectCard = useCollectCard();
+   const { play } = useSfx();
 
    const startXRef = useRef(0);
    const startYRef = useRef(0);
@@ -54,6 +56,7 @@ export const CardRevealDialog = ({
      const normX = mag > 0 ? (dirX / mag) * 400 : -300;
      const normY = mag > 0 ? (dirY / mag) * 400 : 0;
      setSlideDir({ x: normX, y: normY });
+     play('cardSwipe');
      setTimeout(() => {
        if (currentCardIndex < cards.length - 1) {
          setCurrentCardIndex(prev => prev + 1);

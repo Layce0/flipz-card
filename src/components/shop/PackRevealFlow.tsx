@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserCards } from '@/hooks/useCards';
+import { useSfx } from '@/hooks/useSfx';
 
 interface PackRevealFlowProps {
   cards: GameCard[];
@@ -24,6 +25,7 @@ export const PackRevealFlow = ({ cards, isOpen, onClose, initialOwnedCardIds, pa
   const { data: userCards = [] } = useUserCards(user?.id);
   const [ownedSnapshot, setOwnedSnapshot] = useState<Set<string>>(new Set());
   const { t } = useTranslation();
+  const { play } = useSfx();
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [cardRevealed, setCardRevealed] = useState(false);
   const [showPackAnimation, setShowPackAnimation] = useState(true);
@@ -68,6 +70,7 @@ export const PackRevealFlow = ({ cards, isOpen, onClose, initialOwnedCardIds, pa
     const normX = mag > 0 ? (dirX / mag) * 400 : -300;
     const normY = mag > 0 ? (dirY / mag) * 400 : 0;
     setSlideDir({ x: normX, y: normY });
+    play('cardSwipe');
     setTimeout(() => {
       if (skipToSummary) {
         setShowSummary(true);
