@@ -41,6 +41,7 @@ export type Database = {
           description: string
           description_en: string | null
           description_es: string | null
+          drop_rate: number | null
           id: string
           image_url: string
           rarity: Database["public"]["Enums"]["card_rarity"]
@@ -54,6 +55,7 @@ export type Database = {
           description: string
           description_en?: string | null
           description_es?: string | null
+          drop_rate?: number | null
           id?: string
           image_url: string
           rarity?: Database["public"]["Enums"]["card_rarity"]
@@ -67,6 +69,7 @@ export type Database = {
           description?: string
           description_en?: string | null
           description_es?: string | null
+          drop_rate?: number | null
           id?: string
           image_url?: string
           rarity?: Database["public"]["Enums"]["card_rarity"]
