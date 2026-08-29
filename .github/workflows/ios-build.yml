@@ -71,7 +71,7 @@ jobs:
       - name: Set app version and build number
         run: |
           cd ios/App
-          agvtool new-marketing-version 1.47
+          agvtool new-marketing-version 1.48
           agvtool new-version -all ${{ github.run_number }}
 
       - name: Build and Archive iOS App
