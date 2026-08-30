@@ -9,7 +9,7 @@ import { useSfx } from '@/hooks/useSfx';
 
 export const Navigation = memo(() => {
   const location = useLocation();
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isModerator } = useAuth();
   const { t } = useTranslation();
   const { hasNewCards } = useNewCardIndicator();
   const { play } = useSfx();
@@ -27,10 +27,10 @@ export const Navigation = memo(() => {
     { path: '/collection', icon: BookOpen, labelKey: 'nav.collection', show: true, badge: hasNewCards, tour: 'nav-collection' },
     { path: '/packs', icon: Package, labelKey: 'nav.packs', show: true, badge: false, tour: 'nav-packs' },
     { path: '/shop', icon: ShoppingBag, labelKey: 'nav.shop', show: !!user, badge: false, tour: 'nav-shop' },
-    { path: '/admin', icon: Shield, labelKey: 'nav.admin', show: isAdmin && !hideAdmin, badge: false, tour: '' },
+    { path: '/admin', icon: Shield, labelKey: 'nav.admin', show: (isAdmin || isModerator) && !hideAdmin, badge: false, tour: '' },
     { path: '/profile', icon: User, labelKey: 'nav.profile', show: !!user, badge: false, tour: 'nav-profile' },
     { path: '/auth', icon: LogIn, labelKey: 'nav.login', show: !user, badge: false, tour: 'nav-login' },
-  ], [user, isAdmin, hideAdmin, hasNewCards]);
+  ], [user, isAdmin, isModerator, hideAdmin, hasNewCards]);
 
   const visibleItems = useMemo(() => navItems.filter(item => item.show), [navItems]);
 

@@ -43,7 +43,7 @@ interface ProfileData {
 }
 
 const Profile = () => {
-  const { user, signOut, isAdmin } = useAuth();
+  const { user, signOut, isAdmin, isModerator } = useAuth();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState(true);
@@ -562,15 +562,15 @@ const Profile = () => {
                   </Button>
                 </div>
 
-                {isAdmin && (
+                {(isAdmin || isModerator) && (
                   <div className="space-y-2">
-                    <Label>Onglet Modérateur</Label>
+                    <Label>Onglet Modérateur / Admin</Label>
                     <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border/50">
                       <div className="flex items-center gap-3">
                         <Shield className="w-5 h-5 text-primary" />
                         <div>
                           <p className="text-sm font-medium">{hideAdmin ? 'Onglet masqué' : 'Onglet visible'}</p>
-                          <p className="text-xs text-muted-foreground">Afficher ou masquer l'onglet modérateur</p>
+                          <p className="text-xs text-muted-foreground">Afficher ou masquer l'onglet modérateur dans la barre de navigation</p>
                         </div>
                       </div>
                       <button

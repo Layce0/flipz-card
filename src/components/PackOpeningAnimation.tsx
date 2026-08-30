@@ -217,32 +217,9 @@ export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free', pa
               }}
               draggable={false}
             />
-            {/* Seam light growing along the tear line */}
-            {tapCount > 0 && (
-              <div
-                className="absolute left-0 right-0 z-20 pointer-events-none"
-                style={{
-                  top: '17%',
-                  height: 3,
-                  background: `linear-gradient(90deg, transparent, white, transparent)`,
-                  opacity: tapCount * 0.35,
-                  filter: `blur(2px) drop-shadow(0 0 8px ${glowColor})`,
-                }}
-              />
-            )}
           </div>
         ) : (
           <div className="relative w-80 flex flex-col items-center justify-center">
-            {/* Glowing seam at the tear */}
-            <div
-              className="absolute left-0 right-0 z-20 pack-seam-glow"
-              style={{
-                top: '17%',
-                height: 6,
-                background: `linear-gradient(90deg, transparent, white 30%, white 70%, transparent)`,
-                filter: `drop-shadow(0 0 18px ${glowColor})`,
-              }}
-            />
 
             {/* Top slice flying off */}
             <div 

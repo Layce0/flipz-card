@@ -160,18 +160,29 @@ serve(async (req) => {
     logStep("Apple purchase verified");
 
     const inApp = receipt.in_app || [];
-    // Exact match first; fall back to the latest entry for this product (StoreKit
-    // sandbox can report a different transaction id than the client observed).
+    // Exact match first; fall back to the latest entry for this product.
+    // When the client sends a fallback transactionId (e.g. 'fallback-1234567890'),
+    // we skip the exact match and go straight to the product-only lookup.
+    const isFallbackId = typeof transactionId === 'string' && transactionId.startsWith('fallback-');
+
     const matchingPurchase =
-      inApp.find((p: any) => p.transaction_id === transactionId && p.product_id === productId) ||
+      (!isFallbackId &&
+        inApp.find((p: any) => p.transaction_id === transactionId && p.product_id === productId)) ||
       inApp
         .filter((p: any) => p.product_id === productId)
         .sort((a: any, b: any) => Number(b.purchase_date_ms ?? 0) - Number(a.purchase_date_ms ?? 0))[0];
 
-    if (!matchingPurchase) {
-       throw new Error("Transaction non trouvée dans le reçu Apple");
-    }
+    logStep('Receipt matching', {
+      isFallbackId,
+      sentTransactionId: transactionId,
+      inAppCount: inApp.length,
+      matchFound: !!matchingPurchase,
+      matchedTransactionId: matchingPurchase?.transaction_id,
+    });
 
+    if (!matchingPurchase) {
+      throw new Error("Transaction non trouvée dans le reçu Apple");
+    }
 
     const { cardCount, type: packType } = packConfig;
 

@@ -97,6 +97,9 @@ export const useAppleBilling = () => {
   const initializedRef = useRef(false);
   // Safety timeout ref — cleared when .ready() fires.
   const initTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Tracks whether CdvPurchase listeners have already been registered.
+  // CdvPurchase stacks listeners on every when() call, so we must register them once only.
+  const listenersRegisteredRef = useRef(false);
 
   // A pending purchase resolver/rejecter so the single global listener can
   // communicate back to the per-purchase Promise.
@@ -138,97 +141,110 @@ export const useAppleBilling = () => {
     //    NOTE: `When` has no `cancelled`, `ready` or `error` methods — those live
     //    on `store` itself. Each registration is guarded so a failure never
     //    prevents store.initialize() from running.
-    try {
-      CdvPurchase.store
-        .when()
-        .productUpdated((product: any) => {
-          if (product?.pricing?.price) {
-            const packId = Object.keys(PACK_TO_PRODUCT).find(
-              key => PACK_TO_PRODUCT[key] === product.id
-            );
-            if (packId) {
-              setPrices(prev =>
-                prev[packId] === product.pricing.price
-                  ? prev
-                  : { ...prev, [packId]: product.pricing.price }
+    //
+    //    IMPORTANT: CdvPurchase stacks listeners on every when() call — never
+    //    register them more than once per app lifecycle or the approved() handler
+    //    will fire multiple times per transaction.
+    if (!listenersRegisteredRef.current) {
+      listenersRegisteredRef.current = true;
+      try {
+        CdvPurchase.store
+          .when()
+          .productUpdated((product: any) => {
+            if (product?.pricing?.price) {
+              const packId = Object.keys(PACK_TO_PRODUCT).find(
+                key => PACK_TO_PRODUCT[key] === product.id
               );
+              if (packId) {
+                setPrices(prev =>
+                  prev[packId] === product.pricing.price
+                    ? prev
+                    : { ...prev, [packId]: product.pricing.price }
+                );
+              }
             }
-          }
-        })
-        .approved(async (transaction: any) => {
-          const pending = pendingRef.current;
-          if (!pending || pending.finished) {
-            // Never consume an approved transaction without server verification.
-            // StoreKit will redeliver it when the app has an active purchase flow.
-            return;
-          }
-
-          // Only handle the product we're currently purchasing
-          const txProductId =
-            transaction.products?.[0]?.id ||
-            transaction.productId ||
-            transaction.id;
-
-          if (txProductId && txProductId !== pending.productId) {
-            // Not our transaction; let it pass
-            return;
-          }
-
-          pending.finished = true;
-
-          const receiptData = extractReceiptData(transaction);
-          const transactionId =
-            transaction.transactionIdentifier ||
-            transaction.transactionId ||
-            transaction.id;
-
-          if (!receiptData) {
-            // Do not finish an unverified transaction: StoreKit must be able to
-            // redeliver it after the receipt becomes available.
-            pending.reject(new Error('Apple receipt missing'));
-            return;
-          }
-
-          try {
-            const { data, error } = await invokeEdgeFunction('verify-apple-purchase', {
-              body: {
-                packId: pending.packId,
-                receiptData,
-                productId: pending.productId,
-                userId: user?.id,
-                transactionId,
-              },
-            });
-
-            if (error) throw error;
-
-            try { transaction.finish(); } catch (_) {}
-
-            if (data?.alreadyProcessed) {
-              toast.info(t('shop.alreadyProcessed', 'Achat déjà traité'));
-            } else if (data?.cards && data.cards.length > 0) {
-              const derivedPackType = pending.packId.split('_')[0] || 'standard';
-              toast.success(t('shop.cardsReceived', { count: data.cardCount }));
-              pending.onSuccess(data.cards, derivedPackType);
+          })
+          .approved(async (transaction: any) => {
+            const pending = pendingRef.current;
+            if (!pending || pending.finished) {
+              // Never consume an approved transaction without server verification.
+              // StoreKit will redeliver it when the app has an active purchase flow.
+              return;
             }
 
-            pending.resolve();
-          } catch (err) {
-            // Keep failed verifications pending so StoreKit can redeliver the
-            // approved transaction instead of consuming a purchase with no cards.
-            pending.reject(err);
-          }
-        })
-        .finished((transaction: any) => {
-          // A transaction reaching CANCELLED state means the user aborted.
-          if (transaction?.state !== CdvPurchase.TransactionState?.CANCELLED) return;
-          const pending = pendingRef.current;
-          if (!pending || pending.finished) return;
-          pending.finished = true;
-          pending.reject({ code: 'USER_CANCELED' });
-        });
-    } catch (e: any) {
-      console.error('CdvPurchase listener registration error', e);
+            // Only handle the product we're currently purchasing
+            const txProductId =
+              transaction.products?.[0]?.id ||
+              transaction.productId ||
+              transaction.id;
+
+            if (txProductId && txProductId !== pending.productId) {
+              // Not our transaction; let it pass
+              return;
+            }
+
+            pending.finished = true;
+
+            const receiptData = extractReceiptData(transaction);
+
+            // Build transactionId — try all known StoreKit field names.
+            // Fall back to a timestamp-based ID rather than undefined so the
+            // server validation never rejects with "missing parameters".
+            const transactionId =
+              transaction.transactionIdentifier ||
+              transaction.transactionId ||
+              transaction.nativePurchase?.transactionIdentifier ||
+              transaction.id ||
+              `fallback-${Date.now()}`;
+
+            if (!receiptData) {
+              // Do not finish an unverified transaction: StoreKit must be able to
+              // redeliver it after the receipt becomes available.
+              pending.reject(new Error('Apple receipt missing'));
+              return;
+            }
+
+            try {
+              const { data, error } = await invokeEdgeFunction('verify-apple-purchase', {
+                body: {
+                  packId: pending.packId,
+                  receiptData,
+                  productId: pending.productId,
+                  userId: user?.id,
+                  transactionId,
+                },
+              });
+
+              if (error) throw error;
+
+              // Finish the transaction AFTER successful server verification.
+              try { transaction.finish(); } catch (_) {}
+
+              if (data?.alreadyProcessed) {
+                toast.info(t('shop.alreadyProcessed', 'Achat déjà traité'));
+              } else if (data?.cards && data.cards.length > 0) {
+                const derivedPackType = pending.packId.split('_')[0] || 'standard';
+                toast.success(t('shop.cardsReceived', { count: data.cardCount }));
+                pending.onSuccess(data.cards, derivedPackType);
+              }
+
+              pending.resolve();
+            } catch (err) {
+              // Keep failed verifications pending so StoreKit can redeliver the
+              // approved transaction instead of consuming a purchase with no cards.
+              pending.reject(err);
+            }
+          });
+        // NOTE: We intentionally do NOT attach a .finished() listener here.
+        // Calling transaction.finish() (above) triggers the finished event, and
+        // if we attached a .finished() handler that checked for CANCELLED state,
+        // a bug in the plugin's TransactionState enum could cause it to call
+        // pending.reject() right after pending.resolve(), breaking the flow.
+        // Cancellations are already handled by offer.order() returning an error.
+      } catch (e: any) {
+        console.error('CdvPurchase listener registration error', e);
+        listenersRegisteredRef.current = false; // Allow retry on next init
+      }
     }
 
     // 3. Store-level ready / error callbacks (on `store`, not on `when()`)
@@ -298,6 +314,8 @@ export const useAppleBilling = () => {
 
   /** Allow the Shop UI to retry initialization after a timeout or error. */
   const retryInit = useCallback(() => {
+    // Reset init guard so initStore() runs again, but do NOT reset
+    // listenersRegisteredRef — CdvPurchase listeners must only be registered once.
     initializedRef.current = false;
     initStore();
     initializedRef.current = true;

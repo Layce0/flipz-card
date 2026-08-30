@@ -17,6 +17,7 @@ import { useForceUpdate } from "@/hooks/useForceUpdate";
 import { SplashScreen } from "@/components/SplashScreen";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGlobalClickSfx } from "@/hooks/useSfx";
+import { useAdMob } from "@/hooks/useAdMob";
 
 const Index = lazy(() => import("./pages/Index"));
 const Collection = lazy(() => import("./pages/Collection"));
@@ -80,6 +81,7 @@ const RouteSeo = () => {
 
 const AppContent = () => {
   useGlobalClickSfx();
+  useAdMob(); // Préchargement global immédiat des pubs AdMob dès le lancement
   const { updateRequired, storeUrl } = useForceUpdate();
   const { isLoading: isAuthLoading } = useAuth();
 

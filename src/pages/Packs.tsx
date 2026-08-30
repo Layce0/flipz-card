@@ -22,7 +22,7 @@ const Packs = () => {
   const { user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { showRewardedAd, showFakeAd, fakeAdCountdown, dismissFakeAd } = useAdMob();
+  const { showRewardedAd, showFakeAd, fakeAdCountdown, dismissFakeAd, isAdReady } = useAdMob();
   const [isWatchingAd, setIsWatchingAd] = useState(false);
   const [revealedCards, setRevealedCards] = useState<GameCard[]>([]);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
@@ -289,7 +289,7 @@ const Packs = () => {
             size="xl" 
             onClick={handleWatchAd}
             disabled={isWatchingAd}
-            className="gap-2"
+            className={cn("gap-2 shadow-lg transition-all", isAdReady && "ring-2 ring-primary/40 shadow-primary/20")}
           >
             {isWatchingAd ? (
               <>
@@ -298,7 +298,7 @@ const Packs = () => {
               </>
             ) : (
               <>
-                <Play className="w-5 h-5" />
+                <Play className="w-5 h-5 fill-current" />
                 {user ? t('packs.watchAd') : t('nav.login')}
               </>
             )}

@@ -59,9 +59,11 @@ export const useSfx = () => {
     if (isMuted()) return;
     const audio = getAudio(name);
     if (!audio) return;
-    const vol = volume !== undefined ? volume : getVolume();
+    const baseVol = volume !== undefined ? volume : getVolume();
+    // Applique un boost de volume (x1.8 limité à 1.0 max)
+    const vol = Math.max(0, Math.min(1, baseVol * 1.8));
     try {
-      audio.volume = Math.max(0, Math.min(1, vol));
+      audio.volume = vol;
       audio.currentTime = 0;
       audio.play().catch(() => {
         // Blocked by browser autoplay policy — safe to ignore
