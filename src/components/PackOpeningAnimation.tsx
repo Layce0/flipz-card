@@ -1,6 +1,11 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useSfx } from '@/hooks/useSfx';
 
+import packSachetImg from '@/assets/pack-sachet.png';
+import packLuckyImg from '@/assets/pack-lucky.png';
+import packUltraImg from '@/assets/pack-ultra.png';
+import packBoosterImg from '@/assets/pack-booster.png';
+
 export type PackAnimationType = 'standard' | 'lucky' | 'ultra' | 'free';
 
 interface PackOpeningAnimationProps {
@@ -17,38 +22,14 @@ const GLOW_COLORS: Record<string, string> = {
   ultra: 'hsl(280 90% 65%)',
 };
 
-// Component removed to keep the opening clean
-
 export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free', packId }: PackOpeningAnimationProps) => {
   const { play } = useSfx();
-  const getPackImages = () => {
-    // Si un packId spécifique est fourni (ex: pack_standard_5, pack_ultra_10)
-    if (packId) {
-      const cleanId = packId.toLowerCase().replace(/_/g, '-');
-      try {
-        const fullUrl = new URL(`../assets/${cleanId}.png`, import.meta.url).href;
-        const topUrl = new URL(`../assets/${cleanId}-top.png`, import.meta.url).href;
-        const bottomUrl = new URL(`../assets/${cleanId}-bottom.png`, import.meta.url).href;
-        return { main: fullUrl, top: topUrl, bottom: bottomUrl };
-      } catch {}
-    }
 
-    let base = 'pack-sachet';
-    if (packType === 'ultra') base = 'pack-ultra';
-    else if (packType === 'lucky') base = 'pack-lucky';
-
-    try {
-      const main = new URL(`../assets/${base}.png`, import.meta.url).href;
-      const top = new URL(`../assets/${base}-top.png`, import.meta.url).href;
-      const bottom = new URL(`../assets/${base}-bottom.png`, import.meta.url).href;
-      return { main, top, bottom };
-    } catch {
-      const fallback = new URL(`../assets/${base}.png`, import.meta.url).href;
-      return { main: fallback, top: fallback, bottom: fallback };
-    }
-  };
-
-  const { main: mainImg, top: topImg, bottom: bottomImg } = getPackImages();
+  const mainImg = useMemo(() => {
+    if (packType === 'ultra') return packUltraImg;
+    if (packType === 'lucky') return packLuckyImg;
+    return packSachetImg;
+  }, [packType]);
   
   const [tapCount, setTapCount] = useState(0);
   const [isTearing, setIsTearing] = useState(false);
@@ -241,7 +222,7 @@ export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free', pa
                 filter: 'drop-shadow(0 10px 25px rgba(0,0,0,0.8))'
               }}
             >
-              <img src={topImg} alt="" className="w-full h-auto select-none" draggable={false} />
+              <img src={mainImg} alt="" className="w-full h-auto select-none" draggable={false} />
             </div>
 
             {/* Bottom slice dropping down */}
@@ -252,7 +233,7 @@ export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free', pa
                 filter: 'drop-shadow(0 10px 25px rgba(0,0,0,0.8))'
               }}
             >
-              <img src={bottomImg} alt="" className="w-full h-auto select-none" draggable={false} />
+              <img src={mainImg} alt="" className="w-full h-auto select-none" draggable={false} />
             </div>
             
             {/* To keep layout spacing */}

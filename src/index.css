@@ -658,36 +658,40 @@
 
   @keyframes premium-tear-top-cinematic {
     0% {
-      transform: translateY(0) rotate(0deg) scale(1);
+      transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
       opacity: 1;
-      filter: brightness(1);
+    }
+    15% {
+      opacity: 1;
     }
     100% {
-      transform: translateY(-180px) rotate(-12deg) scale(1.05);
+      transform: translate3d(0, -220px, 0) rotate(-14deg) scale(1.08);
       opacity: 0;
-      filter: brightness(0.5);
     }
   }
 
   @keyframes premium-tear-bottom-cinematic {
     0% {
-      transform: translateY(0) rotate(0deg) scale(1);
+      transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
       opacity: 1;
-      filter: brightness(1);
+    }
+    15% {
+      opacity: 1;
     }
     100% {
-      transform: translateY(180px) rotate(8deg) scale(0.95);
+      transform: translate3d(0, 220px, 0) rotate(10deg) scale(0.92);
       opacity: 0;
-      filter: brightness(0.5);
     }
   }
 
   .premium-tear-top {
-    animation: premium-tear-top-cinematic 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    will-change: transform, opacity;
+    animation: premium-tear-top-cinematic 0.7s cubic-bezier(0.25, 1, 0.5, 1) forwards;
   }
 
   .premium-tear-bottom {
-    animation: premium-tear-bottom-cinematic 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    will-change: transform, opacity;
+    animation: premium-tear-bottom-cinematic 0.7s cubic-bezier(0.25, 1, 0.5, 1) forwards;
   }
 
   /* ===== Satisfying pack opening extras ===== */
@@ -718,15 +722,16 @@
   }
 
   @keyframes pack-pre-tear-shake {
-    0%, 100% { transform: translate(0, 0) rotate(0deg); }
-    20% { transform: translate(-6px, 3px) rotate(-1.5deg); }
-    40% { transform: translate(6px, -3px) rotate(1.5deg); }
-    60% { transform: translate(-4px, -2px) rotate(-1deg); }
-    80% { transform: translate(4px, 2px) rotate(1deg); }
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+    20% { transform: translate3d(-6px, 3px, 0) rotate(-1.5deg); }
+    40% { transform: translate3d(6px, -3px, 0) rotate(1.5deg); }
+    60% { transform: translate3d(-4px, -2px, 0) rotate(-1deg); }
+    80% { transform: translate3d(4px, 2px, 0) rotate(1deg); }
   }
 
   .pack-pre-tear-shake {
-    animation: pack-pre-tear-shake 0.35s linear infinite;
+    will-change: transform;
+    animation: pack-pre-tear-shake 0.3s linear infinite;
   }
 
   @keyframes pack-seam-glow {
