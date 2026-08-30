@@ -21,22 +21,34 @@ const GLOW_COLORS: Record<string, string> = {
 
 export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free', packId }: PackOpeningAnimationProps) => {
   const { play } = useSfx();
-  const getImageUrl = () => {
-    let base = 'pack-sachet';
-    
-    // Tous les packs standards utilisent l'animation de base (le sachet)
-    if (packType === 'standard' || packType === 'free') {
-      base = 'pack-sachet';
-    } else if (packType === 'ultra') {
-      base = 'pack-ultra';
-    } else if (packType === 'lucky') {
-      base = 'pack-lucky';
+  const getPackImages = () => {
+    // Si un packId spécifique est fourni (ex: pack_standard_5, pack_ultra_10)
+    if (packId) {
+      const cleanId = packId.toLowerCase().replace(/_/g, '-');
+      try {
+        const fullUrl = new URL(`../assets/${cleanId}.png`, import.meta.url).href;
+        const topUrl = new URL(`../assets/${cleanId}-top.png`, import.meta.url).href;
+        const bottomUrl = new URL(`../assets/${cleanId}-bottom.png`, import.meta.url).href;
+        return { main: fullUrl, top: topUrl, bottom: bottomUrl };
+      } catch {}
     }
-    
-    return new URL(`../assets/${base}.png`, import.meta.url).href;
+
+    let base = 'pack-sachet';
+    if (packType === 'ultra') base = 'pack-ultra';
+    else if (packType === 'lucky') base = 'pack-lucky';
+
+    try {
+      const main = new URL(`../assets/${base}.png`, import.meta.url).href;
+      const top = new URL(`../assets/${base}-top.png`, import.meta.url).href;
+      const bottom = new URL(`../assets/${base}-bottom.png`, import.meta.url).href;
+      return { main, top, bottom };
+    } catch {
+      const fallback = new URL(`../assets/${base}.png`, import.meta.url).href;
+      return { main: fallback, top: fallback, bottom: fallback };
+    }
   };
 
-  const mainImg = getImageUrl();
+  const { main: mainImg, top: topImg, bottom: bottomImg } = getPackImages();
   
   const [tapCount, setTapCount] = useState(0);
   const [isTearing, setIsTearing] = useState(false);
@@ -229,7 +241,7 @@ export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free', pa
                 filter: 'drop-shadow(0 10px 25px rgba(0,0,0,0.8))'
               }}
             >
-              <img src={mainImg} alt="" className="w-full h-auto select-none" draggable={false} />
+              <img src={topImg} alt="" className="w-full h-auto select-none" draggable={false} />
             </div>
 
             {/* Bottom slice dropping down */}
@@ -240,7 +252,7 @@ export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free', pa
                 filter: 'drop-shadow(0 10px 25px rgba(0,0,0,0.8))'
               }}
             >
-              <img src={mainImg} alt="" className="w-full h-auto select-none" draggable={false} />
+              <img src={bottomImg} alt="" className="w-full h-auto select-none" draggable={false} />
             </div>
             
             {/* To keep layout spacing */}
