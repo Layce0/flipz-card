@@ -22,6 +22,7 @@ export const StreakLostDialog = ({ open, onClose, previousStreak }: StreakLostDi
   const restore = useRestoreStreak();
   const { showRewardedAd } = useAdMob();
   const [watchingAd, setWatchingAd] = useState(false);
+  const [paying, setPaying] = useState(false);
   const { play } = useSfx();
 
   useEffect(() => {
