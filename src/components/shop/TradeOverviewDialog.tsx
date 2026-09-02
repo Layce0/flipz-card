@@ -18,6 +18,8 @@ interface TradeOverviewDialogProps {
 
 export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => {
   const [open, setOpen] = useState(false);
+  const [confirmAll, setConfirmAll] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState<{ current: number; total: number } | null>(null);
   const [tradingCardId, setTradingCardId] = useState<string | null>(null);
   const [revealCards, setRevealCards] = useState<GameCard[]>([]);
   const [showReveal, setShowReveal] = useState(false);
