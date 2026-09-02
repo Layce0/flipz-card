@@ -204,6 +204,28 @@ export const TradeCardsSection = ({ userCards, onTrade, isTrading }: TradeCardsS
         })}
       </section>
 
+      {/* Bulk trade confirmation */}
+      <Dialog open={confirmAll} onOpenChange={setConfirmAll}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{t('trade.tradeAllConfirmTitle')}</DialogTitle>
+            <DialogDescription>
+              {t('trade.tradeAllConfirmDescription', { cards: bulkPlan.length, reward: bulkReward })}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setConfirmAll(false)}>
+              {t('common.cancel')}
+            </Button>
+            <Button variant="gold" onClick={handleTradeAll} disabled={localTrading}>
+              {t('trade.tradeAll')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+
+
       {/* Confirmation Dialog */}
       <Dialog open={!!selectedCard} onOpenChange={() => setSelectedCard(null)}>
         <DialogContent className="max-w-sm">
