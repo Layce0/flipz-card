@@ -25,6 +25,7 @@ export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => 
   const [showReveal, setShowReveal] = useState(false);
   const [ownedIdsSnapshot, setOwnedIdsSnapshot] = useState<Set<string>>(new Set());
   const { user } = useAuth();
+  const { t } = useTranslation();
   
   const tradeCards = useTradeCards();
 
