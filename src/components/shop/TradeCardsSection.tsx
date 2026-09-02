@@ -25,12 +25,53 @@ export const TradeCardsSection = ({ userCards, onTrade, isTrading }: TradeCardsS
   const [rewardCards, setRewardCards] = useState<any[]>([]);
   const [showReward, setShowReward] = useState(false);
   const [localTrading, setLocalTrading] = useState(false);
+  const [confirmAll, setConfirmAll] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState<{ current: number; total: number } | null>(null);
 
   const getEligibleCardsByRarity = (rarity: Rarity) => {
     const config = TRADE_CONFIG[rarity];
     return userCards.filter(
       (card) => card.rarity === rarity && card.count >= config.required
     );
+  };
+
+  // Build the full list of trades (a card can be traded several times)
+  const bulkPlan = userCards.flatMap((card) => {
+    const config = TRADE_CONFIG[card.rarity as Rarity];
+    if (!config) return [];
+    const consumed = config.required - config.keep;
+    let remaining = card.count;
+    const plan: UserCardWithCount[] = [];
+    while (remaining >= config.required && consumed > 0) {
+      plan.push(card);
+      remaining -= consumed;
+    }
+    return plan;
+  });
+
+  const bulkReward = bulkPlan.reduce(
+    (sum, card) => sum + (TRADE_CONFIG[card.rarity as Rarity]?.reward ?? 0),
+    0
+  );
+
+  const handleTradeAll = async () => {
+    setConfirmAll(false);
+    setLocalTrading(true);
+    const collected: any[] = [];
+    try {
+      for (let i = 0; i < bulkPlan.length; i++) {
+        setBulkProgress({ current: i + 1, total: bulkPlan.length });
+        const cards = await onTrade(bulkPlan[i]);
+        if (cards?.length) collected.push(...cards);
+      }
+    } finally {
+      setBulkProgress(null);
+      setLocalTrading(false);
+    }
+    if (collected.length > 0) {
+      setRewardCards(collected);
+      setShowReward(true);
+    }
   };
 
   const handleConfirmTrade = async () => {
@@ -66,6 +107,28 @@ export const TradeCardsSection = ({ userCards, onTrade, isTrading }: TradeCardsS
             <p className="text-sm text-muted-foreground">{t('trade.subtitle')}</p>
           </div>
         </div>
+
+        {bulkPlan.length > 0 && (
+          <Button
+            variant="gold"
+            className="w-full gap-2"
+            disabled={isTrading || localTrading}
+            onClick={() => setConfirmAll(true)}
+          >
+            {bulkProgress ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                {t('trade.tradeAllProgress', bulkProgress)}
+              </>
+            ) : (
+              <>
+                <Package className="w-4 h-4" />
+                {t('trade.tradeAll')} (+{bulkReward})
+              </>
+            )}
+          </Button>
+        )}
+
 
         {rarities.map((rarity) => {
           const config = TRADE_CONFIG[rarity];
