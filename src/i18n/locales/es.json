@@ -152,7 +152,12 @@
     "confirmDescription": "¿Intercambiar {{required}} ejemplares de \"{{title}}\" por {{reward}} cartas aleatorias?",
     "needCards": "Necesitas {{count}} cartas idénticas",
     "tradeSuccess": "¡Intercambio exitoso! ¡Recibiste {{count}} cartas!",
-    "tradeError": "Error durante el intercambio"
+    "tradeError": "Error durante el intercambio",
+    "tradeAll": "Intercambiar todo",
+    "tradeAllConfirmTitle": "Intercambiar todos los duplicados",
+    "tradeAllConfirmDescription": "¿Intercambiar {{cards}} intercambios de duplicados por {{reward}} cartas aleatorias?",
+    "tradeAllProgress": "Intercambio {{current}}/{{total}}...",
+    "tradeAllSuccess": "¡{{count}} cartas recibidas!"
   },
   "auth": {
     "title": "Cartas Misteriosas",
