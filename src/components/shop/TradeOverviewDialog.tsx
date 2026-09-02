@@ -271,6 +271,24 @@ export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => 
         </div>
       </DialogContent>
       
+      {/* Bulk trade confirmation */}
+      <AlertDialog open={confirmAll} onOpenChange={setConfirmAll}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('trade.tradeAllConfirmTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('trade.tradeAllConfirmDescription', { cards: bulkPlan.length, reward: bulkReward })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel', 'Annuler')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleTradeAll}>
+              {t('trade.tradeAll')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Pack reveal with sachet animation */}
       <PackRevealFlow
         cards={revealCards}
