@@ -152,7 +152,12 @@
     "confirmDescription": "Exchange {{required}} copies of \"{{title}}\" for {{reward}} random cards?",
     "needCards": "You need {{count}} identical cards",
     "tradeSuccess": "Trade successful! You received {{count}} cards!",
-    "tradeError": "Error during trade"
+    "tradeError": "Error during trade",
+    "tradeAll": "Trade all",
+    "tradeAllConfirmTitle": "Trade all duplicates",
+    "tradeAllConfirmDescription": "Exchange {{cards}} duplicate trades for {{reward}} random cards?",
+    "tradeAllProgress": "Trade {{current}}/{{total}}...",
+    "tradeAllSuccess": "{{count}} cards received!"
   },
   "auth": {
     "title": "Mystery Cards",

@@ -152,7 +152,12 @@
     "confirmDescription": "Échanger {{required}} exemplaires de \"{{title}}\" contre {{reward}} cartes aléatoires ?",
     "needCards": "Vous avez besoin de {{count}} cartes identiques",
     "tradeSuccess": "Échange réussi ! Vous avez reçu {{count}} cartes !",
-    "tradeError": "Erreur lors de l'échange"
+    "tradeError": "Erreur lors de l'échange",
+    "tradeAll": "Tout échanger",
+    "tradeAllConfirmTitle": "Échanger tous les doublons",
+    "tradeAllConfirmDescription": "Échanger {{cards}} échanges de doublons contre {{reward}} cartes aléatoires ?",
+    "tradeAllProgress": "Échange {{current}}/{{total}}...",
+    "tradeAllSuccess": "{{count}} cartes reçues !"
   },
   "auth": {
     "title": "Cartes Mystères",
