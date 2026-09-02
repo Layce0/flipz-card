@@ -151,6 +151,27 @@ export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => 
           Faites défiler pour voir toutes vos cartes éligibles à l'échange.
         </p>
 
+        {bulkPlan.length > 0 && (
+          <Button
+            variant="gold"
+            className="w-full gap-2"
+            disabled={tradingCardId !== null || bulkProgress !== null}
+            onClick={() => setConfirmAll(true)}
+          >
+            {bulkProgress ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                {t('trade.tradeAllProgress', bulkProgress)}
+              </>
+            ) : (
+              <>
+                <Package className="w-4 h-4" />
+                {t('trade.tradeAll')} (+{bulkReward})
+              </>
+            )}
+          </Button>
+        )}
+
         <div className="flex-1 overflow-y-auto space-y-4 pr-2">
           {rarities.map((rarity) => {
             const config = TRADE_CONFIG[rarity];
