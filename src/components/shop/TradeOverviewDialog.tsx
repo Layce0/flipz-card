@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { ArrowRightLeft, Package, Loader2 } from 'lucide-react';
 import { Rarity, RARITY_CONFIG, GameCard } from '@/types/card';
@@ -16,11 +18,14 @@ interface TradeOverviewDialogProps {
 
 export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => {
   const [open, setOpen] = useState(false);
+  const [confirmAll, setConfirmAll] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState<{ current: number; total: number } | null>(null);
   const [tradingCardId, setTradingCardId] = useState<string | null>(null);
   const [revealCards, setRevealCards] = useState<GameCard[]>([]);
   const [showReveal, setShowReveal] = useState(false);
   const [ownedIdsSnapshot, setOwnedIdsSnapshot] = useState<Set<string>>(new Set());
   const { user } = useAuth();
+  const { t } = useTranslation();
   
   const tradeCards = useTradeCards();
 
@@ -59,10 +64,64 @@ export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => 
   };
 
   const rarities: Rarity[] = ['legendary', 'epic', 'rare', 'common'];
-  
+
   const totalEligible = rarities.reduce((sum, rarity) => {
     return sum + getEligibleCardsByRarity(rarity).length;
   }, 0);
+
+  // Full plan of every possible trade across all rarities
+  const bulkPlan = useMemo(() => {
+    const plan: { cardId: string; rarity: Rarity }[] = [];
+    for (const rarity of rarities) {
+      const config = TRADE_CONFIG[rarity];
+      for (const card of getEligibleCardsByRarity(rarity)) {
+        const trades = Math.floor(card.count / config.required);
+        for (let i = 0; i < trades; i++) {
+          plan.push({ cardId: card.id, rarity });
+        }
+      }
+    }
+    return plan;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userCards]);
+
+  const bulkReward = bulkPlan.reduce(
+    (sum, t) => sum + TRADE_CONFIG[t.rarity].reward,
+    0
+  );
+
+  const handleTradeAll = async () => {
+    if (!user || bulkPlan.length === 0) return;
+    setConfirmAll(false);
+    setOwnedIdsSnapshot(new Set(userCards.map(c => c.id)));
+
+    const allCards: GameCard[] = [];
+    let failed = false;
+    for (let i = 0; i < bulkPlan.length; i++) {
+      setBulkProgress({ current: i + 1, total: bulkPlan.length });
+      try {
+        const result = await tradeCards.mutateAsync({
+          cardId: bulkPlan[i].cardId,
+          rarity: bulkPlan[i].rarity,
+        });
+        allCards.push(...result.cards);
+      } catch {
+        failed = true;
+        break;
+      }
+    }
+    setBulkProgress(null);
+
+    if (allCards.length > 0) {
+      toast.success(t('trade.tradeAllSuccess', { count: allCards.length }));
+      setOpen(false);
+      setRevealCards(allCards);
+      setShowReveal(true);
+    }
+    if (failed) {
+      toast.error(t('trade.tradeError'));
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -91,6 +150,27 @@ export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => 
         <p className="text-sm text-muted-foreground">
           Faites défiler pour voir toutes vos cartes éligibles à l'échange.
         </p>
+
+        {bulkPlan.length > 0 && (
+          <Button
+            variant="gold"
+            className="w-full gap-2"
+            disabled={tradingCardId !== null || bulkProgress !== null}
+            onClick={() => setConfirmAll(true)}
+          >
+            {bulkProgress ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                {t('trade.tradeAllProgress', bulkProgress)}
+              </>
+            ) : (
+              <>
+                <Package className="w-4 h-4" />
+                {t('trade.tradeAll')} (+{bulkReward})
+              </>
+            )}
+          </Button>
+        )}
 
         <div className="flex-1 overflow-y-auto space-y-4 pr-2">
           {rarities.map((rarity) => {
@@ -191,6 +271,24 @@ export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => 
         </div>
       </DialogContent>
       
+      {/* Bulk trade confirmation */}
+      <AlertDialog open={confirmAll} onOpenChange={setConfirmAll}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('trade.tradeAllConfirmTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('trade.tradeAllConfirmDescription', { cards: bulkPlan.length, reward: bulkReward })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel', 'Annuler')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleTradeAll}>
+              {t('trade.tradeAll')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Pack reveal with sachet animation */}
       <PackRevealFlow
         cards={revealCards}
