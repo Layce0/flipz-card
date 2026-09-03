@@ -194,7 +194,7 @@ Deno.serve(async (req) => {
     }
 
     // Apply pack boost to card count
-    let finalCardCount = 3; // free pack = 3 cards
+    let finalCardCount = 5; // free pack = 5 cards
     finalCardCount = Math.round(finalCardCount * cardMultiplier) + bonusCards;
 
     // Fetch probability tables from database
