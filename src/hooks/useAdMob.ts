@@ -3,6 +3,7 @@ import { Capacitor } from '@capacitor/core';
 import type { PluginListenerHandle } from '@capacitor/core';
 import { AdMob, RewardAdPluginEvents } from '@capacitor-community/admob';
 import type { RewardAdOptions } from '@capacitor-community/admob';
+import { MaxAdContentRating } from '@capacitor-community/admob';
 import { useAuth } from '@/contexts/AuthContext';
 
 // ---------------------------------------------------------------------------
@@ -37,7 +38,12 @@ const ensureAdMobInitialized = (isTesting: boolean): Promise<boolean> => {
           console.warn('[AdMob] ATT request failed or unsupported:', e);
         }
       }
-      await AdMob.initialize({ initializeForTesting: isTesting });
+      await AdMob.initialize({
+        initializeForTesting: isTesting,
+        tagForChildDirectedTreatment: true,
+        tagForUnderAgeOfConsent: true,
+        maxAdContentRating: MaxAdContentRating.General,
+      });
       console.log('[AdMob] Initialized with app id', ADMOB_APP_ID);
       return true;
     } catch (error) {
