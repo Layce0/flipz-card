@@ -161,7 +161,7 @@ export const useAdMob = () => {
   const showNativeRewardedAd = useCallback(async (): Promise<boolean> => {
     const initialized = await ensureAdMobInitialized(isTestMode);
     if (!initialized) {
-      return true;
+      return false;
     }
 
     return new Promise<boolean>(async (resolve) => {
@@ -204,17 +204,17 @@ export const useAdMob = () => {
             settle(rewardEarned);
           }),
           await AdMob.addListener(RewardAdPluginEvents.FailedToLoad, (error) => {
-            console.warn('[AdMob] FailedToLoad — graceful pass:', error);
-            settle(true);
+            console.warn('[AdMob] FailedToLoad — no reward:', error);
+            settle(false);
           }),
           await AdMob.addListener(RewardAdPluginEvents.FailedToShow, (error) => {
-            console.warn('[AdMob] FailedToShow — graceful pass:', error);
-            settle(true);
+            console.warn('[AdMob] FailedToShow — no reward:', error);
+            settle(false);
           }),
         );
       } catch (e) {
         console.warn('[AdMob] addListener failed:', e);
-        settle(true);
+        settle(false);
         return;
       }
 
@@ -228,8 +228,8 @@ export const useAdMob = () => {
             'prepareRewardVideoAd'
           );
         } catch (error) {
-          console.warn('[AdMob] prepare failed (no fill / timeout) — graceful pass:', error);
-          settle(true);
+          console.warn('[AdMob] prepare failed (no fill / timeout) — no reward:', error);
+          settle(false);
           return;
         }
       }
@@ -241,8 +241,8 @@ export const useAdMob = () => {
         console.log('[AdMob] Showing reward video ad...');
         await AdMob.showRewardVideoAd();
       } catch (error) {
-        console.warn('[AdMob] showRewardVideoAd threw — graceful pass:', error);
-        settle(true);
+        console.warn('[AdMob] showRewardVideoAd threw — no reward:', error);
+        settle(false);
       }
     });
   }, [isTestMode, getAdOptions, preloadRewardedAd]);
