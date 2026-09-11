@@ -42,7 +42,7 @@ const ensureAdMobInitialized = (isTesting: boolean): Promise<boolean> => {
         initializeForTesting: isTesting,
         tagForChildDirectedTreatment: true,
         tagForUnderAgeOfConsent: true,
-        maxAdContentRating: 'G',
+        maxAdContentRating: MaxAdContentRating.General,
       });
       console.log('[AdMob] Initialized with app id', ADMOB_APP_ID);
       return true;
