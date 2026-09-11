@@ -37,7 +37,12 @@ const ensureAdMobInitialized = (isTesting: boolean): Promise<boolean> => {
           console.warn('[AdMob] ATT request failed or unsupported:', e);
         }
       }
-      await AdMob.initialize({ initializeForTesting: isTesting });
+      await AdMob.initialize({
+        initializeForTesting: isTesting,
+        tagForChildDirectedTreatment: true,
+        tagForUnderAgeOfConsent: true,
+        maxAdContentRating: 'G',
+      });
       console.log('[AdMob] Initialized with app id', ADMOB_APP_ID);
       return true;
     } catch (error) {
