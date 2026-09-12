@@ -125,9 +125,9 @@ Deno.serve(async (req) => {
 
     // Process reward based on type
     if (rewardType === 'boost_luck' || rewardType === 'boost_pack') {
-      // Boosts expire 24h after activation
+      // Boosts expire 1h after activation
       const expiry = new Date()
-      expiry.setHours(expiry.getHours() + 24)
+      expiry.setHours(expiry.getHours() + 1)
       boostExpiresAt = expiry.toISOString()
       rewardDetails.boost_expires_at = boostExpiresAt
       rewardDetails.config = config

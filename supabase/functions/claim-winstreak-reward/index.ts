@@ -109,7 +109,7 @@ Deno.serve(async (req) => {
     // Process reward ÔÇö same logic as redeem-code
     let boostExpiresAt: string | null = null
     if (rewardType === 'boost_luck' || rewardType === 'boost_pack') {
-      const durationHours = config.duration_hours || 24
+      const durationHours = config.duration_hours || 1
       boostExpiresAt = new Date(Date.now() + durationHours * 3600000).toISOString()
       rewardDetails.config = config
       rewardDetails.boost_expires_at = boostExpiresAt
