@@ -4,6 +4,8 @@
 <dict>
     <key>GADApplicationIdentifier</key>
     <string>ca-app-pub-6340983480597130~9251933354</string>
+    <key>GADIsAdManagerApp</key>
+    <false/>
     <key>CAPACITOR_DEBUG</key>
 	<string>$(CAPACITOR_DEBUG)</string>
 	<key>CFBundleDevelopmentRegion</key>
@@ -59,7 +61,7 @@
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>Nous avons besoin de cette autorisation pour enregistrer vos photos.</string>
     <key>NSUserTrackingUsageDescription</key>
-    <string>Flipz utilise votre identifiant publicitaire pour vous proposer des publicités pertinentes et mesurer leur efficacité. Vous pouvez refuser à tout moment dans les réglages de confidentialité.</string>
+    <string>Flipz utilise l'identifiant publicitaire pour vous afficher des publicités adaptées et mesurer leur performance. Aucune donnée n'est utilisée sans votre consentement.</string>
     <key>SKAdNetworkItems</key>
     <array>
       <dict>

@@ -32,6 +32,7 @@ const ensureAdMobInitialized = (isTesting: boolean): Promise<boolean> => {
   initPromise = (async () => {
     try {
       if (Capacitor.getPlatform() === 'ios') {
+        // Demande de consentement ATT (tracking publicitaire)
         try {
           await AdMob.requestTrackingAuthorization();
         } catch (e) {
@@ -40,15 +41,12 @@ const ensureAdMobInitialized = (isTesting: boolean): Promise<boolean> => {
       }
       await AdMob.initialize({
         initializeForTesting: isTesting,
-        tagForChildDirectedTreatment: true,
-        tagForUnderAgeOfConsent: true,
-        maxAdContentRating: MaxAdContentRating.General,
       });
-      console.log('[AdMob] Initialized with app id', ADMOB_APP_ID);
+      console.log('[AdMob] Initialized');
       return true;
     } catch (error) {
       console.error('[AdMob] Initialization failed:', error);
-      initPromise = null; // autorise une nouvelle tentative au prochain appel
+      initPromise = null;
       return false;
     }
   })();
@@ -167,6 +165,7 @@ export const useAdMob = () => {
   const showNativeRewardedAd = useCallback(async (): Promise<boolean> => {
     const initialized = await ensureAdMobInitialized(isTestMode);
     if (!initialized) {
+      // AdMob non disponible sur cet appareil → pas de pub → pas de récompense
       return false;
     }
 
@@ -210,11 +209,11 @@ export const useAdMob = () => {
             settle(rewardEarned);
           }),
           await AdMob.addListener(RewardAdPluginEvents.FailedToLoad, (error) => {
-            console.warn('[AdMob] FailedToLoad — no reward:', error);
+            console.warn('[AdMob] FailedToLoad — pub non chargée, pas de récompense:', error);
             settle(false);
           }),
           await AdMob.addListener(RewardAdPluginEvents.FailedToShow, (error) => {
-            console.warn('[AdMob] FailedToShow — no reward:', error);
+            console.warn('[AdMob] FailedToShow — pub non affichée, pas de récompense:', error);
             settle(false);
           }),
         );
@@ -234,7 +233,7 @@ export const useAdMob = () => {
             'prepareRewardVideoAd'
           );
         } catch (error) {
-          console.warn('[AdMob] prepare failed (no fill / timeout) — no reward:', error);
+          console.warn('[AdMob] prepare failed (no fill / timeout) — pas de récompense:', error);
           settle(false);
           return;
         }

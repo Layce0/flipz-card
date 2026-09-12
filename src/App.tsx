@@ -84,7 +84,6 @@ const AppContent = () => {
   useAdMob(); // Préchargement global immédiat des pubs AdMob dès le lancement
   const { updateRequired, storeUrl } = useForceUpdate();
   const { isLoading: isAuthLoading } = useAuth();
-
   return (
     <div className="relative min-h-screen pt-[env(safe-area-inset-top,24px)]">
       <SplashScreen isAuthReady={!isAuthLoading} />
