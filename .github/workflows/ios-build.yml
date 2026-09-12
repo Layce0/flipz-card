@@ -20,7 +20,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '23'
 
       - name: Install Dependencies
         run: npm ci
@@ -71,7 +71,7 @@ jobs:
       - name: Set app version and build number
         run: |
           cd ios/App
-          agvtool new-marketing-version 1.52
+          agvtool new-marketing-version 1.53
           agvtool new-version -all ${{ github.run_number }}
 
       - name: Build and Archive iOS App
