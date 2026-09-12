@@ -118,33 +118,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Server-side daily cooldown (strict 24h)
-    const { data: streakRow, error: streakError } = await supabaseAdmin
-      .from('user_streaks')
-      .select('last_free_pack_at')
-      .eq('user_id', userId)
-      .maybeSingle();
-
-    if (streakError) throw streakError;
-
-    // Server-side 24h cooldown check (strict enforcement regardless of client)
-    if (streakRow?.last_free_pack_at) {
-      const lastPackTime = new Date(streakRow.last_free_pack_at).getTime();
-      const cooldownMs = 24 * 60 * 60 * 1000;
-      const retryAfterMs = lastPackTime + cooldownMs - Date.now();
-
-      if (retryAfterMs > 0) {
-        const retryAfterSeconds = Math.ceil(retryAfterMs / 1000);
-        return new Response(JSON.stringify({
-          success: false,
-          code: 'FREE_PACK_RATE_LIMIT',
-          error: 'Free pack already claimed today',
-          retryAfter: retryAfterSeconds,
-        }), {
-          status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-      }
-    }
+    // Free packs are unlimited — no cooldown
 
     // Fetch cards
     const { data: cards, error: cardsError } = await supabaseAdmin.from('cards').select('*');
