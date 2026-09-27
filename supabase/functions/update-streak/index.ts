@@ -55,8 +55,6 @@ Deno.serve(async (req) => {
       .maybeSingle()
 
     const now = new Date();
-    const TIMER_HOURS = 48; // Changed from 24 to 48h
-    const CARDS_PER_STREAK = 2;
 
     if (!existing) {
       // First card ever: streak goes directly to 1
