@@ -146,6 +146,31 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Active boosts (codes + winstreak)
+    let luckMult = 1, bonusCards = 0, cardMult = 1;
+    const boostNow = new Date().toISOString();
+    const applyBoost = (rt: string, cfg: Record<string, any>) => {
+      if (rt === 'boost_luck' && cfg?.multiplier) luckMult = Math.max(luckMult, Number(cfg.multiplier));
+      if (rt === 'boost_pack') {
+        if (cfg?.bonus) bonusCards = Math.max(bonusCards, Number(cfg.bonus));
+        if (cfg?.multiplier) cardMult = Math.max(cardMult, Number(cfg.multiplier));
+      }
+    };
+    const { data: cr } = await supabaseAdmin.from('code_redemptions')
+      .select('code_id').eq('user_id', userId).gt('boost_expires_at', boostNow);
+    if (cr && cr.length) {
+      const { data: codes } = await supabaseAdmin.from('reward_codes')
+        .select('reward_type, reward_config').in('id', cr.map((b: any) => b.code_id));
+      codes?.forEach((c: any) => applyBoost(c.reward_type, c.reward_config || {}));
+    }
+    const { data: wc } = await supabaseAdmin.from('winstreak_claims')
+      .select('reward_id').eq('user_id', userId).gt('boost_expires_at', boostNow);
+    if (wc && wc.length) {
+      const { data: rws } = await supabaseAdmin.from('winstreak_rewards')
+        .select('reward_type, reward_config').in('id', wc.map((c: any) => c.reward_id));
+      rws?.forEach((r: any) => applyBoost(r.reward_type, r.reward_config || {}));
+    }
+
     // Fetch probability tables for "trade" pack type
     const { data: probRows } = await supabaseAdmin
       .from('pack_probability_tables')
@@ -154,7 +179,8 @@ Deno.serve(async (req) => {
 
     let weights = FALLBACK_WEIGHTS;
     if (probRows && probRows.length > 0) {
-      const row = probRows.find((r: any) => r.luck_multiplier === 1) ?? probRows[0];
+      const row = probRows.find((r: any) => Number(r.luck_multiplier) === luckMult)
+        ?? probRows.find((r: any) => Number(r.luck_multiplier) === 1) ?? probRows[0];
       weights = {
         common: Number(row.common_rate),
         rare: Number(row.rare_rate),
@@ -162,9 +188,12 @@ Deno.serve(async (req) => {
         legendary: Number(row.legendary_rate),
       };
     }
+    if (luckMult > 1 && !probRows?.some((r: any) => Number(r.luck_multiplier) === luckMult)) {
+      weights = { ...weights, rare: weights.rare * luckMult, epic: weights.epic * luckMult, legendary: weights.legendary * luckMult };
+    }
 
-    // Generate reward cards
-    const rewardCards = generateWeightedCards(allCards, weights, config.reward);
+    const finalReward = Math.round(config.reward * cardMult) + bonusCards;
+    const rewardCards = generateWeightedCards(allCards, weights, finalReward);
 
     // Insert reward cards
     const insertRows = rewardCards.map((card: any) => ({
@@ -182,7 +211,7 @@ Deno.serve(async (req) => {
       success: true,
       cards: rewardCards,
       deletedCount: cardsToDelete,
-      rewardCount: config.reward,
+      rewardCount: finalReward,
     }), {
       status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });

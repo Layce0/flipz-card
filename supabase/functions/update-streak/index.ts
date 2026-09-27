@@ -69,33 +69,38 @@ Deno.serve(async (req) => {
       })
     }
 
-    const lastUpdate = new Date(existing.updated_at);
-    const diffHours = (now.getTime() - lastUpdate.getTime()) / (1000 * 60 * 60);
+    // Day-based streak using the phone's local date.
+    const lastDate: string | null = existing.last_streak_date ?? null;
+    const prev = new Date(today + 'T00:00:00Z');
+    prev.setUTCDate(prev.getUTCDate() - 1);
+    const yesterday = prev.toISOString().split('T')[0];
 
     let newStreak: number = existing.current_streak ?? 0;
-    let newProgress: number = existing.streak_progress ?? 0;
+    let newProgress = 0;
     let streakReset = false;
 
-    if (diffHours > TIMER_HOURS) {
-      // Timer expired -> reset everything; this flip counts as progress 1
-      // Save previous streak to allow restoration
-      const prevStreakForRestore = existing.current_streak ?? 0;
-      newStreak = 0;
-      newProgress = 1;
-      streakReset = true;
-      
-      // Store in Auth user_metadata to allow restore (avoiding schema changes)
-      await supabaseAdmin.auth.admin.updateUserById(userId, {
-        user_metadata: { 
-          previous_streak: prevStreakForRestore, 
-          restore_expires_at: new Date(now.getTime() + 48*60*60*1000).toISOString() 
-        }
-      });
+    if (lastDate === today && newStreak > 0) {
+      return new Response(JSON.stringify({ success: true, current_streak: newStreak, streak_progress: 0, already_today: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    } else if (lastDate === yesterday || (lastDate === today && newStreak === 0)) {
+      newStreak = newStreak + 1;
+    } else if (lastDate && lastDate > today) {
+      // Clock moved backwards: don't change anything
+      return new Response(JSON.stringify({ success: true, current_streak: newStreak, streak_progress: 0 }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
     } else {
-      newProgress = newProgress + 1;
-      if (newProgress >= CARDS_PER_STREAK) {
-        newStreak = newStreak + 1;
-        newProgress = 0;
+      const prevStreakForRestore = existing.current_streak ?? 0;
+      streakReset = prevStreakForRestore > 0;
+      newStreak = 1;
+      if (streakReset) {
+        await supabaseAdmin.auth.admin.updateUserById(userId, {
+          user_metadata: {
+            previous_streak: prevStreakForRestore,
+            restore_expires_at: new Date(now.getTime() + 48*60*60*1000).toISOString()
+          }
+        });
       }
     }
 
