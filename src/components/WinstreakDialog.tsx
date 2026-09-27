@@ -18,7 +18,7 @@ interface WinstreakDialogProps {
 }
 
 const CARDS_PER_STREAK = 2;
-const TIMER_HOURS = 24;
+const TIMER_HOURS = 36;
 
 const ExpiryCountdown = ({ updatedAt }: { updatedAt: string | undefined }) => {
   const [label, setLabel] = useState('--:--:--');
