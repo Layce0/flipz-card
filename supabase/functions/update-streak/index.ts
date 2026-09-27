@@ -77,11 +77,17 @@ Deno.serve(async (req) => {
     let newProgress = 0;
     let streakReset = false;
 
+    // 36h rule: the streak survives only if the last card was collected
+    // less than 36 hours ago, regardless of calendar days.
+    const lastUpdateMs = existing.updated_at ? new Date(existing.updated_at).getTime() : 0;
+    const hoursSinceLast = lastUpdateMs > 0 ? (now.getTime() - lastUpdateMs) / (60 * 60 * 1000) : Infinity;
+    const within36h = hoursSinceLast <= 36;
+
     if (lastDate === today && newStreak > 0) {
       return new Response(JSON.stringify({ success: true, current_streak: newStreak, streak_progress: 0, already_today: true }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
-    } else if (lastDate === yesterday || (lastDate === today && newStreak === 0)) {
+    } else if (within36h && (lastDate === yesterday || (lastDate === today && newStreak === 0) || (lastDate && lastDate < today))) {
       newStreak = newStreak + 1;
     } else if (lastDate && lastDate > today) {
       // Clock moved backwards: don't change anything
