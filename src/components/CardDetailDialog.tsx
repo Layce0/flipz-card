@@ -1,6 +1,7 @@
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { X } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { GameCard, RARITY_CONFIG, Rarity } from '@/types/card';
 import { cn } from '@/lib/utils';
 import { useLocalizedCard } from '@/hooks/useLocalizedCard';
@@ -10,20 +11,40 @@ interface CardDetailDialogProps {
   count: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onPrev?: () => void;
+  onNext?: () => void;
+  hasPrev?: boolean;
+  hasNext?: boolean;
 }
 
 export const CardDetailDialog = ({ 
   card, 
   count, 
   open, 
-  onOpenChange
+  onOpenChange,
+  onPrev,
+  onNext,
+  hasPrev = false,
+  hasNext = false
 }: CardDetailDialogProps) => {
   const { t } = useTranslation();
   const { getTitle, getDescription } = useLocalizedCard();
-  
+
+  // Keyboard navigation between cards
+  useEffect(() => {
+    if (!open) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft' && hasPrev) onPrev?.();
+      if (e.key === 'ArrowRight' && hasNext) onNext?.();
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [open, hasPrev, hasNext, onPrev, onNext]);
+
   if (!card) return null;
 
   const config = RARITY_CONFIG[card.rarity as Rarity];
+  const navBtnClass = "absolute top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-background/70 backdrop-blur-sm flex items-center justify-center hover:bg-background transition-colors";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -60,6 +81,26 @@ export const CardDetailDialog = ({
           >
             {t(`rarity.${card.rarity}`)}
           </div>
+
+          {/* Prev / next card navigation */}
+          {hasPrev && (
+            <button
+              onClick={onPrev}
+              aria-label="Carte précédente"
+              className={cn(navBtnClass, "left-2")}
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+          )}
+          {hasNext && (
+            <button
+              onClick={onNext}
+              aria-label="Carte suivante"
+              className={cn(navBtnClass, "right-2")}
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          )}
 
           {/* Shimmer for legendary */}
           {card.rarity === 'legendary' && (
