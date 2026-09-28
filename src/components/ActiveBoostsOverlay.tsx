@@ -49,8 +49,8 @@ const formatTimeRemaining = (expiresAt: string): string => {
 };
 
 /* Compute progress [0..1] where 1 = full time, 0 = expired.
-   We assume boosts last up to 24h — adjust BOOST_MAX_DURATION_MS if needed. */
-const BOOST_MAX_DURATION_MS = 24 * 3600 * 1000;
+   Boosts last 1h after activation. */
+const BOOST_MAX_DURATION_MS = 3600 * 1000;
 
 const getProgress = (expiresAt: string): number => {
   const remaining = new Date(expiresAt).getTime() - Date.now();
