@@ -304,7 +304,7 @@ Deno.serve(async (req) => {
       success: true,
       reward: rewardDetails,
       message: rewardType.startsWith('boost')
-        ? 'Boost activé pour 24h !'
+        ? 'Boost activé pour 1h !'
         : rewardType.startsWith('pack')
         ? 'Pack reçu ! Ouvrez-le pour découvrir vos cartes.'
         : 'Récompense obtenue !'
