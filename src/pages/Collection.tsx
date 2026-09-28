@@ -52,9 +52,8 @@ const Collection = () => {
     };
   }, [markAsSeen]);
   
-  // Card detail dialog state
-  const [selectedCard, setSelectedCard] = useState<GameCard | null>(null);
-  const [selectedCardCount, setSelectedCardCount] = useState(0);
+  // Card detail dialog state — index into the navigable (collected) list
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
 
   useEffect(() => {
@@ -68,14 +67,33 @@ const Collection = () => {
   const cardCountMap = useMemo(() => new Map(userCards.map(card => [card.id, card.count])), [userCards]);
   
   const obtainedAtMap = useMemo(() => new Map(userCards.map(card => [card.id, card.obtained_at])), [userCards]);
+
+  // Collected cards in the same order as the book — used for card-by-card navigation in the detail view
+  const navigableCards = useMemo(() => {
+    const collected = allCards.filter(c => collectedCardIds.has(c.id));
+    if (activeRarity !== 'all') return collected.filter(c => c.rarity === activeRarity);
+    return collected.sort((a, b) =>
+      (obtainedAtMap.get(b.id) || '').localeCompare(obtainedAtMap.get(a.id) || '')
+    );
+  }, [allCards, activeRarity, collectedCardIds, obtainedAtMap]);
   
   const totalCardsCollected = useMemo(() => userCards.reduce((sum, card) => sum + card.count, 0), [userCards]);
   
-  const handleCardClick = useCallback((card: GameCard, count: number) => {
-    setSelectedCard(card);
-    setSelectedCardCount(count);
+  const selectedCard = selectedIndex !== null ? navigableCards[selectedIndex] ?? null : null;
+  const selectedCardCount = selectedCard ? cardCountMap.get(selectedCard.id) || 0 : 0;
+
+  const handleCardClick = useCallback((card: GameCard, _count: number) => {
+    const idx = navigableCards.findIndex(c => c.id === card.id);
+    setSelectedIndex(idx >= 0 ? idx : null);
     setDetailOpen(true);
-  }, []);
+  }, [navigableCards]);
+
+  const handleNavigate = useCallback((delta: number) => {
+    setSelectedIndex(prev => {
+      if (prev === null) return prev;
+      return Math.max(0, Math.min(navigableCards.length - 1, prev + delta));
+    });
+  }, [navigableCards.length]);
 
   const counts = useMemo(() => ({
     all: allCards.length,
@@ -223,6 +241,10 @@ const Collection = () => {
             count={selectedCardCount}
             open={detailOpen}
             onOpenChange={setDetailOpen}
+            onPrev={() => handleNavigate(-1)}
+            onNext={() => handleNavigate(1)}
+            hasPrev={selectedIndex !== null && selectedIndex > 0}
+            hasNext={selectedIndex !== null && selectedIndex < navigableCards.length - 1}
           />
         </Suspense>
       )}
