@@ -313,7 +313,7 @@ export const RewardCodesManager = () => {
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  Augmente les chances d'obtenir des cartes épiques et légendaires pendant 24h
+                  Augmente les chances d'obtenir des cartes épiques et légendaires pendant 1h
                 </p>
               </div>
             )}
@@ -336,7 +336,7 @@ export const RewardCodesManager = () => {
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  S'applique à tous les packs pendant 24h
+                  S'applique à tous les packs pendant 1h
                 </p>
               </div>
             )}
