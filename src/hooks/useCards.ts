@@ -195,6 +195,7 @@ export const useTodayCard = (userId: string | undefined) => {
       const { data: cards, error } = await supabase
         .from('cards')
         .select('*')
+        .is('booster_id', null)
         .lte('release_date', today)
         .order('id');
       
@@ -239,7 +240,7 @@ export const useRandomCards = () => {
         : Promise.resolve({ data: [] as any[], error: null });
 
       const [cardsResult, codeBoostsResult, winstreakBoostsResult] = await Promise.all([
-        supabase.from('cards').select('*'),
+        supabase.from('cards').select('*').is('booster_id', null),
         codeBoostsPromise,
         winstreakBoostsPromise,
       ]);
