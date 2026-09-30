@@ -155,7 +155,7 @@ Deno.serve(async (req) => {
       const cardCount = config.card_count || 5
 
       // Fetch all cards
-      const { data: allCards, error: cardsErr } = await supabaseAdmin.from('cards').select('*')
+      const { data: allCards, error: cardsErr } = await supabaseAdmin.from('cards').select('*').is('booster_id', null)
       if (cardsErr || !allCards || allCards.length === 0) {
         return new Response(JSON.stringify({ error: 'Erreur serveur' }), {
           status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }

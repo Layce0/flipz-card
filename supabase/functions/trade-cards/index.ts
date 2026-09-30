@@ -138,7 +138,7 @@ Deno.serve(async (req) => {
     if (deleteError) throw deleteError;
 
     // Fetch all available cards for random selection
-    const { data: allCards, error: cardsError } = await supabaseAdmin.from('cards').select('*');
+    const { data: allCards, error: cardsError } = await supabaseAdmin.from('cards').select('*').is('booster_id', null);
     if (cardsError) throw cardsError;
     if (!allCards || allCards.length === 0) {
       return new Response(JSON.stringify({ error: 'No cards available' }), {

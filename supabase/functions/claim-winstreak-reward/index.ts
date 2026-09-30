@@ -135,7 +135,7 @@ Deno.serve(async (req) => {
     } else if (rewardType === 'pack' || rewardType === 'pack_lucky' || rewardType === 'pack_ultra') {
       const cardCount = config.card_count || 5
 
-      const { data: allCards, error: cardsErr } = await supabaseAdmin.from('cards').select('*')
+      const { data: allCards, error: cardsErr } = await supabaseAdmin.from('cards').select('*').is('booster_id', null)
       if (cardsErr || !allCards || allCards.length === 0) {
         return new Response(JSON.stringify({ error: 'Erreur serveur' }), {
           status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }

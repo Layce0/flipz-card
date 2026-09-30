@@ -103,7 +103,7 @@ Deno.serve(async (req) => {
     const finalCardCount = 5;
 
     // Fetch cards
-    const { data: cards, error: cardsError } = await supabaseAdmin.from('cards').select('*');
+    const { data: cards, error: cardsError } = await supabaseAdmin.from('cards').select('*').is('booster_id', null);
     if (cardsError) throw cardsError;
     if (!cards || cards.length === 0) {
       return new Response(JSON.stringify({ error: 'No card catalog available' }), {
