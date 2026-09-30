@@ -11,10 +11,11 @@ import { Ticket, Plus, Loader2, Trash2, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAllCards } from '@/hooks/useCards';
+import { useBoosters } from '@/hooks/useBoosters';
 import { RARITY_CONFIG, Rarity } from '@/types/card';
 import { cn } from '@/lib/utils';
 
-type RewardType = 'pack' | 'pack_lucky' | 'pack_ultra' | 'card' | 'boost_luck' | 'boost_pack';
+type RewardType = 'pack' | 'pack_lucky' | 'pack_ultra' | 'card' | 'boost_luck' | 'boost_pack' | 'booster';
 
 const LUCK_MULTIPLIERS = [1.5, 2, 2.5, 3, 3.5, 4];
 const PACK_BONUSES = [
@@ -30,6 +31,7 @@ export const RewardCodesManager = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { data: cards = [] } = useAllCards();
+  const { data: boosters = [] } = useBoosters();
   const [showCreate, setShowCreate] = useState(false);
   const [formData, setFormData] = useState({
     code: '',
@@ -42,6 +44,7 @@ export const RewardCodesManager = () => {
     luck_multiplier: 2,
     // Boost pack config
     pack_bonus: 'bonus_1',
+    booster_id: '',
     // General
     max_uses: '',
     expires_in_hours: '',
@@ -68,6 +71,9 @@ export const RewardCodesManager = () => {
         reward_config = { card_count: formData.card_count };
       } else if (formData.reward_type === 'card') {
         reward_config = { card_id: formData.card_id };
+      } else if (formData.reward_type === 'booster') {
+        if (!formData.booster_id) throw new Error('Choisis un booster');
+        reward_config = { booster_id: formData.booster_id };
       } else if (formData.reward_type === 'boost_luck') {
         reward_config = { multiplier: formData.luck_multiplier };
       } else if (formData.reward_type === 'boost_pack') {
@@ -102,7 +108,7 @@ export const RewardCodesManager = () => {
       setShowCreate(false);
       setFormData({
         code: '', reward_type: 'pack', card_count: 5, card_id: '',
-        luck_multiplier: 2, pack_bonus: 'bonus_1', max_uses: '', expires_in_hours: '',
+        luck_multiplier: 2, pack_bonus: 'bonus_1', booster_id: '', max_uses: '', expires_in_hours: '',
         is_gift: true,
       });
     },
@@ -134,6 +140,7 @@ export const RewardCodesManager = () => {
     if (type === 'pack_lucky') return `Pack Chanceux ${config?.card_count || 5} cartes`;
     if (type === 'pack_ultra') return `Pack Ultra Chanceux ${config?.card_count || 5} cartes`;
     if (type === 'card') return 'Carte spécifique';
+    if (type === 'booster') return `Booster ${boosters.find(b => b.id === config?.booster_id)?.name ?? ''}`;
     if (type === 'boost_luck') return `Luck ×${config?.multiplier || 2}`;
     if (type === 'boost_pack') {
       if (config?.multiplier) return `×${config.multiplier} cartes/pack`;
@@ -243,6 +250,7 @@ export const RewardCodesManager = () => {
                   <SelectItem value="pack">Pack Standard</SelectItem>
                   <SelectItem value="pack_lucky">Pack Chanceux (×2)</SelectItem>
                   <SelectItem value="pack_ultra">Pack Ultra Chanceux (×5)</SelectItem>
+                  <SelectItem value="booster">Booster personnalisé</SelectItem>
                   <SelectItem value="card">Carte spécifique</SelectItem>
                   <SelectItem value="boost_luck">Boost de Luck</SelectItem>
                   <SelectItem value="boost_pack">Amélioration des packs</SelectItem>
@@ -262,6 +270,18 @@ export const RewardCodesManager = () => {
                   onChange={(e) => setFormData({ ...formData, card_count: parseInt(e.target.value) || 1 })}
                   className="bg-card border-border"
                 />
+              </div>
+            )}
+
+            {formData.reward_type === 'booster' && (
+              <div className="space-y-2">
+                <Label>Booster</Label>
+                <Select value={formData.booster_id} onValueChange={(v) => setFormData({ ...formData, booster_id: v })}>
+                  <SelectTrigger className="bg-card border-border"><SelectValue placeholder="Choisir un booster" /></SelectTrigger>
+                  <SelectContent>
+                    {boosters.map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
             )}
 

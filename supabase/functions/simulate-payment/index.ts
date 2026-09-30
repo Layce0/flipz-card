@@ -71,7 +71,8 @@ serve(async (req) => {
     // Get all available cards
     const { data: cards, error: cardsError } = await supabaseClient
       .from('cards')
-      .select('*');
+      .select('*')
+      .is('booster_id', null);
 
     if (cardsError) throw cardsError;
     if (!cards || cards.length === 0) throw new Error("No cards available");

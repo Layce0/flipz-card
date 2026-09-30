@@ -35,8 +35,78 @@ export type Database = {
         }
         Relationships: []
       }
+      booster_cards: {
+        Row: {
+          booster_id: string
+          card_id: string
+          created_at: string
+          id: string
+          rarity: Database["public"]["Enums"]["card_rarity"]
+        }
+        Insert: {
+          booster_id: string
+          card_id: string
+          created_at?: string
+          id?: string
+          rarity?: Database["public"]["Enums"]["card_rarity"]
+        }
+        Update: {
+          booster_id?: string
+          card_id?: string
+          created_at?: string
+          id?: string
+          rarity?: Database["public"]["Enums"]["card_rarity"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booster_cards_booster_id_fkey"
+            columns: ["booster_id"]
+            isOneToOne: false
+            referencedRelation: "boosters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booster_cards_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      boosters: {
+        Row: {
+          card_count: number
+          created_at: string
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          card_count?: number
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          card_count?: number
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cards: {
         Row: {
+          booster_id: string | null
           created_at: string
           description: string
           description_en: string | null
@@ -51,6 +121,7 @@ export type Database = {
           title_es: string | null
         }
         Insert: {
+          booster_id?: string | null
           created_at?: string
           description: string
           description_en?: string | null
@@ -65,6 +136,7 @@ export type Database = {
           title_es?: string | null
         }
         Update: {
+          booster_id?: string | null
           created_at?: string
           description?: string
           description_en?: string | null
@@ -78,7 +150,15 @@ export type Database = {
           title_en?: string | null
           title_es?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "cards_booster_id_fkey"
+            columns: ["booster_id"]
+            isOneToOne: false
+            referencedRelation: "boosters"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       code_redemptions: {
         Row: {

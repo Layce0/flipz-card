@@ -8,6 +8,7 @@ import { GameCard, Rarity } from '@/types/card';
 import { BookOpen, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAllCards, useUserCards, useClaimMilestone } from '@/hooks/useCards';
+import { useBoosters, useBoosterCards } from '@/hooks/useBoosters';
 import { useNewCardIndicator } from '@/hooks/useNewCardIndicator';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -21,8 +22,27 @@ const Collection = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   
-  const { data: allCards = [], isLoading: cardsLoading } = useAllCards();
-  const { data: userCards = [], isLoading: userCardsLoading } = useUserCards(user?.id);
+  const { data: rawCards = [], isLoading: cardsLoading } = useAllCards();
+  const { data: rawUserCards = [], isLoading: userCardsLoading } = useUserCards(user?.id);
+  const { data: boosters = [] } = useBoosters();
+  const { data: boosterCards = [] } = useBoosterCards();
+  const [activeBooster, setActiveBooster] = useState<string | null>(null);
+  const ownedIds = useMemo(() => new Set(rawUserCards.map((c: any) => c.id)), [rawUserCards]);
+  // Booster categories only appear once the player owns a card from that booster
+  const visibleBoosters = useMemo(() => boosters.filter(b =>
+    boosterCards.some(bc => bc.booster_id === b.id && ownedIds.has(bc.card_id))
+  ), [boosters, boosterCards, ownedIds]);
+  const allCards = useMemo(() => {
+    if (activeBooster) {
+      const ids = new Set(boosterCards.filter(bc => bc.booster_id === activeBooster).map(bc => bc.card_id));
+      return rawCards.filter(c => ids.has(c.id));
+    }
+    return rawCards.filter((c: any) => !c.booster_id);
+  }, [rawCards, boosterCards, activeBooster]);
+  const userCards = useMemo(() => {
+    const ids = new Set(allCards.map(c => c.id));
+    return rawUserCards.filter((c: any) => ids.has(c.id));
+  }, [rawUserCards, allCards]);
   const { newCardIds, markAsSeen } = useNewCardIndicator();
   const claimMilestone = useClaimMilestone();
 
@@ -200,6 +220,21 @@ const Collection = () => {
         </div>
 
 
+
+        {visibleBoosters.length > 0 && (
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            {[{ id: null as string | null, name: 'FLIPZ', image_url: null as string | null }, ...visibleBoosters].map(b => (
+              <button
+                key={b.id ?? 'main'}
+                onClick={() => { setActiveBooster(b.id); setActiveRarity('all'); }}
+                className={}
+              >
+                {b.image_url && <img src={b.image_url} alt="" className="w-5 h-5 rounded object-cover" />}
+                {b.name}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Rarity filter */}
         <RarityTabs 

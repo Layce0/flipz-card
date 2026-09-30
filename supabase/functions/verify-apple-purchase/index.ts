@@ -187,7 +187,7 @@ serve(async (req) => {
     const { cardCount, type: packType } = packConfig;
 
     // Get all cards
-    const { data: cards, error: cardsError } = await supabase.from('cards').select('*');
+    const { data: cards, error: cardsError } = await supabase.from('cards').select('*').is('booster_id', null);
     if (cardsError || !cards || cards.length === 0) throw new Error("Aucune carte disponible");
 
     // Aggregate boosts (same logic as verify-pack-purchase)
