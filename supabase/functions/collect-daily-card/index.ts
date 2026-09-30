@@ -50,6 +50,7 @@ Deno.serve(async (req) => {
     const { data: cards, error: cardsError } = await adminClient
       .from("cards")
       .select("*")
+      .is("booster_id", null)
       .lte("release_date", today)
       .order("id");
 
