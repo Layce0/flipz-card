@@ -57,7 +57,7 @@ export const RedeemCodeSection = ({ userCards }: RedeemCodeSectionProps) => {
 
       const reward = data.reward;
 
-      if (reward?.type === 'pack' || reward?.type === 'pack_lucky' || reward?.type === 'pack_ultra' || (reward?.type === 'card' && reward?.cards?.length)) {
+      if (reward?.type === 'pack' || reward?.type === 'pack_lucky' || reward?.type === 'pack_ultra' || reward?.type === 'booster' || (reward?.type === 'card' && reward?.cards?.length)) {
         const cards = (reward.cards || []) as GameCard[];
         const animType = reward.type === 'pack_ultra' ? 'ultra' : reward.type === 'pack_lucky' ? 'lucky' : reward.type === 'card' ? 'free' : 'standard';
         setRevealPackType(animType);
