@@ -227,7 +227,7 @@ const Collection = () => {
               <button
                 key={b.id ?? 'main'}
                 onClick={() => { setActiveBooster(b.id); setActiveRarity('all'); }}
-                className={}
+                className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-display font-semibold border transition-all ${activeBooster === b.id ? 'border-primary bg-primary/20 text-primary' : 'border-border/50 bg-card/30 text-muted-foreground'}`}
               >
                 {b.image_url && <img src={b.image_url} alt="" className="w-5 h-5 rounded object-cover" />}
                 {b.name}
