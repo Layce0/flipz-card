@@ -140,7 +140,7 @@ export const RewardCodesManager = () => {
     if (type === 'pack_lucky') return `Pack Chanceux ${config?.card_count || 5} cartes`;
     if (type === 'pack_ultra') return `Pack Ultra Chanceux ${config?.card_count || 5} cartes`;
     if (type === 'card') return 'Carte spécifique';
-    if (type === 'booster') return ;
+    if (type === 'booster') return `Booster ${boosters.find(b => b.id === config?.booster_id)?.name ?? ''}`;
     if (type === 'boost_luck') return `Luck ×${config?.multiplier || 2}`;
     if (type === 'boost_pack') {
       if (config?.multiplier) return `×${config.multiplier} cartes/pack`;
