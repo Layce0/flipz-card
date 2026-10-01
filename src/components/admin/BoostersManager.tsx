@@ -42,8 +42,9 @@ export const BoostersManager = () => {
   // Add existing card
   const [addCardId, setAddCardId] = useState('');
   const [addRarity, setAddRarity] = useState<Rarity>('common');
+  const [addDropRate, setAddDropRate] = useState(100);
   // New exclusive card
-  const [nc, setNc] = useState({ title: '', description: '', rarity: 'common' as Rarity, file: null as File | null });
+  const [nc, setNc] = useState({ title: '', description: '', rarity: 'common' as Rarity, dropRate: 100, file: null as File | null });
 
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ['boosters'] });
@@ -93,9 +94,10 @@ export const BoostersManager = () => {
 
   const addExisting = async () => {
     if (!editing || !addCardId) return;
-    const { error } = await db.from('booster_cards').insert({ booster_id: editing.id, card_id: addCardId, rarity: addRarity });
+    const { error } = await db.from('booster_cards').insert({ booster_id: editing.id, card_id: addCardId, rarity: addRarity, drop_rate: Math.max(0, addDropRate) });
     if (error) return toast.error(error.message.includes('duplicate') ? 'Carte déjà dans ce booster' : error.message);
     setAddCardId('');
+    setAddDropRate(100);
     refresh();
   };
 
@@ -110,9 +112,9 @@ export const BoostersManager = () => {
         image_url: url, rarity: nc.rarity, booster_id: editing.id,
       }).select().single();
       if (error) throw error;
-      const { error: e2 } = await db.from('booster_cards').insert({ booster_id: editing.id, card_id: card.id, rarity: nc.rarity });
+      const { error: e2 } = await db.from('booster_cards').insert({ booster_id: editing.id, card_id: card.id, rarity: nc.rarity, drop_rate: Math.max(0, nc.dropRate) });
       if (e2) throw e2;
-      setNc({ title: '', description: '', rarity: 'common', file: null });
+      setNc({ title: '', description: '', rarity: 'common', dropRate: 100, file: null });
       toast.success('Carte exclusive créée');
       refresh();
     } catch (e: any) { toast.error(e.message); } finally { setBusy(false); }
@@ -120,6 +122,12 @@ export const BoostersManager = () => {
 
   const updateRarity = async (id: string, rarity: Rarity) => {
     const { error } = await db.from('booster_cards').update({ rarity }).eq('id', id);
+    if (error) return toast.error(error.message);
+    refresh();
+  };
+
+  const updateDropRate = async (id: string, drop_rate: number) => {
+    const { error } = await db.from('booster_cards').update({ drop_rate: Math.max(0, drop_rate) }).eq('id', id);
     if (error) return toast.error(error.message);
     refresh();
   };
