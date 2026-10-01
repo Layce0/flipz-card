@@ -1,0 +1,1 @@
+ALTER TABLE public.booster_cards ADD COLUMN drop_rate numeric DEFAULT 100;
