@@ -16,6 +16,7 @@ export interface BoosterCard {
   booster_id: string;
   card_id: string;
   rarity: Rarity;
+  drop_rate: number;
 }
 
 const db = supabase as any;
@@ -36,7 +37,7 @@ export const useBoosterCards = () =>
     queryKey: ['booster-cards'],
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
-      const { data, error } = await db.from('booster_cards').select('id, booster_id, card_id, rarity');
+      const { data, error } = await db.from('booster_cards').select('id, booster_id, card_id, rarity, drop_rate');
       if (error) throw error;
       return (data || []) as BoosterCard[];
     },

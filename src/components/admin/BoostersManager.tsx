@@ -42,8 +42,9 @@ export const BoostersManager = () => {
   // Add existing card
   const [addCardId, setAddCardId] = useState('');
   const [addRarity, setAddRarity] = useState<Rarity>('common');
+  const [addDropRate, setAddDropRate] = useState(100);
   // New exclusive card
-  const [nc, setNc] = useState({ title: '', description: '', rarity: 'common' as Rarity, file: null as File | null });
+  const [nc, setNc] = useState({ title: '', description: '', rarity: 'common' as Rarity, dropRate: 100, file: null as File | null });
 
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ['boosters'] });
@@ -93,9 +94,10 @@ export const BoostersManager = () => {
 
   const addExisting = async () => {
     if (!editing || !addCardId) return;
-    const { error } = await db.from('booster_cards').insert({ booster_id: editing.id, card_id: addCardId, rarity: addRarity });
+    const { error } = await db.from('booster_cards').insert({ booster_id: editing.id, card_id: addCardId, rarity: addRarity, drop_rate: Math.max(0, addDropRate) });
     if (error) return toast.error(error.message.includes('duplicate') ? 'Carte déjà dans ce booster' : error.message);
     setAddCardId('');
+    setAddDropRate(100);
     refresh();
   };
 
@@ -110,9 +112,9 @@ export const BoostersManager = () => {
         image_url: url, rarity: nc.rarity, booster_id: editing.id,
       }).select().single();
       if (error) throw error;
-      const { error: e2 } = await db.from('booster_cards').insert({ booster_id: editing.id, card_id: card.id, rarity: nc.rarity });
+      const { error: e2 } = await db.from('booster_cards').insert({ booster_id: editing.id, card_id: card.id, rarity: nc.rarity, drop_rate: Math.max(0, nc.dropRate) });
       if (e2) throw e2;
-      setNc({ title: '', description: '', rarity: 'common', file: null });
+      setNc({ title: '', description: '', rarity: 'common', dropRate: 100, file: null });
       toast.success('Carte exclusive créée');
       refresh();
     } catch (e: any) { toast.error(e.message); } finally { setBusy(false); }
@@ -120,6 +122,12 @@ export const BoostersManager = () => {
 
   const updateRarity = async (id: string, rarity: Rarity) => {
     const { error } = await db.from('booster_cards').update({ rarity }).eq('id', id);
+    if (error) return toast.error(error.message);
+    refresh();
+  };
+
+  const updateDropRate = async (id: string, drop_rate: number) => {
+    const { error } = await db.from('booster_cards').update({ drop_rate: Math.max(0, drop_rate) }).eq('id', id);
     if (error) return toast.error(error.message);
     refresh();
   };
@@ -194,6 +202,15 @@ export const BoostersManager = () => {
                       <img src={card.image_url} alt="" className="w-10 h-10 rounded object-cover" />
                       <span className="flex-1 text-sm truncate">{card.title}{card.booster_id ? ' ★' : ''}</span>
                       <RaritySelect value={bc.rarity} onChange={r => updateRarity(bc.id, r)} />
+                      <div className="flex items-center gap-1">
+                        <Input
+                          type="number" min={0} max={100} step={1}
+                          defaultValue={bc.drop_rate ?? 100}
+                          onBlur={e => updateDropRate(bc.id, parseFloat(e.target.value) || 0)}
+                          className="bg-card border-border w-20"
+                        />
+                        <span className="text-xs text-muted-foreground">%</span>
+                      </div>
                       <Button size="icon" variant="ghost" onClick={() => removeCard(bc.id, bc.card_id)}><Trash2 className="w-4 h-4 text-destructive" /></Button>
                     </div>
                   );
@@ -209,6 +226,10 @@ export const BoostersManager = () => {
                     <SelectContent>{normalCards.map(c => <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>)}</SelectContent>
                   </Select>
                   <RaritySelect value={addRarity} onChange={setAddRarity} />
+                  <div className="flex items-center gap-1">
+                    <Input type="number" min={0} max={100} value={addDropRate} onChange={e => setAddDropRate(parseFloat(e.target.value) || 0)} className="bg-card border-border w-20" />
+                    <span className="text-xs text-muted-foreground">%</span>
+                  </div>
                   <Button size="icon" onClick={addExisting}><Plus className="w-4 h-4" /></Button>
                 </div>
               </div>
@@ -220,6 +241,10 @@ export const BoostersManager = () => {
                 <div className="flex gap-2">
                   <Input type="file" accept="image/*" onChange={e => setNc({ ...nc, file: e.target.files?.[0] ?? null })} className="bg-card border-border flex-1" />
                   <RaritySelect value={nc.rarity} onChange={r => setNc({ ...nc, rarity: r })} />
+                  <div className="flex items-center gap-1">
+                    <Input type="number" min={0} max={100} value={nc.dropRate} onChange={e => setNc({ ...nc, dropRate: parseFloat(e.target.value) || 0 })} className="bg-card border-border w-20" />
+                    <span className="text-xs text-muted-foreground">%</span>
+                  </div>
                 </div>
                 <Button variant="outline" className="w-full" onClick={createExclusive} disabled={busy}>
                   {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Créer la carte

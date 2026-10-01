@@ -40,6 +40,7 @@ export type Database = {
           booster_id: string
           card_id: string
           created_at: string
+          drop_rate: number | null
           id: string
           rarity: Database["public"]["Enums"]["card_rarity"]
         }
@@ -47,6 +48,7 @@ export type Database = {
           booster_id: string
           card_id: string
           created_at?: string
+          drop_rate?: number | null
           id?: string
           rarity?: Database["public"]["Enums"]["card_rarity"]
         }
@@ -54,6 +56,7 @@ export type Database = {
           booster_id?: string
           card_id?: string
           created_at?: string
+          drop_rate?: number | null
           id?: string
           rarity?: Database["public"]["Enums"]["card_rarity"]
         }

@@ -153,7 +153,7 @@ Deno.serve(async (req) => {
     } else if (rewardType === 'booster') {
       const boosterId = config.booster_id
       const { data: booster } = await supabaseAdmin.from('boosters').select('*').eq('id', boosterId).maybeSingle()
-      const { data: entries } = await supabaseAdmin.from('booster_cards').select('card_id, rarity').eq('booster_id', boosterId)
+      const { data: entries } = await supabaseAdmin.from('booster_cards').select('card_id, rarity, drop_rate').eq('booster_id', boosterId)
       if (!booster || !entries || entries.length === 0) {
         return new Response(JSON.stringify({ error: 'Ce booster est vide' }), {
           status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -161,21 +161,22 @@ Deno.serve(async (req) => {
       }
       const { data: bCards } = await supabaseAdmin.from('cards').select('*').in('id', entries.map((e: any) => e.card_id))
       const cardMap = new Map((bCards || []).map((c: any) => [c.id, c]))
-      const byRarity: Record<string, any[]> = {}
-      entries.forEach((e: any) => {
-        const c = cardMap.get(e.card_id)
-        if (c) (byRarity[e.rarity] ||= []).push(c)
-      })
-      const W: Record<string, number> = { common: 60, rare: 25, epic: 12, legendary: 3 }
-      const avail = Object.keys(W).filter(r => byRarity[r]?.length)
-      const total = avail.reduce((s, r) => s + W[r], 0)
+      // Weighted per-card draw: each card's drop_rate is its weight (in %)
+      const pool = entries
+        .map((e: any) => ({ card: cardMap.get(e.card_id), weight: Math.max(0, Number(e.drop_rate ?? 100)) }))
+        .filter((p: any) => p.card && p.weight > 0)
+      if (pool.length === 0) {
+        return new Response(JSON.stringify({ error: 'Ce booster est vide' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
+      const total = pool.reduce((s: number, p: any) => s + p.weight, 0)
       const picked: any[] = []
       for (let i = 0; i < (booster.card_count || 5); i++) {
         let roll = Math.random() * total
-        let rar = avail[0]
-        for (const r of avail) { roll -= W[r]; if (roll <= 0) { rar = r; break } }
-        const pool = byRarity[rar]
-        picked.push(pool[Math.floor(Math.random() * pool.length)])
+        let chosen = pool[0].card
+        for (const p of pool) { roll -= p.weight; if (roll <= 0) { chosen = p.card; break } }
+        picked.push(chosen)
       }
       await supabaseAdmin.from('user_cards').insert(picked.map((c: any) => ({ user_id: userId, card_id: c.id })))
       rewardDetails.cards = picked
