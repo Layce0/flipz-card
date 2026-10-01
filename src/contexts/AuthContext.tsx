@@ -87,7 +87,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         void syncSessionToNativeStorage(initialSession);
 
         if (initialSession?.user) {
-          void checkRoles(initialSession.user.id);
+          // Await roles so route guards don't redirect before admin status is known
+          await checkRoles(initialSession.user.id);
         } else {
           setIsAdmin(false);
           setIsModerator(false);
