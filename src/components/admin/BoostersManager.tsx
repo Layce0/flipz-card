@@ -202,6 +202,15 @@ export const BoostersManager = () => {
                       <img src={card.image_url} alt="" className="w-10 h-10 rounded object-cover" />
                       <span className="flex-1 text-sm truncate">{card.title}{card.booster_id ? ' ★' : ''}</span>
                       <RaritySelect value={bc.rarity} onChange={r => updateRarity(bc.id, r)} />
+                      <div className="flex items-center gap-1">
+                        <Input
+                          type="number" min={0} max={100} step={1}
+                          defaultValue={bc.drop_rate ?? 100}
+                          onBlur={e => updateDropRate(bc.id, parseFloat(e.target.value) || 0)}
+                          className="bg-card border-border w-20"
+                        />
+                        <span className="text-xs text-muted-foreground">%</span>
+                      </div>
                       <Button size="icon" variant="ghost" onClick={() => removeCard(bc.id, bc.card_id)}><Trash2 className="w-4 h-4 text-destructive" /></Button>
                     </div>
                   );
@@ -217,6 +226,10 @@ export const BoostersManager = () => {
                     <SelectContent>{normalCards.map(c => <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>)}</SelectContent>
                   </Select>
                   <RaritySelect value={addRarity} onChange={setAddRarity} />
+                  <div className="flex items-center gap-1">
+                    <Input type="number" min={0} max={100} value={addDropRate} onChange={e => setAddDropRate(parseFloat(e.target.value) || 0)} className="bg-card border-border w-20" />
+                    <span className="text-xs text-muted-foreground">%</span>
+                  </div>
                   <Button size="icon" onClick={addExisting}><Plus className="w-4 h-4" /></Button>
                 </div>
               </div>
@@ -228,6 +241,10 @@ export const BoostersManager = () => {
                 <div className="flex gap-2">
                   <Input type="file" accept="image/*" onChange={e => setNc({ ...nc, file: e.target.files?.[0] ?? null })} className="bg-card border-border flex-1" />
                   <RaritySelect value={nc.rarity} onChange={r => setNc({ ...nc, rarity: r })} />
+                  <div className="flex items-center gap-1">
+                    <Input type="number" min={0} max={100} value={nc.dropRate} onChange={e => setNc({ ...nc, dropRate: parseFloat(e.target.value) || 0 })} className="bg-card border-border w-20" />
+                    <span className="text-xs text-muted-foreground">%</span>
+                  </div>
                 </div>
                 <Button variant="outline" className="w-full" onClick={createExclusive} disabled={busy}>
                   {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Créer la carte
