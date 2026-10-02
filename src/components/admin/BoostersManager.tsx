@@ -38,13 +38,16 @@ export const BoostersManager = () => {
   const [name, setName] = useState('');
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [cardCount, setCardCount] = useState(5);
+  const [customRarities, setCustomRarities] = useState<string[]>([]);
+  const [newRarity, setNewRarity] = useState('');
 
   // Add existing card
   const [addCardId, setAddCardId] = useState('');
   const [addRarity, setAddRarity] = useState<Rarity>('common');
+  const [addCustomRarity, setAddCustomRarity] = useState('');
   const [addDropRate, setAddDropRate] = useState(100);
   // New exclusive card
-  const [nc, setNc] = useState({ title: '', description: '', rarity: 'common' as Rarity, dropRate: 100, file: null as File | null });
+  const [nc, setNc] = useState({ title: '', description: '', rarity: 'common' as Rarity, customRarity: '', dropRate: 100, file: null as File | null });
 
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ['boosters'] });
@@ -57,6 +60,9 @@ export const BoostersManager = () => {
     setName(b?.name ?? '');
     setImageUrl(b?.image_url ?? null);
     setCardCount(b?.card_count ?? 5);
+    setCustomRarities(b?.custom_rarities ?? []);
+    setNewRarity('');
+    setAddCustomRarity('');
     setOpen(true);
   };
 
@@ -64,7 +70,7 @@ export const BoostersManager = () => {
     if (!name.trim()) return toast.error('Donne un nom au booster');
     setBusy(true);
     try {
-      const payload = { name: name.trim(), image_url: imageUrl, card_count: Math.max(1, Math.min(50, cardCount)) };
+      const payload = { name: name.trim(), image_url: imageUrl, card_count: Math.max(1, Math.min(50, cardCount)), custom_rarities: customRarities };
       if (editing) {
         const { error } = await db.from('boosters').update(payload).eq('id', editing.id);
         if (error) throw error;
@@ -94,9 +100,10 @@ export const BoostersManager = () => {
 
   const addExisting = async () => {
     if (!editing || !addCardId) return;
-    const { error } = await db.from('booster_cards').insert({ booster_id: editing.id, card_id: addCardId, rarity: addRarity, drop_rate: Math.max(0, addDropRate) });
+    const { error } = await db.from('booster_cards').insert({ booster_id: editing.id, card_id: addCardId, rarity: addRarity, custom_rarity: addCustomRarity || null, drop_rate: Math.max(0, addDropRate) });
     if (error) return toast.error(error.message.includes('duplicate') ? 'Carte déjà dans ce booster' : error.message);
     setAddCardId('');
+    setAddCustomRarity('');
     setAddDropRate(100);
     refresh();
   };
@@ -112,9 +119,9 @@ export const BoostersManager = () => {
         image_url: url, rarity: nc.rarity, booster_id: editing.id,
       }).select().single();
       if (error) throw error;
-      const { error: e2 } = await db.from('booster_cards').insert({ booster_id: editing.id, card_id: card.id, rarity: nc.rarity, drop_rate: Math.max(0, nc.dropRate) });
+      const { error: e2 } = await db.from('booster_cards').insert({ booster_id: editing.id, card_id: card.id, rarity: nc.rarity, custom_rarity: nc.customRarity || null, drop_rate: Math.max(0, nc.dropRate) });
       if (e2) throw e2;
-      setNc({ title: '', description: '', rarity: 'common', dropRate: 100, file: null });
+      setNc({ title: '', description: '', rarity: 'common', customRarity: '', dropRate: 100, file: null });
       toast.success('Carte exclusive créée');
       refresh();
     } catch (e: any) { toast.error(e.message); } finally { setBusy(false); }
@@ -125,6 +132,43 @@ export const BoostersManager = () => {
     if (error) return toast.error(error.message);
     refresh();
   };
+
+  const updateCustomRarity = async (id: string, custom_rarity: string) => {
+    const { error } = await db.from('booster_cards').update({ custom_rarity: custom_rarity || null }).eq('id', id);
+    if (error) return toast.error(error.message);
+    refresh();
+  };
+
+  const addRarityLabel = async () => {
+    const label = newRarity.trim().slice(0, 32);
+    if (!editing || !label || customRarities.some(r => r.toLocaleLowerCase() === label.toLocaleLowerCase())) return;
+    const next = [...customRarities, label];
+    const { error } = await db.from('boosters').update({ custom_rarities: next }).eq('id', editing.id);
+    if (error) return toast.error(error.message);
+    setCustomRarities(next);
+    setNewRarity('');
+    refresh();
+  };
+
+  const removeRarityLabel = async (label: string) => {
+    if (!editing) return;
+    const next = customRarities.filter(r => r !== label);
+    const { error } = await db.from('boosters').update({ custom_rarities: next }).eq('id', editing.id);
+    if (error) return toast.error(error.message);
+    await db.from('booster_cards').update({ custom_rarity: null }).eq('booster_id', editing.id).eq('custom_rarity', label);
+    setCustomRarities(next);
+    refresh();
+  };
+
+  const CustomRaritySelect = ({ value, onChange }: { value: string; onChange: (v: string) => void }) => customRarities.length ? (
+    <Select value={value || 'default'} onValueChange={v => onChange(v === 'default' ? '' : v)}>
+      <SelectTrigger className="bg-card border-border w-full sm:w-36"><SelectValue placeholder="Rareté spéciale" /></SelectTrigger>
+      <SelectContent>
+        <SelectItem value="default">Standard</SelectItem>
+        {customRarities.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+      </SelectContent>
+    </Select>
+  ) : null;
 
   const updateDropRate = async (id: string, drop_rate: number) => {
     const { error } = await db.from('booster_cards').update({ drop_rate: Math.max(0, drop_rate) }).eq('id', id);
@@ -192,16 +236,24 @@ export const BoostersManager = () => {
 
           {editing && (
             <div className="space-y-4 pt-4 border-t border-border">
+              <div className="space-y-2">
+                <Label>Raretés spéciales du booster</Label>
+                <div className="flex flex-wrap gap-2">
+                  {customRarities.map(r => <div key={r} className="flex items-center gap-1 border border-border bg-muted px-2 py-1 text-sm rounded"><span>{r}</span><Button size="icon" variant="ghost" className="h-6 w-6" aria-label={`Supprimer ${r}`} onClick={() => removeRarityLabel(r)}><Trash2 className="w-3 h-3" /></Button></div>)}
+                </div>
+                <div className="flex gap-2"><Input aria-label="Nouvelle rareté" placeholder="Nom de la rareté" maxLength={32} value={newRarity} onChange={e => setNewRarity(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addRarityLabel(); } }} /><Button size="icon" aria-label="Ajouter la rareté" onClick={addRarityLabel} disabled={!newRarity.trim()}><Plus className="w-4 h-4" /></Button></div>
+              </div>
               <Label>Contenu du booster</Label>
               <div className="space-y-2">
                 {contents.map(bc => {
                   const card: any = allCards.find(c => c.id === bc.card_id);
                   if (!card) return null;
                   return (
-                    <div key={bc.id} className="flex items-center gap-2">
-                      <img src={card.image_url} alt="" className="w-10 h-10 rounded object-cover" />
-                      <span className="flex-1 text-sm truncate">{card.title}{card.booster_id ? ' ★' : ''}</span>
+                    <div key={bc.id} className="flex flex-wrap items-center gap-2 border-b border-border/50 pb-2">
+                      <img src={card.image_url} alt={card.title} className="w-12 h-16 rounded object-cover shrink-0" />
+                      <span className="flex-1 min-w-24 text-sm truncate">{card.title}{card.booster_id ? ' ★' : ''}</span>
                       <RaritySelect value={bc.rarity} onChange={r => updateRarity(bc.id, r)} />
+                      <CustomRaritySelect value={bc.custom_rarity ?? ''} onChange={r => updateCustomRarity(bc.id, r)} />
                       <div className="flex items-center gap-1">
                         <Input
                           type="number" min={0} max={100} step={1}
@@ -220,17 +272,21 @@ export const BoostersManager = () => {
 
               <div className="space-y-2">
                 <Label className="text-sm text-muted-foreground">Ajouter une carte existante</Label>
-                <div className="flex gap-2">
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 max-h-48 overflow-y-auto">
+                  {normalCards.map(c => <Button key={c.id} type="button" variant={addCardId === c.id ? 'default' : 'ghost'} className="h-auto flex-col p-1 min-w-0" onClick={() => setAddCardId(c.id)} title={c.title}><img src={c.image_url} alt={c.title} className="w-full aspect-[3/4] object-cover rounded" /><span className="w-full truncate text-xs">{c.title}</span></Button>)}
+                </div>
+                <div className="flex flex-wrap gap-2 items-center">
                   <Select value={addCardId} onValueChange={setAddCardId}>
-                    <SelectTrigger className="bg-card border-border flex-1"><SelectValue placeholder="Carte" /></SelectTrigger>
-                    <SelectContent>{normalCards.map(c => <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>)}</SelectContent>
+                    <SelectTrigger className="bg-card border-border flex-1 min-w-28"><SelectValue placeholder="Carte" /></SelectTrigger>
+                    <SelectContent>{normalCards.map(c => <SelectItem key={c.id} value={c.id}><span className="inline-flex items-center gap-2"><img src={c.image_url} alt="" className="w-7 h-9 object-cover rounded" />{c.title}</span></SelectItem>)}</SelectContent>
                   </Select>
                   <RaritySelect value={addRarity} onChange={setAddRarity} />
+                  <CustomRaritySelect value={addCustomRarity} onChange={setAddCustomRarity} />
                   <div className="flex items-center gap-1">
                     <Input type="number" min={0} max={100} value={addDropRate} onChange={e => setAddDropRate(parseFloat(e.target.value) || 0)} className="bg-card border-border w-20" />
                     <span className="text-xs text-muted-foreground">%</span>
                   </div>
-                  <Button size="icon" onClick={addExisting}><Plus className="w-4 h-4" /></Button>
+                  <Button size="icon" aria-label="Ajouter la carte" disabled={!addCardId} onClick={addExisting}><Plus className="w-4 h-4" /></Button>
                 </div>
               </div>
 
@@ -238,9 +294,11 @@ export const BoostersManager = () => {
                 <Label className="text-sm text-muted-foreground">Créer une carte exclusive (★)</Label>
                 <Input placeholder="Nom" value={nc.title} onChange={e => setNc({ ...nc, title: e.target.value })} className="bg-card border-border" />
                 <Textarea placeholder="Description" value={nc.description} onChange={e => setNc({ ...nc, description: e.target.value })} className="bg-card border-border" />
-                <div className="flex gap-2">
+                {nc.file && <img src={URL.createObjectURL(nc.file)} alt="Aperçu de la carte" className="w-20 h-28 object-cover rounded" onLoad={e => URL.revokeObjectURL(e.currentTarget.src)} />}
+                <div className="flex flex-wrap gap-2">
                   <Input type="file" accept="image/*" onChange={e => setNc({ ...nc, file: e.target.files?.[0] ?? null })} className="bg-card border-border flex-1" />
                   <RaritySelect value={nc.rarity} onChange={r => setNc({ ...nc, rarity: r })} />
+                  <CustomRaritySelect value={nc.customRarity} onChange={r => setNc({ ...nc, customRarity: r })} />
                   <div className="flex items-center gap-1">
                     <Input type="number" min={0} max={100} value={nc.dropRate} onChange={e => setNc({ ...nc, dropRate: parseFloat(e.target.value) || 0 })} className="bg-card border-border w-20" />
                     <span className="text-xs text-muted-foreground">%</span>
