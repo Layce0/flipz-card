@@ -153,7 +153,7 @@ Deno.serve(async (req) => {
     } else if (rewardType === 'booster') {
       const boosterId = config.booster_id
       const { data: booster } = await supabaseAdmin.from('boosters').select('*').eq('id', boosterId).maybeSingle()
-      const { data: entries } = await supabaseAdmin.from('booster_cards').select('card_id, rarity, drop_rate').eq('booster_id', boosterId)
+      const { data: entries } = await supabaseAdmin.from('booster_cards').select('card_id, rarity, drop_rate, custom_rarity').eq('booster_id', boosterId)
       if (!booster || !entries || entries.length === 0) {
         return new Response(JSON.stringify({ error: 'Ce booster est vide' }), {
           status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -163,7 +163,7 @@ Deno.serve(async (req) => {
       const cardMap = new Map((bCards || []).map((c: any) => [c.id, c]))
       // Weighted per-card draw: each card's drop_rate is its weight (in %)
       const pool = entries
-        .map((e: any) => ({ card: cardMap.get(e.card_id), weight: Math.max(0, Number(e.drop_rate ?? 100)) }))
+        .map((e: any) => ({ card: cardMap.get(e.card_id), custom_rarity: e.custom_rarity, weight: Math.max(0, Number(e.drop_rate ?? 100)) }))
         .filter((p: any) => p.card && p.weight > 0)
       if (pool.length === 0) {
         return new Response(JSON.stringify({ error: 'Ce booster est vide' }), {
@@ -174,12 +174,12 @@ Deno.serve(async (req) => {
       const picked: any[] = []
       for (let i = 0; i < (booster.card_count || 5); i++) {
         let roll = Math.random() * total
-        let chosen = pool[0].card
-        for (const p of pool) { roll -= p.weight; if (roll <= 0) { chosen = p.card; break } }
+        let chosen = pool[0]
+        for (const p of pool) { roll -= p.weight; if (roll <= 0) { chosen = p; break } }
         picked.push(chosen)
       }
-      await supabaseAdmin.from('user_cards').insert(picked.map((c: any) => ({ user_id: userId, card_id: c.id })))
-      rewardDetails.cards = picked
+      await supabaseAdmin.from('user_cards').insert(picked.map((p: any) => ({ user_id: userId, card_id: p.card.id })))
+      rewardDetails.cards = picked.map((p: any) => ({ ...p.card, custom_rarity: p.custom_rarity }))
       rewardDetails.card_count = picked.length
       rewardDetails.pack_type = 'pack'
       rewardDetails.booster = { id: booster.id, name: booster.name, image_url: booster.image_url }

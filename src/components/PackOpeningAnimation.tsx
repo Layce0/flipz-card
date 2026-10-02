@@ -13,6 +13,8 @@ interface PackOpeningAnimationProps {
   onComplete: () => void;
   packType?: PackAnimationType;
   packId?: string;
+  packImageUrl?: string | null;
+  packName?: string;
 }
 
 const GLOW_COLORS: Record<string, string> = {
@@ -22,14 +24,15 @@ const GLOW_COLORS: Record<string, string> = {
   ultra: 'hsl(280 90% 65%)',
 };
 
-export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free', packId }: PackOpeningAnimationProps) => {
+export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free', packId, packImageUrl, packName }: PackOpeningAnimationProps) => {
   const { play } = useSfx();
 
   const mainImg = useMemo(() => {
+    if (packImageUrl) return packImageUrl;
     if (packType === 'ultra') return packUltraImg;
     if (packType === 'lucky') return packLuckyImg;
     return packSachetImg;
-  }, [packType]);
+  }, [packType, packImageUrl]);
   
   const [tapCount, setTapCount] = useState(0);
   const [isTearing, setIsTearing] = useState(false);
@@ -202,8 +205,8 @@ export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free', pa
             />
             <img
               src={mainImg}
-              alt="Pack"
-              className="w-80 h-auto select-none relative z-10 transition-transform duration-300"
+              alt={packName ?? 'Pack'}
+              className={packImageUrl ? 'w-72 h-96 object-contain select-none relative z-10 transition-transform duration-300' : 'w-80 h-auto select-none relative z-10 transition-transform duration-300'}
               style={{
                 filter: `drop-shadow(0 10px 25px rgba(0,0,0,0.8)) drop-shadow(0 0 ${tapCount * 14}px ${glowColor})`,
                 transform: `scale(${1 + tapCount * 0.06})`,
@@ -212,32 +215,32 @@ export const PackOpeningAnimation = ({ isOpen, onComplete, packType = 'free', pa
             />
           </div>
         ) : (
-          <div className="relative w-80 flex flex-col items-center justify-center">
+          <div className={packImageUrl ? 'relative w-72 h-96 flex flex-col items-center justify-center' : 'relative w-80 flex flex-col items-center justify-center'}>
 
             {/* Top slice flying off */}
             <div 
-              className="w-80 absolute top-0 z-10 premium-tear-top"
+              className="w-full h-full absolute top-0 z-10 premium-tear-top"
               style={{
                 clipPath: 'polygon(0% 0%, 100% 0%, 100% 18%, 95% 15%, 90% 19%, 85% 14%, 80% 18%, 75% 15%, 70% 19%, 65% 14%, 60% 18%, 55% 15%, 50% 19%, 45% 14%, 40% 18%, 35% 15%, 30% 19%, 25% 14%, 20% 18%, 15% 15%, 10% 19%, 5% 14%, 0% 18%)',
                 filter: 'drop-shadow(0 10px 25px rgba(0,0,0,0.8))'
               }}
             >
-              <img src={mainImg} alt="" className="w-full h-auto select-none" draggable={false} />
+              <img src={mainImg} alt="" className={packImageUrl ? 'w-full h-full object-contain select-none' : 'w-full h-auto select-none'} draggable={false} />
             </div>
 
             {/* Bottom slice dropping down */}
             <div 
-              className="w-80 absolute top-0 z-10 premium-tear-bottom"
+              className="w-full h-full absolute top-0 z-10 premium-tear-bottom"
               style={{
                 clipPath: 'polygon(0% 18%, 5% 14%, 10% 19%, 15% 15%, 20% 18%, 25% 14%, 30% 19%, 35% 15%, 40% 18%, 45% 14%, 50% 19%, 55% 15%, 60% 18%, 65% 14%, 70% 19%, 75% 15%, 80% 18%, 85% 14%, 90% 19%, 95% 15%, 100% 18%, 100% 100%, 0% 100%)',
                 filter: 'drop-shadow(0 10px 25px rgba(0,0,0,0.8))'
               }}
             >
-              <img src={mainImg} alt="" className="w-full h-auto select-none" draggable={false} />
+              <img src={mainImg} alt="" className={packImageUrl ? 'w-full h-full object-contain select-none' : 'w-full h-auto select-none'} draggable={false} />
             </div>
             
             {/* To keep layout spacing */}
-            <img src={mainImg} alt="" className="w-80 h-auto opacity-0" />
+            <img src={mainImg} alt="" className={packImageUrl ? 'w-72 h-96 object-contain opacity-0' : 'w-80 h-auto opacity-0'} />
           </div>
         )}
       </div>

@@ -18,9 +18,11 @@ interface PackRevealFlowProps {
   initialOwnedCardIds?: Set<string>;
   packType?: PackAnimationType;
   packId?: string;
+  packImageUrl?: string | null;
+  packName?: string;
 }
 
-export const PackRevealFlow = ({ cards, isOpen, onClose, initialOwnedCardIds, packType, packId }: PackRevealFlowProps) => {
+export const PackRevealFlow = ({ cards, isOpen, onClose, initialOwnedCardIds, packType, packId, packImageUrl, packName }: PackRevealFlowProps) => {
   const { user } = useAuth();
   const { data: userCards = [] } = useUserCards(user?.id);
   const [ownedSnapshot, setOwnedSnapshot] = useState<Set<string>>(new Set());
@@ -192,6 +194,8 @@ export const PackRevealFlow = ({ cards, isOpen, onClose, initialOwnedCardIds, pa
         onComplete={handlePackAnimationComplete}
         packType={packType}
         packId={packId}
+        packImageUrl={packImageUrl}
+        packName={packName}
       />
     );
   }

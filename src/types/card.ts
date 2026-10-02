@@ -6,6 +6,7 @@ export interface GameCard {
   description: string;
   image_url: string;
   rarity: Rarity;
+  custom_rarity?: string | null;
   release_date: string;
   created_at: string;
   title_en?: string | null;

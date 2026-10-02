@@ -30,6 +30,7 @@ export const RedeemCodeSection = ({ userCards }: RedeemCodeSectionProps) => {
   const [isRevealing, setIsRevealing] = useState(false);
   const [ownedSnapshotForReveal, setOwnedSnapshotForReveal] = useState<Set<string>>(new Set());
   const [revealPackType, setRevealPackType] = useState<'standard' | 'lucky' | 'ultra' | 'free'>('free');
+  const [revealBooster, setRevealBooster] = useState<{ name: string; image_url: string | null } | null>(null);
   const redeemingRef = useRef(false);
 
   const handleRedeem = async () => {
@@ -61,6 +62,7 @@ export const RedeemCodeSection = ({ userCards }: RedeemCodeSectionProps) => {
         const cards = (reward.cards || []) as GameCard[];
         const animType = reward.type === 'pack_ultra' ? 'ultra' : reward.type === 'pack_lucky' ? 'lucky' : reward.type === 'card' ? 'free' : 'standard';
         setRevealPackType(animType);
+        setRevealBooster(reward.type === 'booster' ? reward.booster ?? null : null);
         setOwnedSnapshotForReveal(ownedIdsBeforeRedeem);
         setRevealedCards(cards);
         setIsRevealing(true);
@@ -84,6 +86,7 @@ export const RedeemCodeSection = ({ userCards }: RedeemCodeSectionProps) => {
     setIsRevealing(false);
     setRevealedCards([]);
     setOwnedSnapshotForReveal(new Set());
+    setRevealBooster(null);
   };
 
   return (
@@ -133,6 +136,8 @@ export const RedeemCodeSection = ({ userCards }: RedeemCodeSectionProps) => {
         onClose={handleCloseReveal}
         initialOwnedCardIds={ownedSnapshotForReveal}
         packType={revealPackType}
+        packImageUrl={revealBooster?.image_url}
+        packName={revealBooster?.name}
       />
     </>
   );
