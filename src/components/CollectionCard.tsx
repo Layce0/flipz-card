@@ -44,11 +44,11 @@ export const CollectionCard = memo(({ card, onClick }: CollectionCardProps) => {
           <span 
             className={cn(
               "inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider mb-1",
-              rarityConfig.bgClass
+              card.custom_rarity ? 'rarity-special' : rarityConfig.bgClass
             )}
             style={{ color: card.rarity === 'legendary' ? 'hsl(240, 20%, 6%)' : 'white' }}
           >
-            {t(`rarity.${card.rarity}`)}
+            {card.custom_rarity || t(`rarity.${card.rarity}`)}
           </span>
           <h4 className="font-display text-sm text-foreground truncate">{getTitle(card)}</h4>
         </div>

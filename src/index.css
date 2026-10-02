@@ -41,6 +41,7 @@
     --rarity-rare: 210 80% 55%;
     --rarity-epic: 280 70% 55%;
     --rarity-legendary: 45 95% 55%;
+    --rarity-special: 170 80% 38%;
 
     /* Custom gradients */
     --gradient-mystical: linear-gradient(180deg, hsl(0 0% 2%) 0%, hsl(270 40% 8%) 60%, hsl(270 60% 15%) 85%, hsl(275 70% 25%) 100%);

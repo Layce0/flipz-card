@@ -197,11 +197,11 @@ const CardSlot = memo(({ card, isCollected, count, isNew, onClick }: { card: Gam
           <span 
             className={cn(
               "inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider mb-1",
-              rarityConfig.bgClass
+              card.custom_rarity ? 'rarity-special' : rarityConfig.bgClass
             )}
             style={{ color: card.rarity === 'legendary' ? 'hsl(240, 20%, 6%)' : 'white' }}
           >
-            {rarityConfig.label}
+            {card.custom_rarity || rarityConfig.label}
           </span>
           <h4 className="font-display text-sm text-foreground truncate">{getTitle(card)}</h4>
         </div>
