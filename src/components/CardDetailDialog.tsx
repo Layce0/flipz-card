@@ -75,11 +75,11 @@ export const CardDetailDialog = ({
           <div 
             className={cn(
               "absolute top-3 right-12 px-3 py-1 rounded-full text-xs font-semibold uppercase",
-              config.bgClass
+              card.custom_rarity ? 'rarity-special' : config.bgClass
             )}
             style={{ color: card.rarity === 'legendary' ? 'hsl(240, 20%, 6%)' : 'white' }}
           >
-            {t(`rarity.${card.rarity}`)}
+            {card.custom_rarity || t(`rarity.${card.rarity}`)}
           </div>
 
           {/* Prev / next card navigation */}

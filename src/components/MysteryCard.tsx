@@ -173,11 +173,11 @@ export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'm
                 <span 
                   className={cn(
                     "px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider",
-                    rarityConfig.bgClass
+                    card.custom_rarity ? 'rarity-special' : rarityConfig.bgClass
                   )}
                   style={{ color: card.rarity === 'legendary' ? 'hsl(240, 20%, 6%)' : 'white' }}
                 >
-                  {rarityConfig.label}
+                  {card.custom_rarity || rarityConfig.label}
                 </span>
               </div>
 

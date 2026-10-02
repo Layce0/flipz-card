@@ -34,8 +34,8 @@ const Collection = () => {
   ), [boosters, boosterCards, ownedIds]);
   const allCards = useMemo(() => {
     if (activeBooster) {
-      const ids = new Set(boosterCards.filter(bc => bc.booster_id === activeBooster).map(bc => bc.card_id));
-      return rawCards.filter(c => ids.has(c.id));
+      const entries = new Map(boosterCards.filter(bc => bc.booster_id === activeBooster).map(bc => [bc.card_id, bc]));
+      return rawCards.filter(c => entries.has(c.id)).map(c => ({ ...c, custom_rarity: entries.get(c.id)?.custom_rarity ?? null }));
     }
     return rawCards.filter((c: any) => !c.booster_id);
   }, [rawCards, boosterCards, activeBooster]);

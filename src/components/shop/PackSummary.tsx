@@ -46,7 +46,7 @@ export const PackSummary = ({ cards, ownedSnapshot, onClose }: PackSummaryProps)
         <div className="grid grid-cols-3 gap-3 w-full">
           {enriched.map(({ card, isNew }, idx) => {
             const rarity = RARITY_CONFIG[card.rarity];
-            const rarityColor = `hsl(var(--rarity-${card.rarity}))`;
+            const rarityColor = card.custom_rarity ? 'hsl(var(--rarity-special))' : `hsl(var(--rarity-${card.rarity}))`;
             return (
               <button
                 key={idx}
@@ -58,7 +58,7 @@ export const PackSummary = ({ cards, ownedSnapshot, onClose }: PackSummaryProps)
                   className="relative w-full aspect-[3/4] rounded-lg overflow-hidden border-2"
                   style={{
                     borderColor: rarityColor,
-                    boxShadow: `0 0 12px hsl(var(--rarity-${card.rarity}) / 0.4)`,
+                    boxShadow: `0 0 12px ${rarityColor}`,
                   }}
                 >
                   {card.image_url ? (
@@ -73,7 +73,7 @@ export const PackSummary = ({ cards, ownedSnapshot, onClose }: PackSummaryProps)
                   )}
                 </div>
                 <p className="text-[10px] text-center mt-1 truncate w-full" style={{ color: rarityColor }}>
-                  {rarity?.label}
+                  {card.custom_rarity || rarity?.label}
                 </p>
               </button>
             );
@@ -124,11 +124,11 @@ export const PackSummary = ({ cards, ownedSnapshot, onClose }: PackSummaryProps)
                 <div
                   className={cn(
                     "absolute top-3 right-12 px-3 py-1 rounded-full text-xs font-semibold uppercase",
-                    config.bgClass
+                    selectedCard.custom_rarity ? 'rarity-special' : config.bgClass
                   )}
                   style={{ color: selectedCard.rarity === 'legendary' ? 'hsl(240, 20%, 6%)' : 'white' }}
                 >
-                  {t(`rarity.${selectedCard.rarity}`)}
+                  {selectedCard.custom_rarity || t(`rarity.${selectedCard.rarity}`)}
                 </div>
 
                 {selectedCard.rarity === 'legendary' && (
