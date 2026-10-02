@@ -40,6 +40,7 @@ export type Database = {
           booster_id: string
           card_id: string
           created_at: string
+          custom_rarity: string | null
           drop_rate: number | null
           id: string
           rarity: Database["public"]["Enums"]["card_rarity"]
@@ -48,6 +49,7 @@ export type Database = {
           booster_id: string
           card_id: string
           created_at?: string
+          custom_rarity?: string | null
           drop_rate?: number | null
           id?: string
           rarity?: Database["public"]["Enums"]["card_rarity"]
@@ -56,6 +58,7 @@ export type Database = {
           booster_id?: string
           card_id?: string
           created_at?: string
+          custom_rarity?: string | null
           drop_rate?: number | null
           id?: string
           rarity?: Database["public"]["Enums"]["card_rarity"]
@@ -81,6 +84,7 @@ export type Database = {
         Row: {
           card_count: number
           created_at: string
+          custom_rarities: string[]
           id: string
           image_url: string | null
           is_active: boolean
@@ -90,6 +94,7 @@ export type Database = {
         Insert: {
           card_count?: number
           created_at?: string
+          custom_rarities?: string[]
           id?: string
           image_url?: string | null
           is_active?: boolean
@@ -99,6 +104,7 @@ export type Database = {
         Update: {
           card_count?: number
           created_at?: string
+          custom_rarities?: string[]
           id?: string
           image_url?: string | null
           is_active?: boolean
