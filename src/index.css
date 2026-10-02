@@ -247,6 +247,11 @@
     background: linear-gradient(135deg, hsl(45 95% 55%) 0%, hsl(35 90% 45%) 100%);
   }
 
+  .rarity-special {
+    background: hsl(var(--rarity-special));
+    color: hsl(var(--foreground));
+  }
+
   /* Timer animated glow border */
   .timer-glow-border {
     --glow-color: hsl(45 90% 55%);

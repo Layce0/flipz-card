@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,16 @@ const RaritySelect = ({ value, onChange }: { value: Rarity; onChange: (r: Rarity
   </Select>
 );
 
+const CustomRaritySelect = ({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: string[] }) => options.length ? (
+  <Select value={value || 'default'} onValueChange={v => onChange(v === 'default' ? '' : v)}>
+    <SelectTrigger className="bg-card border-border w-full sm:w-36"><SelectValue placeholder="Rareté spéciale" /></SelectTrigger>
+    <SelectContent>
+      <SelectItem value="default">Standard</SelectItem>
+      {options.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+    </SelectContent>
+  </Select>
+) : null;
+
 export const BoostersManager = () => {
   const qc = useQueryClient();
   const { data: boosters = [] } = useBoosters();
@@ -48,6 +58,14 @@ export const BoostersManager = () => {
   const [addDropRate, setAddDropRate] = useState(100);
   // New exclusive card
   const [nc, setNc] = useState({ title: '', description: '', rarity: 'common' as Rarity, customRarity: '', dropRate: 100, file: null as File | null });
+  const [newCardPreview, setNewCardPreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!nc.file) { setNewCardPreview(null); return; }
+    const url = URL.createObjectURL(nc.file);
+    setNewCardPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [nc.file]);
 
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ['boosters'] });
@@ -160,16 +178,6 @@ export const BoostersManager = () => {
     refresh();
   };
 
-  const CustomRaritySelect = ({ value, onChange }: { value: string; onChange: (v: string) => void }) => customRarities.length ? (
-    <Select value={value || 'default'} onValueChange={v => onChange(v === 'default' ? '' : v)}>
-      <SelectTrigger className="bg-card border-border w-full sm:w-36"><SelectValue placeholder="Rareté spéciale" /></SelectTrigger>
-      <SelectContent>
-        <SelectItem value="default">Standard</SelectItem>
-        {customRarities.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-      </SelectContent>
-    </Select>
-  ) : null;
-
   const updateDropRate = async (id: string, drop_rate: number) => {
     const { error } = await db.from('booster_cards').update({ drop_rate: Math.max(0, drop_rate) }).eq('id', id);
     if (error) return toast.error(error.message);
@@ -253,7 +261,7 @@ export const BoostersManager = () => {
                       <img src={card.image_url} alt={card.title} className="w-12 h-16 rounded object-cover shrink-0" />
                       <span className="flex-1 min-w-24 text-sm truncate">{card.title}{card.booster_id ? ' ★' : ''}</span>
                       <RaritySelect value={bc.rarity} onChange={r => updateRarity(bc.id, r)} />
-                      <CustomRaritySelect value={bc.custom_rarity ?? ''} onChange={r => updateCustomRarity(bc.id, r)} />
+                      <CustomRaritySelect options={customRarities} value={bc.custom_rarity ?? ''} onChange={r => updateCustomRarity(bc.id, r)} />
                       <div className="flex items-center gap-1">
                         <Input
                           type="number" min={0} max={100} step={1}
@@ -281,7 +289,7 @@ export const BoostersManager = () => {
                     <SelectContent>{normalCards.map(c => <SelectItem key={c.id} value={c.id}><span className="inline-flex items-center gap-2"><img src={c.image_url} alt="" className="w-7 h-9 object-cover rounded" />{c.title}</span></SelectItem>)}</SelectContent>
                   </Select>
                   <RaritySelect value={addRarity} onChange={setAddRarity} />
-                  <CustomRaritySelect value={addCustomRarity} onChange={setAddCustomRarity} />
+                  <CustomRaritySelect options={customRarities} value={addCustomRarity} onChange={setAddCustomRarity} />
                   <div className="flex items-center gap-1">
                     <Input type="number" min={0} max={100} value={addDropRate} onChange={e => setAddDropRate(parseFloat(e.target.value) || 0)} className="bg-card border-border w-20" />
                     <span className="text-xs text-muted-foreground">%</span>
@@ -294,11 +302,11 @@ export const BoostersManager = () => {
                 <Label className="text-sm text-muted-foreground">Créer une carte exclusive (★)</Label>
                 <Input placeholder="Nom" value={nc.title} onChange={e => setNc({ ...nc, title: e.target.value })} className="bg-card border-border" />
                 <Textarea placeholder="Description" value={nc.description} onChange={e => setNc({ ...nc, description: e.target.value })} className="bg-card border-border" />
-                {nc.file && <img src={URL.createObjectURL(nc.file)} alt="Aperçu de la carte" className="w-20 h-28 object-cover rounded" onLoad={e => URL.revokeObjectURL(e.currentTarget.src)} />}
+                {newCardPreview && <img src={newCardPreview} alt="Aperçu de la carte" className="w-20 h-28 object-cover rounded" />}
                 <div className="flex flex-wrap gap-2">
                   <Input type="file" accept="image/*" onChange={e => setNc({ ...nc, file: e.target.files?.[0] ?? null })} className="bg-card border-border flex-1" />
                   <RaritySelect value={nc.rarity} onChange={r => setNc({ ...nc, rarity: r })} />
-                  <CustomRaritySelect value={nc.customRarity} onChange={r => setNc({ ...nc, customRarity: r })} />
+                  <CustomRaritySelect options={customRarities} value={nc.customRarity} onChange={r => setNc({ ...nc, customRarity: r })} />
                   <div className="flex items-center gap-1">
                     <Input type="number" min={0} max={100} value={nc.dropRate} onChange={e => setNc({ ...nc, dropRate: parseFloat(e.target.value) || 0 })} className="bg-card border-border w-20" />
                     <span className="text-xs text-muted-foreground">%</span>
