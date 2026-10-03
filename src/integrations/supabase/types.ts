@@ -82,6 +82,7 @@ export type Database = {
       }
       boosters: {
         Row: {
+          card_back_url: string | null
           card_count: number
           created_at: string
           custom_rarities: string[]
@@ -89,9 +90,11 @@ export type Database = {
           image_url: string | null
           is_active: boolean
           name: string
+          rarity_colors: Json
           updated_at: string
         }
         Insert: {
+          card_back_url?: string | null
           card_count?: number
           created_at?: string
           custom_rarities?: string[]
@@ -99,9 +102,11 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean
           name: string
+          rarity_colors?: Json
           updated_at?: string
         }
         Update: {
+          card_back_url?: string | null
           card_count?: number
           created_at?: string
           custom_rarities?: string[]
@@ -109,6 +114,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean
           name?: string
+          rarity_colors?: Json
           updated_at?: string
         }
         Relationships: []
