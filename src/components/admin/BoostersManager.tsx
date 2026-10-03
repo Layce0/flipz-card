@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { useAllCards, useUploadCardImage } from '@/hooks/useCards';
 import { useBoosters, useBoosterCards, Booster } from '@/hooks/useBoosters';
 import { RARITY_CONFIG, Rarity } from '@/types/card';
+import { isRarityColor } from '@/lib/boosterAppearance';
 
 const db = supabase as any;
 const RARITIES: Rarity[] = ['common', 'rare', 'epic', 'legendary'];
@@ -47,8 +48,10 @@ export const BoostersManager = () => {
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState('');
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [cardBackUrl, setCardBackUrl] = useState<string | null>(null);
   const [cardCount, setCardCount] = useState(5);
   const [customRarities, setCustomRarities] = useState<string[]>([]);
+  const [rarityColors, setRarityColors] = useState<Record<string, string>>({});
   const [newRarity, setNewRarity] = useState('');
 
   // Add existing card
@@ -77,8 +80,10 @@ export const BoostersManager = () => {
     setEditing(b);
     setName(b?.name ?? '');
     setImageUrl(b?.image_url ?? null);
+    setCardBackUrl(b?.card_back_url ?? null);
     setCardCount(b?.card_count ?? 5);
     setCustomRarities(b?.custom_rarities ?? []);
+    setRarityColors(b?.rarity_colors ?? {});
     setNewRarity('');
     setAddCustomRarity('');
     setOpen(true);
@@ -88,7 +93,7 @@ export const BoostersManager = () => {
     if (!name.trim()) return toast.error('Donne un nom au booster');
     setBusy(true);
     try {
-      const payload = { name: name.trim(), image_url: imageUrl, card_count: Math.max(1, Math.min(50, cardCount)), custom_rarities: customRarities };
+      const payload = { name: name.trim(), image_url: imageUrl, card_back_url: cardBackUrl, card_count: Math.max(1, Math.min(50, cardCount)), custom_rarities: customRarities, rarity_colors: rarityColors };
       if (editing) {
         const { error } = await db.from('boosters').update(payload).eq('id', editing.id);
         if (error) throw error;
@@ -111,9 +116,13 @@ export const BoostersManager = () => {
     refresh();
   };
 
-  const uploadImage = async (file?: File) => {
+  const uploadImage = async (file?: File, target: 'pack' | 'back' = 'pack') => {
     if (!file) return;
-    try { setImageUrl(await upload.mutateAsync(file)); } catch (e: any) { toast.error(e.message); }
+    try {
+      const url = await upload.mutateAsync(file);
+      if (target === 'back') setCardBackUrl(url);
+      else setImageUrl(url);
+    } catch (e: any) { toast.error(e.message); }
   };
 
   const addExisting = async () => {
@@ -168,13 +177,25 @@ export const BoostersManager = () => {
     refresh();
   };
 
+  const updateRarityColor = async (label: string, color: string) => {
+    if (!editing || !isRarityColor(color)) return;
+    const next = { ...rarityColors, [label]: color };
+    const { error } = await db.from('boosters').update({ rarity_colors: next }).eq('id', editing.id);
+    if (error) return toast.error(error.message);
+    setRarityColors(next);
+    refresh();
+  };
+
   const removeRarityLabel = async (label: string) => {
     if (!editing) return;
     const next = customRarities.filter(r => r !== label);
-    const { error } = await db.from('boosters').update({ custom_rarities: next }).eq('id', editing.id);
+    const nextColors = { ...rarityColors };
+    delete nextColors[label];
+    const { error } = await db.from('boosters').update({ custom_rarities: next, rarity_colors: nextColors }).eq('id', editing.id);
     if (error) return toast.error(error.message);
     await db.from('booster_cards').update({ custom_rarity: null }).eq('booster_id', editing.id).eq('custom_rarity', label);
     setCustomRarities(next);
+    setRarityColors(nextColors);
     refresh();
   };
 
@@ -236,6 +257,14 @@ export const BoostersManager = () => {
                 <Input type="file" accept="image/*" onChange={e => uploadImage(e.target.files?.[0])} className="bg-card border-border" />
               </div>
             </div>
+            <div className="space-y-1">
+              <Label>Dos des cartes du booster</Label>
+              <div className="flex items-center gap-3">
+                {cardBackUrl && <img src={cardBackUrl} alt="Aperçu du dos" className="w-12 h-16 rounded object-cover" />}
+                <Input aria-label="Image du dos des cartes" type="file" accept="image/*" onChange={e => uploadImage(e.target.files?.[0], 'back')} className="bg-card border-border min-w-0" />
+                {cardBackUrl && <Button size="icon" variant="ghost" aria-label="Retirer le dos personnalisé" onClick={() => setCardBackUrl(null)}><Trash2 className="w-4 h-4" /></Button>}
+              </div>
+            </div>
             <div className="space-y-1"><Label>Cartes par ouverture</Label><Input type="number" min={1} max={50} value={cardCount} onChange={e => setCardCount(parseInt(e.target.value) || 1)} className="bg-card border-border" /></div>
             <Button onClick={saveBooster} disabled={busy || upload.isPending} className="w-full">
               {busy && <Loader2 className="w-4 h-4 animate-spin" />} Enregistrer
@@ -247,7 +276,7 @@ export const BoostersManager = () => {
               <div className="space-y-2">
                 <Label>Raretés spéciales du booster</Label>
                 <div className="flex flex-wrap gap-2">
-                  {customRarities.map(r => <div key={r} className="flex items-center gap-1 border border-border bg-muted px-2 py-1 text-sm rounded"><span>{r}</span><Button size="icon" variant="ghost" className="h-6 w-6" aria-label={`Supprimer ${r}`} onClick={() => removeRarityLabel(r)}><Trash2 className="w-3 h-3" /></Button></div>)}
+                  {customRarities.map(r => <div key={r} className="flex items-center gap-1 border border-border bg-muted px-2 py-1 text-sm rounded"><input type="color" aria-label={`Couleur de ${r}`} title={`Couleur de ${r}`} value={isRarityColor(rarityColors[r]) ? rarityColors[r] : '#00a896'} onChange={e => updateRarityColor(r, e.target.value)} className="w-8 h-8 cursor-pointer bg-transparent border-0 p-0" /><span>{r}</span><Button size="icon" variant="ghost" className="h-6 w-6" aria-label={`Supprimer ${r}`} onClick={() => removeRarityLabel(r)}><Trash2 className="w-3 h-3" /></Button></div>)}
                 </div>
                 <div className="flex gap-2"><Input aria-label="Nouvelle rareté" placeholder="Nom de la rareté" maxLength={32} value={newRarity} onChange={e => setNewRarity(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addRarityLabel(); } }} /><Button size="icon" aria-label="Ajouter la rareté" onClick={addRarityLabel} disabled={!newRarity.trim()}><Plus className="w-4 h-4" /></Button></div>
               </div>
