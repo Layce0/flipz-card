@@ -306,7 +306,20 @@ export const BoostersManager = () => {
                 <div className="flex flex-wrap gap-2">
                   <Input type="file" accept="image/*" onChange={e => setNc({ ...nc, file: e.target.files?.[0] ?? null })} className="bg-card border-border flex-1" />
                   <RaritySelect value={nc.rarity} onChange={r => setNc({ ...nc, rarity: r })} />
-                  <CustomRaritySelect options={customRarities} value={nc.customRarity} onChange={r => setNc({ ...nc, customRarity: r })} />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Rareté spéciale</Label>
+                  {customRarities.length ? (
+                    <Select value={nc.customRarity || 'default'} onValueChange={v => setNc({ ...nc, customRarity: v === 'default' ? '' : v })}>
+                      <SelectTrigger className="bg-card border-border w-full"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="default">Aucune (rareté standard)</SelectItem>
+                        {customRarities.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  ) : <p className="text-xs text-muted-foreground">Ajoute une rareté spéciale plus haut pour pouvoir la choisir ici.</p>}
+                </div>
+                <div className="flex flex-wrap gap-2">
                   <div className="flex items-center gap-1">
                     <Input type="number" min={0} max={100} value={nc.dropRate} onChange={e => setNc({ ...nc, dropRate: parseFloat(e.target.value) || 0 })} className="bg-card border-border w-20" />
                     <span className="text-xs text-muted-foreground">%</span>
