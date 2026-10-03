@@ -28,14 +28,16 @@ const Collection = () => {
   const { data: boosterCards = [] } = useBoosterCards();
   const [activeBooster, setActiveBooster] = useState<string | null>(null);
   const ownedIds = useMemo(() => new Set(rawUserCards.map((c: any) => c.id)), [rawUserCards]);
-  // Booster categories only appear once the player owns a card from that booster
+  // Booster categories only appear once the player owns a card created exclusively for that booster
   const visibleBoosters = useMemo(() => boosters.filter(b =>
-    boosterCards.some(bc => bc.booster_id === b.id && ownedIds.has(bc.card_id))
-  ), [boosters, boosterCards, ownedIds]);
+    rawCards.some((c: any) => c.booster_id === b.id && ownedIds.has(c.id))
+  ), [boosters, rawCards, ownedIds]);
   const allCards = useMemo(() => {
     if (activeBooster) {
       const entries = new Map(boosterCards.filter(bc => bc.booster_id === activeBooster).map(bc => [bc.card_id, bc]));
-      return rawCards.filter(c => entries.has(c.id)).map(c => ({ ...c, custom_rarity: entries.get(c.id)?.custom_rarity ?? null }));
+      return rawCards
+        .filter((c: any) => c.booster_id === activeBooster)
+        .map(c => ({ ...c, custom_rarity: entries.get(c.id)?.custom_rarity ?? null }));
     }
     return rawCards.filter((c: any) => !c.booster_id);
   }, [rawCards, boosterCards, activeBooster]);
