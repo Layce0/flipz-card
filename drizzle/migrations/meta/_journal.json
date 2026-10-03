@@ -8,6 +8,13 @@
       "when": 1790960293034,
       "tag": "0000_booster_custom_rarity_labels",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791043619532,
+      "tag": "0001_booster_card_back_and_rarity_colors",
+      "breakpoints": true
     }
   ]
 }

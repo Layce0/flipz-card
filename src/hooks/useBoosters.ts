@@ -6,6 +6,8 @@ export interface Booster {
   id: string;
   name: string;
   image_url: string | null;
+  card_back_url: string | null;
+  rarity_colors: Record<string, string>;
   card_count: number;
   custom_rarities: string[];
   is_active: boolean;
