@@ -8,6 +8,7 @@ export interface GameCard {
   rarity: Rarity;
   custom_rarity?: string | null;
   custom_rarity_color?: string | null;
+  card_back_url?: string | null;
   release_date: string;
   created_at: string;
   title_en?: string | null;

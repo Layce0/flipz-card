@@ -1,3 +1,4 @@
+import { cardDisplayColor, rarityBadgeStyle } from '@/lib/boosterAppearance';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -77,7 +78,7 @@ export const CardDetailDialog = ({
               "absolute top-3 right-12 px-3 py-1 rounded-full text-xs font-semibold uppercase",
               card.custom_rarity ? 'rarity-special' : config.bgClass
             )}
-            style={{ color: card.rarity === 'legendary' ? 'hsl(240, 20%, 6%)' : 'white' }}
+            style={{ color: card.rarity === 'legendary' ? 'hsl(240, 20%, 6%)' : 'white', ...rarityBadgeStyle(card) }}
           >
             {card.custom_rarity || t(`rarity.${card.rarity}`)}
           </div>
