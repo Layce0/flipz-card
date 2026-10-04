@@ -1,3 +1,4 @@
+import { cardDisplayColor, rarityBadgeStyle } from '@/lib/boosterAppearance';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { GameCard, RARITY_CONFIG } from '@/types/card';
@@ -24,11 +25,11 @@ export const CollectionCard = memo(({ card, onClick }: CollectionCardProps) => {
           "absolute -inset-1 rounded-xl opacity-50 group-hover:opacity-100 transition-opacity blur-sm",
           card.rarity === 'legendary' && "animate-glow-pulse"
         )}
-        style={{ background: rarityConfig.color }}
+        style={{ background: cardDisplayColor(card) }}
       />
       
       <div className="relative rounded-xl overflow-hidden bg-card border-2 card-shadow"
-        style={{ borderColor: rarityConfig.color }}
+        style={{ borderColor: cardDisplayColor(card) }}
       >
         <div className="aspect-[3/4] overflow-hidden">
           <img 
@@ -46,7 +47,7 @@ export const CollectionCard = memo(({ card, onClick }: CollectionCardProps) => {
               "inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider mb-1",
               card.custom_rarity ? 'rarity-special' : rarityConfig.bgClass
             )}
-            style={{ color: card.rarity === 'legendary' ? 'hsl(240, 20%, 6%)' : 'white' }}
+            style={{ color: card.rarity === 'legendary' ? 'hsl(240, 20%, 6%)' : 'white', ...rarityBadgeStyle(card) }}
           >
             {card.custom_rarity || t(`rarity.${card.rarity}`)}
           </span>

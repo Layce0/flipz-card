@@ -1,3 +1,4 @@
+import { cardDisplayColor, rarityBadgeStyle } from '@/lib/boosterAppearance';
 import { useState, useEffect, useCallback, memo, useRef } from 'react';
 import { useSfx } from '@/hooks/useSfx';
 import { GameCard, RARITY_CONFIG } from '@/types/card';
@@ -131,7 +132,7 @@ export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'm
           "flip-card-front absolute inset-0 rounded-2xl overflow-hidden card-shadow",
           !flipped && card.rarity === 'legendary' && "legendary-sweep"
         )}>
-          <img src={cardBackImage} alt="Card back" className="w-full h-full object-cover rounded-2xl" />
+          <img src={card.card_back_url || cardBackImage} alt="Card back" className="w-full h-full object-cover rounded-2xl" />
           {!flipped && card.rarity === 'legendary' && (
             <div className="absolute inset-0 rounded-2xl animate-pulse" style={{
               boxShadow: 'inset 0 0 30px hsl(45 95% 60% / 0.3), 0 0 20px hsl(45 95% 60% / 0.2)',
@@ -156,7 +157,7 @@ export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'm
           />
           
           <div className="relative h-full bg-card rounded-2xl border-2 overflow-hidden"
-            style={{ borderColor: rarityConfig.color }}
+            style={{ borderColor: cardDisplayColor(card) }}
           >
             <div className="relative h-[55%] overflow-hidden">
               <img 
@@ -175,7 +176,7 @@ export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'm
                     "px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider",
                     card.custom_rarity ? 'rarity-special' : rarityConfig.bgClass
                   )}
-                  style={{ color: card.rarity === 'legendary' ? 'hsl(240, 20%, 6%)' : 'white' }}
+                  style={{ color: card.rarity === 'legendary' ? 'hsl(240, 20%, 6%)' : 'white', ...rarityBadgeStyle(card) }}
                 >
                   {card.custom_rarity || rarityConfig.label}
                 </span>

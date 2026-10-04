@@ -1,3 +1,4 @@
+import { cardDisplayColor, rarityBadgeStyle } from '@/lib/boosterAppearance';
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import { GameCard, RARITY_CONFIG, Rarity } from '@/types/card';
@@ -46,7 +47,7 @@ export const PackSummary = ({ cards, ownedSnapshot, onClose }: PackSummaryProps)
         <div className="grid grid-cols-3 gap-3 w-full">
           {enriched.map(({ card, isNew }, idx) => {
             const rarity = RARITY_CONFIG[card.rarity];
-            const rarityColor = card.custom_rarity ? 'hsl(var(--rarity-special))' : `hsl(var(--rarity-${card.rarity}))`;
+            const rarityColor = card.custom_rarity_color && card.custom_rarity ? cardDisplayColor(card) : card.custom_rarity ? 'hsl(var(--rarity-special))' : `hsl(var(--rarity-${card.rarity}))`;
             return (
               <button
                 key={idx}
@@ -126,7 +127,7 @@ export const PackSummary = ({ cards, ownedSnapshot, onClose }: PackSummaryProps)
                     "absolute top-3 right-12 px-3 py-1 rounded-full text-xs font-semibold uppercase",
                     selectedCard.custom_rarity ? 'rarity-special' : config.bgClass
                   )}
-                  style={{ color: selectedCard.rarity === 'legendary' ? 'hsl(240, 20%, 6%)' : 'white' }}
+                  style={{ color: selectedCard.rarity === 'legendary' ? 'hsl(240, 20%, 6%)' : 'white', ...rarityBadgeStyle(selectedCard) }}
                 >
                   {selectedCard.custom_rarity || t(`rarity.${selectedCard.rarity}`)}
                 </div>

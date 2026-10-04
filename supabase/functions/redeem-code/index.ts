@@ -179,7 +179,7 @@ Deno.serve(async (req) => {
         picked.push(chosen)
       }
       await supabaseAdmin.from('user_cards').insert(picked.map((p: any) => ({ user_id: userId, card_id: p.card.id })))
-      rewardDetails.cards = picked.map((p: any) => ({ ...p.card, custom_rarity: p.custom_rarity }))
+      rewardDetails.cards = picked.map((p: any) => ({ ...p.card, custom_rarity: p.custom_rarity, custom_rarity_color: p.custom_rarity ? (booster.rarity_colors?.[p.custom_rarity] ?? null) : null, card_back_url: booster.card_back_url ?? null }))
       rewardDetails.card_count = picked.length
       rewardDetails.pack_type = 'pack'
       rewardDetails.booster = { id: booster.id, name: booster.name, image_url: booster.image_url }

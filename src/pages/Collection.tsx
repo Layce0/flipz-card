@@ -37,10 +37,14 @@ const Collection = () => {
       const entries = new Map(boosterCards.filter(bc => bc.booster_id === activeBooster).map(bc => [bc.card_id, bc]));
       return rawCards
         .filter((c: any) => c.booster_id === activeBooster)
-        .map(c => ({ ...c, custom_rarity: entries.get(c.id)?.custom_rarity ?? null }));
+        .map(c => {
+          const custom = entries.get(c.id)?.custom_rarity ?? null;
+          const b = boosters.find(x => x.id === activeBooster);
+          return { ...c, custom_rarity: custom, custom_rarity_color: custom ? b?.rarity_colors?.[custom] ?? null : null, card_back_url: b?.card_back_url ?? null };
+        });
     }
     return rawCards.filter((c: any) => !c.booster_id);
-  }, [rawCards, boosterCards, activeBooster]);
+  }, [rawCards, boosterCards, boosters, activeBooster]);
   const userCards = useMemo(() => {
     const ids = new Set(allCards.map(c => c.id));
     return rawUserCards.filter((c: any) => ids.has(c.id));
