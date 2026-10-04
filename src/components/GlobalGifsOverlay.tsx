@@ -44,6 +44,8 @@ export const GlobalGifsOverlay = memo(() => {
       width: `${item.width}px`,
       height: `${item.height}px`,
       zIndex: 30,
+      color: item.font_color || '#ffffff',
+      backgroundColor: item.bg_color || 'transparent',
     };
   };
 
@@ -59,11 +61,61 @@ export const GlobalGifsOverlay = memo(() => {
   return (
     <>
       {visibleItems.map((item) => {
-        const isVideo = item.url.match(/\.(mp4|webm|mov|avi)(\?|$)/i);
-        if (isVideo && playedIds.has(item.id)) return null;
-
         const style = getMediaStyle(item);
         const interactiveClass = item.click_target_id ? 'cursor-pointer' : 'pointer-events-none';
+        const isVideo = item.url && item.url.match(/\.(mp4|webm|mov|avi)(\?|$)/i);
+
+        // Render Title / Text Card
+        if (item.element_type === 'title' || item.element_type === 'text') {
+          return (
+            <div
+              key={item.id}
+              style={style}
+              className={`p-2 rounded-lg leading-snug flex items-center ${interactiveClass}`}
+            >
+              <span style={{ fontSize: `${item.font_size || 16}px`, fontWeight: item.element_type === 'title' ? 800 : 500 }}>
+                {item.content_text || 'Texte personnalisé'}
+              </span>
+            </div>
+          );
+        }
+
+        // Render Badge / Icon Badge
+        if (item.element_type === 'badge') {
+          return (
+            <div
+              key={item.id}
+              style={style}
+              className={`px-3 py-1.5 rounded-full font-bold text-xs flex items-center justify-center shadow-md ${interactiveClass}`}
+            >
+              <span style={{ fontSize: `${item.font_size || 14}px` }}>
+                {item.content_text || '🏷️ Badge'}
+              </span>
+            </div>
+          );
+        }
+
+        // Render Percentage / Stat Card
+        if (item.element_type === 'stat') {
+          return (
+            <div
+              key={item.id}
+              style={style}
+              className={`p-3 rounded-xl border border-white/20 shadow-lg flex flex-col justify-center ${interactiveClass}`}
+            >
+              <div className="flex justify-between items-center text-xs font-bold mb-1">
+                <span>{item.content_text || 'Indicateur'}</span>
+                <span>{item.percentage_val || 0}%</span>
+              </div>
+              <div className="w-full h-2 bg-black/30 rounded-full overflow-hidden">
+                <div className="h-full bg-yellow-400 rounded-full" style={{ width: `${item.percentage_val || 0}%` }} />
+              </div>
+            </div>
+          );
+        }
+
+        // Render Media (Video / Image / GIF)
+        if (isVideo && playedIds.has(item.id)) return null;
 
         return isVideo ? (
           <video

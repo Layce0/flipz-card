@@ -15,6 +15,13 @@ export interface GlobalGif {
   click_target_id: string | null;
   initially_hidden: boolean;
   auto_hide_after_ms: number | null;
+  // Extended custom properties for text, titles, badges, stats & custom styling
+  element_type?: 'media' | 'title' | 'text' | 'badge' | 'stat' | 'button';
+  content_text?: string;
+  font_color?: string;
+  bg_color?: string;
+  font_size?: number;
+  percentage_val?: number;
 }
 
 export const useGlobalGifs = (adminMode = false) => {
@@ -35,24 +42,46 @@ export const useGlobalGifs = (adminMode = false) => {
 export const useCreateGif = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (gif: { url: string; x?: number; y?: number; width?: number; height?: number; page?: string; aspectRatio?: number | null }) => {
+    mutationFn: async (gif: {
+      url?: string;
+      x?: number;
+      y?: number;
+      width?: number;
+      height?: number;
+      page?: string;
+      aspectRatio?: number | null;
+      element_type?: 'media' | 'title' | 'text' | 'badge' | 'stat' | 'button';
+      content_text?: string;
+      font_color?: string;
+      bg_color?: string;
+      font_size?: number;
+      percentage_val?: number;
+    }) => {
       const { data: { user } } = await supabase.auth.getUser();
 
-      const safeWidth = Math.max(30, Math.round(gif.width ?? 120));
+      const safeWidth = Math.max(30, Math.round(gif.width ?? 140));
       const computedHeight = gif.height ?? (gif.aspectRatio && gif.aspectRatio > 0
         ? Math.round(safeWidth / gif.aspectRatio)
         : safeWidth);
       const safeHeight = Math.max(30, Math.round(computedHeight));
 
-      const { error } = await supabase.from('global_gifs' as any).insert({
-        url: gif.url,
+      const insertData = {
+        url: gif.url || '',
         x: gif.x ?? 40,
         y: gif.y ?? 100,
         width: safeWidth,
         height: safeHeight,
         created_by: user?.id,
         page: gif.page ?? '/',
-      } as any);
+        element_type: gif.element_type || 'media',
+        content_text: gif.content_text || '',
+        font_color: gif.font_color || '#ffffff',
+        bg_color: gif.bg_color || 'transparent',
+        font_size: gif.font_size || 16,
+        percentage_val: gif.percentage_val || 0,
+      };
+
+      const { error } = await supabase.from('global_gifs' as any).insert(insertData as any);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['global-gifs'] }),
@@ -62,7 +91,24 @@ export const useCreateGif = () => {
 export const useUpdateGif = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (gif: { id: string; x?: number; y?: number; width?: number; height?: number; visible?: boolean; page?: string; click_target_id?: string | null; initially_hidden?: boolean; auto_hide_after_ms?: number | null }) => {
+    mutationFn: async (gif: {
+      id: string;
+      x?: number;
+      y?: number;
+      width?: number;
+      height?: number;
+      visible?: boolean;
+      page?: string;
+      click_target_id?: string | null;
+      initially_hidden?: boolean;
+      auto_hide_after_ms?: number | null;
+      element_type?: string;
+      content_text?: string;
+      font_color?: string;
+      bg_color?: string;
+      font_size?: number;
+      percentage_val?: number;
+    }) => {
       const { id, ...updates } = gif;
       const { error } = await supabase.from('global_gifs' as any).update(updates as any).eq('id', id);
       if (error) throw error;

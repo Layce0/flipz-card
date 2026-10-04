@@ -2,11 +2,12 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { Rnd } from 'react-rnd';
 import { useGlobalGifs, useCreateGif, useUpdateGif, useDeleteGif, useUploadGif, GlobalGif } from '@/hooks/useGlobalGifs';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Trash2, Upload, Image, Eye, EyeOff } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Loader2, Trash2, Upload, Image as ImageIcon, Film, Video, Type, Percent, Shield, Send, RotateCcw, Grid, Move, Palette } from 'lucide-react';
 import { toast } from 'sonner';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const PAGES = [
   { value: '/', label: 'Accueil' },
@@ -21,11 +22,19 @@ const PositioningArea = ({
   previewPage,
   getPageLabel,
   onSave,
+  gridSnap,
+  allowOverlap,
+  onSelectElement,
+  selectedId
 }: {
   gifs: GlobalGif[];
   previewPage: string;
   getPageLabel: (path: string) => string;
   onSave: (changes: Record<string, { x?: number; y?: number; width?: number; height?: number }>) => Promise<void>;
+  gridSnap: boolean;
+  allowOverlap: boolean;
+  onSelectElement: (id: string) => void;
+  selectedId: string | null;
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -54,7 +63,7 @@ const PositioningArea = ({
 
       if (next > 0) setPageHeightPx(next);
     } catch {
-      // Cross-document access can fail transiently during load, ignore silently
+      // Ignore cross-origin transient load failures
     }
   }, []);
 
@@ -81,7 +90,29 @@ const PositioningArea = ({
   }, [previewPage, gifs.length, syncPageHeight]);
 
   const trackChange = (id: string, data: { x?: number; y?: number; width?: number; height?: number }) => {
-    setPendingChanges(prev => ({ ...prev, [id]: { ...prev[id], ...data } }));
+    let finalX = data.x;
+    let finalY = data.y;
+    let finalW = data.width;
+    let finalH = data.height;
+
+    // Apply 20px grid snap if enabled
+    if (gridSnap) {
+      if (finalX !== undefined) finalX = Math.round(finalX / 20) * 20;
+      if (finalY !== undefined) finalY = Math.round(finalY / 20) * 20;
+      if (finalW !== undefined) finalW = Math.round(finalW / 20) * 20;
+      if (finalH !== undefined) finalH = Math.round(finalH / 20) * 20;
+    }
+
+    setPendingChanges(prev => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        ...(finalX !== undefined && { x: finalX }),
+        ...(finalY !== undefined && { y: finalY }),
+        ...(finalW !== undefined && { width: finalW }),
+        ...(finalH !== undefined && { height: finalH })
+      }
+    }));
   };
 
   const getEffective = (gif: GlobalGif) => {
@@ -97,35 +128,47 @@ const PositioningArea = ({
   const hasPending = Object.keys(pendingChanges).length > 0;
   const canvasHeight = Math.max(pageHeightPx || 800, 800);
 
-  // The preview iframe width matches containerWidth. We use a 1:1 scale factor.
-  // Positions are stored in px and rendered in px — no conversion needed.
-
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
-      {hasPending && (
-        <div className="shrink-0 p-3 border-b border-border bg-card flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">{Object.keys(pendingChanges).length} élément(s) modifié(s)</span>
-          <div className="flex gap-2">
-            <Button variant="ghost" size="sm" onClick={() => setPendingChanges({})} disabled={saving}>Annuler</Button>
-            <Button variant="default" size="sm" disabled={saving} onClick={async () => {
+    <div className="flex-1 flex flex-col overflow-hidden border border-border rounded-2xl bg-card shadow-lg">
+      {/* Draft Status & Push Deployment Bar */}
+      <div className="shrink-0 p-3 border-b border-border bg-card/90 backdrop-blur flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex items-center gap-2">
+          <span className={`w-2.5 h-2.5 rounded-full ${hasPending ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'}`} />
+          <span className="text-xs font-bold">
+            {hasPending ? `${Object.keys(pendingChanges).length} modification(s) en brouillon` : 'Modifications publiées'}
+          </span>
+        </div>
+
+        {hasPending && (
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setPendingChanges({})} disabled={saving} className="text-xs">
+              <RotateCcw className="w-3.5 h-3.5 mr-1" /> Annuler
+            </Button>
+            <Button size="sm" disabled={saving} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs" onClick={async () => {
               setSaving(true);
               try {
                 await onSave(pendingChanges);
                 setPendingChanges({});
+                toast.success('🚀 Modifications pushées & déployées sur tous les appareils !');
               } catch {
-                toast.error("Erreur lors de l'enregistrement des positions");
+                toast.error("Erreur lors de l'enregistrement");
               } finally {
                 setSaving(false);
               }
             }}>
-              {saving ? 'Enregistrement…' : 'Enregistrer'}
+              {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <Send className="w-3.5 h-3.5 mr-1" />}
+              Push les modifications
             </Button>
           </div>
-        </div>
-      )}
-      <div ref={containerRef} className="flex-1 overflow-y-auto overflow-x-hidden">
+        )}
+      </div>
+
+      <div ref={containerRef} className="flex-1 overflow-y-auto overflow-x-hidden relative">
         {containerWidth > 0 && (
-          <div style={{ width: containerWidth, height: canvasHeight }} className="relative">
+          <div
+            style={{ width: containerWidth, height: canvasHeight }}
+            className={`relative ${gridSnap ? 'bg-[radial-gradient(#ffffff15_1px,transparent_1px)] [background-size:20px_20px]' : ''}`}
+          >
             <iframe
               ref={iframeRef}
               src={`${window.location.origin}${previewPage}`}
@@ -137,18 +180,18 @@ const PositioningArea = ({
             <div className="absolute inset-0 z-10" style={{ width: containerWidth, height: canvasHeight }}>
               {gifs.map((gif, index) => {
                 const eff = getEffective(gif);
+                const isSelected = selectedId === gif.id;
+                const isVideo = gif.url && gif.url.match(/\.(mp4|webm|mov|avi)(\?|$)/i);
+
                 return (
                   <Rnd
                     key={gif.id}
-                    position={{
-                      x: eff.x,
-                      y: eff.y,
-                    }}
-                    size={{
-                      width: eff.width,
-                      height: eff.height,
-                    }}
+                    position={{ x: eff.x, y: eff.y }}
+                    size={{ width: eff.width, height: eff.height }}
                     bounds="parent"
+                    dragGrid={gridSnap ? [20, 20] : [1, 1]}
+                    resizeGrid={gridSnap ? [20, 20] : [1, 1]}
+                    onDragStart={() => onSelectElement(gif.id)}
                     onDragStop={(_e, d) => {
                       trackChange(gif.id, {
                         x: Math.round(d.x),
@@ -163,25 +206,45 @@ const PositioningArea = ({
                         y: Math.round(pos.y),
                       });
                     }}
-                    className={`border-2 border-dashed rounded bg-black/10 ${pendingChanges[gif.id] ? 'border-yellow-400' : 'border-primary/60'}`}
+                    className={`border-2 rounded transition-colors ${isSelected ? 'border-primary shadow-lg shadow-primary/30 z-50' : pendingChanges[gif.id] ? 'border-amber-400' : 'border-dashed border-primary/50'}`}
                   >
-                    <div className="relative w-full h-full">
-                      {gif.url.match(/\.(mp4|webm|mov|avi)(\?|$)/i) ? (
-                        <video src={gif.url} className="w-full h-full object-contain pointer-events-none" muted autoPlay />
+                    <div className="relative w-full h-full p-1" onClick={() => onSelectElement(gif.id)}>
+                      {gif.element_type === 'title' || gif.element_type === 'text' ? (
+                        <div style={{ color: gif.font_color || '#ffffff', fontSize: `${gif.font_size || 16}px`, fontWeight: gif.element_type === 'title' ? 800 : 500 }} className="w-full h-full flex items-center justify-center text-center">
+                          {gif.content_text || 'Texte'}
+                        </div>
+                      ) : gif.element_type === 'badge' ? (
+                        <div style={{ backgroundColor: gif.bg_color || '#6366f1', color: gif.font_color || '#ffffff' }} className="w-full h-full rounded-full flex items-center justify-center font-bold text-xs">
+                          {gif.content_text || 'Badge'}
+                        </div>
+                      ) : gif.element_type === 'stat' ? (
+                        <div className="w-full h-full flex flex-col justify-center p-2 bg-black/40 rounded-lg">
+                          <div className="flex justify-between text-xs font-bold text-white">
+                            <span>{gif.content_text || 'Stat'}</span>
+                            <span>{gif.percentage_val || 0}%</span>
+                          </div>
+                          <div className="w-full h-2 bg-white/20 rounded-full mt-1">
+                            <div className="h-full bg-yellow-400 rounded-full" style={{ width: `${gif.percentage_val || 0}%` }} />
+                          </div>
+                        </div>
+                      ) : isVideo ? (
+                        <video src={gif.url} className="w-full h-full object-contain pointer-events-none" muted autoPlay loop />
                       ) : (
                         <img src={gif.url} alt="" className="w-full h-full object-contain pointer-events-none" />
                       )}
-                      <span className="absolute top-0 left-0 bg-primary text-primary-foreground text-xs font-bold px-1.5 py-0.5 rounded-br">
-                        #{index + 1}
+
+                      <span className="absolute top-0 left-0 bg-primary text-primary-foreground text-[10px] font-bold px-1 py-0.5 rounded-br">
+                        #{index + 1} ({gif.element_type || 'media'})
                       </span>
                     </div>
                   </Rnd>
                 );
               })}
+
               {gifs.length === 0 && (
                 <div className="flex items-center justify-center h-full">
                   <p className="text-muted-foreground text-sm bg-background/80 px-4 py-2 rounded-lg">
-                    Aucun GIF sur la page {getPageLabel(previewPage)}
+                    Aucun élément sur la page {getPageLabel(previewPage)}
                   </p>
                 </div>
               )}
@@ -192,16 +255,21 @@ const PositioningArea = ({
     </div>
   );
 };
+
 export const GlobalGifsManager = () => {
   const { data: gifs = [], isLoading } = useGlobalGifs(true);
   const createGif = useCreateGif();
   const updateGif = useUpdateGif();
   const deleteGif = useDeleteGif();
   const uploadGif = useUploadGif();
-  const [previewOpen, setPreviewOpen] = useState(false);
+
   const [previewPage, setPreviewPage] = useState('/');
-  const [dragOver, setDragOver] = useState(false);
-  const [selectedPage, setSelectedPage] = useState('/');
+  const [gridSnap, setGridSnap] = useState(true);
+  const [allowOverlap, setAllowOverlap] = useState(true);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  // Inspector form states
+  const selectedGif = gifs.find(g => g.id === selectedId);
 
   const getMediaAspectRatio = (file: File) => new Promise<number>((resolve) => {
     if (file.type.startsWith('video/')) {
@@ -235,42 +303,25 @@ export const GlobalGifsManager = () => {
     img.src = url;
   });
 
-  const handleDrop = useCallback(async (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/') || f.type.startsWith('video/'));
-    if (files.length === 0) {
-      toast.error('Seuls les fichiers image ou vidéo sont acceptés');
-      return;
-    }
-    for (const file of files) {
-      try {
-        const aspectRatio = await getMediaAspectRatio(file);
-        const width = file.type.startsWith('video/') ? 140 : 120;
-        const height = Math.round(width / (aspectRatio || 1));
-        const url = await uploadGif.mutateAsync(file);
-        await createGif.mutateAsync({ url, page: selectedPage, width, height, aspectRatio });
-        toast.success('GIF ajouté !');
-      } catch {
-        toast.error("Erreur lors de l'upload");
-      }
-    }
-  }, [uploadGif, createGif, selectedPage, getMediaAspectRatio]);
-
-  const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAddMedia = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []).filter(f => f.type.startsWith('image/') || f.type.startsWith('video/'));
-    if (files.length === 0) {
-      toast.error('Seuls les fichiers image ou vidéo sont acceptés');
-      return;
-    }
+    if (files.length === 0) return;
+
     for (const file of files) {
       try {
         const aspectRatio = await getMediaAspectRatio(file);
-        const width = file.type.startsWith('video/') ? 140 : 120;
+        const width = file.type.startsWith('video/') ? 180 : 140;
         const height = Math.round(width / (aspectRatio || 1));
         const url = await uploadGif.mutateAsync(file);
-        await createGif.mutateAsync({ url, page: selectedPage, width, height, aspectRatio });
-        toast.success('GIF ajouté !');
+        await createGif.mutateAsync({
+          url,
+          page: previewPage,
+          width,
+          height,
+          aspectRatio,
+          element_type: 'media'
+        });
+        toast.success('Média ajouté avec succès !');
       } catch {
         toast.error("Erreur lors de l'upload");
       }
@@ -278,203 +329,265 @@ export const GlobalGifsManager = () => {
     e.target.value = '';
   };
 
+  const handleAddCustomElement = async (type: 'title' | 'text' | 'badge' | 'stat') => {
+    let content_text = 'Nouveau Titre';
+    let width = 240, height = 50;
+    let font_size = 20;
+
+    if (type === 'text') { content_text = 'Paragraphe de texte explicatif'; height = 70; font_size = 14; }
+    if (type === 'badge') { content_text = '🔥 Badge Récompense'; width = 160; height = 40; font_size = 14; }
+    if (type === 'stat') { content_text = 'Progression'; width = 240; height = 80; font_size = 14; }
+
+    try {
+      await createGif.mutateAsync({
+        url: '',
+        page: previewPage,
+        width,
+        height,
+        element_type: type,
+        content_text,
+        font_size,
+        font_color: '#ffffff',
+        bg_color: type === 'badge' ? '#6366f1' : 'transparent',
+        percentage_val: 75
+      });
+      toast.success('Élément créé avec succès !');
+    } catch {
+      toast.error('Erreur lors de la création de l\'élément');
+    }
+  };
+
   const handleDelete = async (id: string) => {
-    if (!confirm('Supprimer ce GIF ?')) return;
+    if (!confirm('Supprimer cet élément ?')) return;
     try {
       await deleteGif.mutateAsync(id);
-      toast.success('GIF supprimé');
+      setSelectedId(null);
+      toast.success('Élément supprimé');
     } catch {
       toast.error('Erreur lors de la suppression');
     }
   };
 
-  const handleToggleVisibility = async (gif: GlobalGif) => {
-    try {
-      await updateGif.mutateAsync({ id: gif.id, visible: !gif.visible });
-    } catch {
-      toast.error('Erreur');
+  const handleBatchSavePositions = async (changes: Record<string, { x?: number; y?: number; width?: number; height?: number }>) => {
+    for (const [id, data] of Object.entries(changes)) {
+      await updateGif.mutateAsync({ id, ...data });
     }
   };
 
-  const handlePageChange = async (gif: GlobalGif, page: string) => {
-    try {
-      await updateGif.mutateAsync({ id: gif.id, page });
-    } catch {
-      toast.error('Erreur');
-    }
-  };
-
-  const getPageLabel = (path: string) => PAGES.find(p => p.value === path)?.label ?? path;
+  const pageGifs = gifs.filter(g => g.page === previewPage);
+  const getPageLabel = (path: string) => PAGES.find(p => p.value === path)?.label || path;
 
   return (
-    <section>
-      <h2 className="font-display text-lg mb-4 text-foreground flex items-center gap-2">
-        <Image className="w-5 h-5 text-primary" />
-        GIFs / Images / Vidéos ({gifs.length})
-      </h2>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between flex-wrap gap-4 bg-card p-4 rounded-2xl border border-border">
+        <div>
+          <h2 className="text-xl font-extrabold flex items-center gap-2">
+            <Shield className="w-5 h-5 text-primary" /> Admin Replica Studio & Modération
+          </h2>
+          <p className="text-xs text-muted-foreground">Éditez les médias, titres, badges, stats et fonds d'écran de chaque page</p>
+        </div>
 
-      {/* Page selector for new uploads */}
-      <div className="mb-3">
-        <Label className="text-sm mb-1 block">Page cible pour les nouveaux GIFs</Label>
-        <Select value={selectedPage} onValueChange={setSelectedPage}>
-          <SelectTrigger className="bg-card border-border w-48">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {PAGES.map(p => (
-              <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {/* Page Switcher */}
+        <div className="flex items-center gap-3">
+          <Label className="text-xs font-bold">Écran :</Label>
+          <Select value={previewPage} onValueChange={(val) => { setPreviewPage(val); setSelectedId(null); }}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PAGES.map(p => (
+                <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
-      {/* Drop zone */}
-      <div
-        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={handleDrop}
-        className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors mb-4 ${
-          dragOver ? 'border-primary bg-primary/10' : 'border-border'
-        }`}
-      >
-        {uploadGif.isPending || createGif.isPending ? (
-          <Loader2 className="w-6 h-6 animate-spin mx-auto text-primary" />
-        ) : (
-          <>
-            <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground mb-2">
-              Glissez des GIF, images ou vidéos ici ou
-            </p>
+      {/* Toolbar: Add Elements & Toggles */}
+      <div className="bg-card p-4 rounded-2xl border border-border space-y-4">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Ajouter sur la page ({getPageLabel(previewPage)})</span>
+          <div className="flex items-center gap-2 flex-wrap">
             <label className="cursor-pointer">
-              <Button variant="outline" size="sm" asChild>
-                <span>Parcourir</span>
+              <input type="file" multiple accept="image/*,video/*" onChange={handleAddMedia} className="hidden" />
+              <Button size="sm" variant="default" asChild>
+                <span><ImageIcon className="w-4 h-4 mr-1" /> + Média (GIF/Image/Vidéo)</span>
               </Button>
-              <input
-                type="file"
-                accept="image/*,video/*"
-                multiple
-                onChange={handleFileInput}
-                className="hidden"
-              />
             </label>
-          </>
-        )}
+
+            <Button size="sm" variant="outline" onClick={() => handleAddCustomElement('title')}>
+              <Type className="w-4 h-4 mr-1 text-primary" /> + Titre
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => handleAddCustomElement('text')}>
+              <Type className="w-4 h-4 mr-1 text-muted-foreground" /> + Paragraphe
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => handleAddCustomElement('badge')}>
+              <Shield className="w-4 h-4 mr-1 text-red-400" /> + Badge
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => handleAddCustomElement('stat')}>
+              <Percent className="w-4 h-4 mr-1 text-yellow-400" /> + Stat %
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 pt-3 border-t border-border">
+          <div className="flex items-center justify-between bg-muted/30 p-2.5 rounded-xl">
+            <div className="flex items-center gap-2">
+              <Grid className="w-4 h-4 text-muted-foreground" />
+              <span className="text-xs font-medium">Grille 20px (Snap)</span>
+            </div>
+            <Switch checked={gridSnap} onCheckedChange={setGridSnap} />
+          </div>
+
+          <div className="flex items-center justify-between bg-muted/30 p-2.5 rounded-xl">
+            <div className="flex items-center gap-2">
+              <Move className="w-4 h-4 text-muted-foreground" />
+              <span className="text-xs font-medium">Chevauchement</span>
+            </div>
+            <Switch checked={allowOverlap} onCheckedChange={setAllowOverlap} />
+          </div>
+        </div>
       </div>
 
-      {/* Preview / position button */}
-      {gifs.length > 0 && (
-        <Button variant="mystical" size="sm" className="mb-4" onClick={() => setPreviewOpen(true)}>
-          Positionner les GIFs
-        </Button>
-      )}
+      {/* Main Workspace Split */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[720px]">
+        {/* Canvas Replica View (2 cols) */}
+        <div className="lg:col-span-2 h-full flex flex-col">
+          {isLoading ? (
+            <div className="flex items-center justify-center h-full">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : (
+            <PositioningArea
+              gifs={pageGifs}
+              previewPage={previewPage}
+              getPageLabel={getPageLabel}
+              onSave={handleBatchSavePositions}
+              gridSnap={gridSnap}
+              allowOverlap={allowOverlap}
+              onSelectElement={setSelectedId}
+              selectedId={selectedId}
+            />
+          )}
+        </div>
 
-      {/* GIF list */}
-      {isLoading ? (
-        <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" />
-      ) : gifs.length === 0 ? (
-        <p className="text-muted-foreground text-sm text-center">Aucun GIF</p>
-      ) : (
-        <div className="space-y-2">
-          {gifs.map((gif, index) => (
-            <div key={gif.id} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
-              <span className="text-xs font-bold text-primary min-w-[24px]">#{index + 1}</span>
-              {gif.url.match(/\.(mp4|webm|mov|avi)(\?|$)/i) ? (
-                <video src={gif.url} className="w-12 h-12 object-cover rounded" muted />
-              ) : (
-                <img src={gif.url} alt="" className="w-12 h-12 object-cover rounded" />
+        {/* Inspector Side Panel (1 col) */}
+        <div className="bg-card p-4 rounded-2xl border border-border h-full flex flex-col gap-4 overflow-y-auto">
+          <div className="flex items-center justify-between border-b border-border pb-3">
+            <h3 className="font-bold text-sm">⚙️ Inspecteur d'Élément</h3>
+            {selectedGif && (
+              <Button size="sm" variant="destructive" onClick={() => handleDelete(selectedGif.id)}>
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
+
+          {selectedGif ? (
+            <div className="space-y-4">
+              <div>
+                <Label className="text-xs">Type d'élément</Label>
+                <div className="font-bold text-primary text-sm uppercase">{selectedGif.element_type || 'media'}</div>
+              </div>
+
+              {(selectedGif.element_type === 'title' || selectedGif.element_type === 'text' || selectedGif.element_type === 'badge' || selectedGif.element_type === 'stat') && (
+                <div>
+                  <Label className="text-xs">Texte / Libellé</Label>
+                  <Input
+                    value={selectedGif.content_text || ''}
+                    onChange={(e) => updateGif.mutate({ id: selectedGif.id, content_text: e.target.value })}
+                  />
+                </div>
               )}
-              <div className="flex-1 min-w-0 space-y-1">
-                <p className="text-xs text-muted-foreground truncate">
-                  {gif.width}×{gif.height} — ({gif.x}, {gif.y})
-                  {gif.initially_hidden && ' · Caché par défaut'}
-                  {gif.auto_hide_after_ms && ` · Disparaît après ${gif.auto_hide_after_ms}ms`}
-                </p>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Select value={gif.page} onValueChange={(v) => handlePageChange(gif, v)}>
-                    <SelectTrigger className="h-7 text-xs w-32 bg-background border-border">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PAGES.map(p => (
-                        <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select
-                    value={gif.click_target_id ?? '_none'}
-                    onValueChange={(v) => updateGif.mutate({ id: gif.id, click_target_id: v === '_none' ? null : v } as any)}
-                  >
-                    <SelectTrigger className="h-7 text-xs w-36 bg-background border-border">
-                      <SelectValue placeholder="Cible clic" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="_none">Aucune cible</SelectItem>
-                      {gifs.filter(g => g.id !== gif.id && g.page === gif.page).map((g, gi) => (
-                        <SelectItem key={g.id} value={g.id}>→ #{gifs.indexOf(g) + 1}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <label className="flex items-center gap-1 text-xs text-muted-foreground cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={gif.initially_hidden}
-                      onChange={(e) => updateGif.mutate({ id: gif.id, initially_hidden: e.target.checked } as any)}
-                      className="w-3 h-3"
-                    />
-                    Caché
-                  </label>
-                  <input
+
+              {selectedGif.element_type === 'stat' && (
+                <div>
+                  <Label className="text-xs">Pourcentage (%)</Label>
+                  <Input
                     type="number"
-                    placeholder="ms"
-                    value={gif.auto_hide_after_ms ?? ''}
-                    onChange={(e) => updateGif.mutate({ id: gif.id, auto_hide_after_ms: e.target.value ? parseInt(e.target.value) : null } as any)}
-                    className="h-7 text-xs w-20 bg-background border border-border rounded px-1"
+                    min="0"
+                    max="100"
+                    value={selectedGif.percentage_val || 0}
+                    onChange={(e) => updateGif.mutate({ id: selectedGif.id, percentage_val: parseInt(e.target.value) || 0 })}
+                  />
+                </div>
+              )}
+
+              {selectedGif.element_type === 'media' && (
+                <div>
+                  <Label className="text-xs">URL Média</Label>
+                  <Input
+                    value={selectedGif.url}
+                    onChange={(e) => updateGif.mutate({ id: selectedGif.id, url: e.target.value })}
+                  />
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Couleur Texte</Label>
+                  <Input
+                    type="color"
+                    value={selectedGif.font_color || '#ffffff'}
+                    onChange={(e) => updateGif.mutate({ id: selectedGif.id, font_color: e.target.value })}
+                    className="h-10 cursor-pointer"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Couleur Fond</Label>
+                  <Input
+                    type="color"
+                    value={selectedGif.bg_color || '#6366f1'}
+                    onChange={(e) => updateGif.mutate({ id: selectedGif.id, bg_color: e.target.value })}
+                    className="h-10 cursor-pointer"
                   />
                 </div>
               </div>
-              <button
-                onClick={() => handleToggleVisibility(gif)}
-                className="p-2 rounded-md hover:bg-muted transition-colors"
-              >
-                {gif.visible ? <Eye className="w-4 h-4 text-primary" /> : <EyeOff className="w-4 h-4 text-muted-foreground" />}
-              </button>
-              <Button variant="ghost" size="icon" onClick={() => handleDelete(gif.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </div>
-          ))}
-        </div>
-      )}
 
-      {/* Positioning dialog */}
-      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-        <DialogContent className="max-w-[95vw] w-[95vw] h-[85vh] p-0 overflow-hidden flex flex-col">
-          <DialogHeader className="p-4 pb-2 flex flex-row items-center gap-4 shrink-0">
-            <DialogTitle className="whitespace-nowrap">Positionner les GIFs</DialogTitle>
-            <Select value={previewPage} onValueChange={setPreviewPage}>
-              <SelectTrigger className="w-40 h-8 text-xs bg-card border-border">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {PAGES.map(p => (
-                  <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </DialogHeader>
-          <PositioningArea
-            gifs={gifs.filter(g => g.page === previewPage)}
-            previewPage={previewPage}
-            getPageLabel={getPageLabel}
-            onSave={async (changes) => {
-              await Promise.all(
-                Object.entries(changes).map(([id, data]) => updateGif.mutateAsync({ id, ...data }))
-              );
-              toast.success('Positions enregistrées !');
-            }}
-          />
-        </DialogContent>
-      </Dialog>
-    </section>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Position X (px)</Label>
+                  <Input
+                    type="number"
+                    value={selectedGif.x}
+                    onChange={(e) => updateGif.mutate({ id: selectedGif.id, x: parseInt(e.target.value) || 0 })}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Position Y (px)</Label>
+                  <Input
+                    type="number"
+                    value={selectedGif.y}
+                    onChange={(e) => updateGif.mutate({ id: selectedGif.id, y: parseInt(e.target.value) || 0 })}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Largeur (px)</Label>
+                  <Input
+                    type="number"
+                    value={selectedGif.width}
+                    onChange={(e) => updateGif.mutate({ id: selectedGif.id, width: parseInt(e.target.value) || 30 })}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Hauteur (px)</Label>
+                  <Input
+                    type="number"
+                    value={selectedGif.height}
+                    onChange={(e) => updateGif.mutate({ id: selectedGif.id, height: parseInt(e.target.value) || 30 })}
+                  />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground text-center py-10">
+              Cliquez sur un élément sur le Canvas Replica pour le sélectionner et modifier ses propriétés.
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
