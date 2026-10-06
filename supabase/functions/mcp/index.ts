@@ -2,7 +2,144 @@
 // To take ownership, delete this banner line; the plugin then leaves the file alone.
 // supabase function: mcp
 // Bundled from src/lib/mcp/index.ts by @lovable.dev/mcp-js.
+// src/lib/mcp/index.ts
+import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@0.20.0";
+
+// src/lib/mcp/tools/get-profile.ts
+import { defineTool } from "npm:@lovable.dev/mcp-js@0.20.0";
+
+// src/lib/mcp/tools/_supabase.ts
+import { createClient } from "npm:@supabase/supabase-js@^2.90.0";
+function supabaseForUser(ctx) {
+  return createClient(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
+    global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
+    auth: { persistSession: false, autoRefreshToken: false }
+  });
+}
+
+// src/lib/mcp/tools/get-profile.ts
+var get_profile_default = defineTool({
+  name: "get_profile",
+  title: "Get my FLIPZ profile",
+  description: "Return the signed-in user's FLIPZ profile: username, language, avatar, and last daily card claim time.",
+  inputSchema: {},
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async (_input, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
+    }
+    const { data, error } = await supabaseForUser(ctx).from("profiles").select("username, avatar_url, language, last_daily_card_at, created_at").eq("id", ctx.getUserId()).maybeSingle();
+    if (error) {
+      return { content: [{ type: "text", text: error.message }], isError: true };
+    }
+    return {
+      content: [{ type: "text", text: JSON.stringify(data ?? {}) }],
+      structuredContent: { profile: data ?? null }
+    };
+  }
+});
+
+// src/lib/mcp/tools/get-winstreak.ts
+import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.20.0";
+var get_winstreak_default = defineTool2({
+  name: "get_winstreak",
+  title: "Get my FLIPZ winstreak",
+  description: "Return the signed-in user's current daily winstreak, progression, and last streak date.",
+  inputSchema: {},
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async (_input, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
+    }
+    const { data, error } = await supabaseForUser(ctx).from("user_streaks").select("current_streak, streak_progress, last_streak_date, last_free_pack_at, updated_at").eq("user_id", ctx.getUserId()).maybeSingle();
+    if (error) {
+      return { content: [{ type: "text", text: error.message }], isError: true };
+    }
+    return {
+      content: [{ type: "text", text: JSON.stringify(data ?? { current_streak: 0 }) }],
+      structuredContent: { streak: data ?? null }
+    };
+  }
+});
+
+// src/lib/mcp/tools/get-collection-stats.ts
+import { defineTool as defineTool3 } from "npm:@lovable.dev/mcp-js@0.20.0";
+var get_collection_stats_default = defineTool3({
+  name: "get_collection_stats",
+  title: "Get my FLIPZ collection stats",
+  description: "Return the signed-in user's collection stats: total cards owned, unique cards, and rarity breakdown.",
+  inputSchema: {},
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async (_input, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
+    }
+    const { data, error } = await supabaseForUser(ctx).from("user_cards").select("card_id, cards:card_id(rarity)").eq("user_id", ctx.getUserId());
+    if (error) {
+      return { content: [{ type: "text", text: error.message }], isError: true };
+    }
+    const totalCards = data?.length ?? 0;
+    const uniqueIds = /* @__PURE__ */ new Set();
+    const rarityCount = {};
+    for (const row of data ?? []) {
+      uniqueIds.add(row.card_id);
+      const r = row.cards?.rarity ?? "unknown";
+      rarityCount[r] = (rarityCount[r] ?? 0) + 1;
+    }
+    const stats = {
+      totalCards,
+      uniqueCards: uniqueIds.size,
+      duplicates: totalCards - uniqueIds.size,
+      rarityCount
+    };
+    return {
+      content: [{ type: "text", text: JSON.stringify(stats) }],
+      structuredContent: stats
+    };
+  }
+});
+
+// src/lib/mcp/tools/get-recent-cards.ts
+import { defineTool as defineTool4 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { z } from "npm:zod@^4.4.3";
+var get_recent_cards_default = defineTool4({
+  name: "get_recent_cards",
+  title: "Get my recent FLIPZ cards",
+  description: "Return the signed-in user's most recently obtained cards, with name and rarity.",
+  inputSchema: {
+    limit: z.number().int().describe("Maximum number of recent cards to return (1-25). Defaults to 10.").optional()
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ limit }, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
+    }
+    const safeLimit = Math.min(Math.max(limit ?? 10, 1), 25);
+    const { data, error } = await supabaseForUser(ctx).from("user_cards").select("obtained_at, card_id, cards:card_id(name, rarity)").eq("user_id", ctx.getUserId()).order("obtained_at", { ascending: false }).limit(safeLimit);
+    if (error) {
+      return { content: [{ type: "text", text: error.message }], isError: true };
+    }
+    return {
+      content: [{ type: "text", text: JSON.stringify(data ?? []) }],
+      structuredContent: { cards: data ?? [] }
+    };
+  }
+});
+
+// src/lib/mcp/index.ts
+var projectRef = "twhykngemnlljngxnxaf";
+var mcp_default = defineMcp({
+  name: "flipz-mcp",
+  title: "FLIPZ",
+  version: "0.1.0",
+  instructions: "Read-only access to the signed-in user's FLIPZ collection. Use get_profile for account info, get_winstreak for daily streak, get_collection_stats for card totals and rarity breakdown, and get_recent_cards to list the last cards obtained.",
+  auth: auth.oauth.issuer({
+    issuer: `https://${projectRef}.supabase.co/auth/v1`,
+    acceptedAudiences: "authenticated"
+  }),
+  tools: [get_profile_default, get_winstreak_default, get_collection_stats_default, get_recent_cards_default]
+});
+
 // lovable-mcp-supabase-entry.ts
-import mcp from "npm:C:\\Users\\layce\\meme-daily-drops\\src\\lib\\mcp\\index.ts";
 import { createSupabaseHandler } from "npm:@lovable.dev/mcp-js@0.20.0/stacks/supabase";
-Deno.serve(createSupabaseHandler(mcp, { functionName: "mcp" }));
+Deno.serve(createSupabaseHandler(mcp_default, { functionName: "mcp" }));
