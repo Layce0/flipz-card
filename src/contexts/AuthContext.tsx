@@ -63,16 +63,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             // Check admin status from database
             if (nextSession?.user) {
               // Defer to avoid potential deadlocks with Supabase client
+              // Keep loading until roles are known so admin guards don't redirect early
               setTimeout(() => {
-                void checkRoles(nextSession.user.id);
+                void checkRoles(nextSession.user.id).finally(() => {
+                  if (!isMounted) return;
+                  markAuthBootstrapReady();
+                  setIsLoading(false);
+                });
               }, 0);
             } else {
               setIsAdmin(false);
               setIsModerator(false);
+              markAuthBootstrapReady();
+              setIsLoading(false);
             }
-
-            markAuthBootstrapReady();
-            setIsLoading(false);
           }
         );
 
@@ -93,6 +97,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setIsAdmin(false);
           setIsModerator(false);
         }
+      } catch {
+        // fall through
       } finally {
         markAuthBootstrapReady();
         if (isMounted) {
