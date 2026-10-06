@@ -16,7 +16,7 @@ export interface GlobalGif {
   initially_hidden: boolean;
   auto_hide_after_ms: number | null;
   // Extended custom properties for text, titles, badges, stats & custom styling
-  element_type?: 'media' | 'title' | 'text' | 'badge' | 'stat' | 'button' | 'background';
+  element_type?: 'media' | 'title' | 'text' | 'badge' | 'stat' | 'button' | 'background' | 'dom_transform';
   content_text?: string;
   font_color?: string;
   bg_color?: string;
@@ -53,7 +53,7 @@ export const useCreateGif = () => {
       height?: number;
       page?: string;
       aspectRatio?: number | null;
-      element_type?: 'media' | 'title' | 'text' | 'badge' | 'stat' | 'button' | 'background';
+      element_type?: 'media' | 'title' | 'text' | 'badge' | 'stat' | 'button' | 'background' | 'dom_transform';
       content_text?: string;
       font_color?: string;
       bg_color?: string;
