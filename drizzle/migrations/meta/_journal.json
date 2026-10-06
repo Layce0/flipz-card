@@ -15,6 +15,13 @@
       "when": 1791043619532,
       "tag": "0001_booster_card_back_and_rarity_colors",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791290964100,
+      "tag": "0002_global_gifs_canvas_studio_columns",
+      "breakpoints": true
     }
   ]
 }
