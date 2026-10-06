@@ -96,8 +96,9 @@ export const useCreateGif = () => {
         auto_hide_after_ms: gif.auto_hide_after_ms ?? null,
       };
 
-      const { error } = await supabase.from('global_gifs' as any).insert(insertData as any);
+      const { data, error } = await supabase.from('global_gifs' as any).insert(insertData as any).select();
       if (error) throw error;
+      return data as any;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['global-gifs'] }),
   });
