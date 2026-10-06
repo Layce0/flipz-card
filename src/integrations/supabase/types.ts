@@ -369,49 +369,76 @@ export type Database = {
       }
       global_gifs: {
         Row: {
+          action_url: string | null
           auto_hide_after_ms: number | null
+          bg_color: string | null
           click_target_id: string | null
+          content_text: string | null
           created_at: string
           created_by: string | null
+          element_type: string | null
+          font_color: string | null
+          font_size: number | null
           height: number
+          hide_selector: string | null
           id: string
           initially_hidden: boolean
           page: string
+          percentage_val: number | null
           url: string
           visible: boolean
           width: number
           x: number
           y: number
+          z_index: number | null
         }
         Insert: {
+          action_url?: string | null
           auto_hide_after_ms?: number | null
+          bg_color?: string | null
           click_target_id?: string | null
+          content_text?: string | null
           created_at?: string
           created_by?: string | null
+          element_type?: string | null
+          font_color?: string | null
+          font_size?: number | null
           height?: number
+          hide_selector?: string | null
           id?: string
           initially_hidden?: boolean
           page?: string
+          percentage_val?: number | null
           url: string
           visible?: boolean
           width?: number
           x?: number
           y?: number
+          z_index?: number | null
         }
         Update: {
+          action_url?: string | null
           auto_hide_after_ms?: number | null
+          bg_color?: string | null
           click_target_id?: string | null
+          content_text?: string | null
           created_at?: string
           created_by?: string | null
+          element_type?: string | null
+          font_color?: string | null
+          font_size?: number | null
           height?: number
+          hide_selector?: string | null
           id?: string
           initially_hidden?: boolean
           page?: string
+          percentage_val?: number | null
           url?: string
           visible?: boolean
           width?: number
           x?: number
           y?: number
+          z_index?: number | null
         }
         Relationships: [
           {
