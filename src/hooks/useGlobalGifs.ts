@@ -16,12 +16,15 @@ export interface GlobalGif {
   initially_hidden: boolean;
   auto_hide_after_ms: number | null;
   // Extended custom properties for text, titles, badges, stats & custom styling
-  element_type?: 'media' | 'title' | 'text' | 'badge' | 'stat' | 'button';
+  element_type?: 'media' | 'title' | 'text' | 'badge' | 'stat' | 'button' | 'background';
   content_text?: string;
   font_color?: string;
   bg_color?: string;
   font_size?: number;
   percentage_val?: number;
+  z_index?: number;
+  action_url?: string | null;
+  hide_selector?: string | null;
 }
 
 export const useGlobalGifs = (adminMode = false) => {
@@ -50,12 +53,18 @@ export const useCreateGif = () => {
       height?: number;
       page?: string;
       aspectRatio?: number | null;
-      element_type?: 'media' | 'title' | 'text' | 'badge' | 'stat' | 'button';
+      element_type?: 'media' | 'title' | 'text' | 'badge' | 'stat' | 'button' | 'background';
       content_text?: string;
       font_color?: string;
       bg_color?: string;
       font_size?: number;
       percentage_val?: number;
+      z_index?: number;
+      action_url?: string | null;
+      hide_selector?: string | null;
+      click_target_id?: string | null;
+      initially_hidden?: boolean;
+      auto_hide_after_ms?: number | null;
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
 
@@ -79,6 +88,12 @@ export const useCreateGif = () => {
         bg_color: gif.bg_color || 'transparent',
         font_size: gif.font_size || 16,
         percentage_val: gif.percentage_val || 0,
+        z_index: gif.z_index ?? 30,
+        action_url: gif.action_url ?? null,
+        hide_selector: gif.hide_selector ?? null,
+        click_target_id: gif.click_target_id ?? null,
+        initially_hidden: gif.initially_hidden ?? false,
+        auto_hide_after_ms: gif.auto_hide_after_ms ?? null,
       };
 
       const { error } = await supabase.from('global_gifs' as any).insert(insertData as any);
@@ -109,6 +124,9 @@ export const useUpdateGif = () => {
       bg_color?: string;
       font_size?: number;
       percentage_val?: number;
+      z_index?: number;
+      action_url?: string | null;
+      hide_selector?: string | null;
     }) => {
       const { id, ...updates } = gif;
       const { error } = await supabase.from('global_gifs' as any).update(updates as any).eq('id', id);

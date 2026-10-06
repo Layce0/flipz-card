@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,10 +7,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Shield, Plus, Trash2, Upload, Loader2, Gift, Save, Pencil } from 'lucide-react';
+import { Shield, Plus, Trash2, Upload, Loader2, Gift, Save, Pencil, Layers, ExternalLink } from 'lucide-react';
 import { RewardCodesManager } from '@/components/admin/RewardCodesManager';
 import { WinstreakRewardsManager } from '@/components/admin/WinstreakRewardsManager';
-import { GlobalGifsManager } from '@/components/admin/GlobalGifsManager';
 import { PackProbabilitiesManager } from '@/components/admin/PackProbabilitiesManager';
 import { UserAccountManager } from '@/components/admin/UserAccountManager';
 import { ModeratorTools } from '@/components/admin/ModeratorTools';
@@ -202,19 +201,52 @@ const Admin = () => {
     <div className="min-h-screen pb-24">
       {/* Header */}
       <header className="pt-12 pb-6 px-4">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
-            <Shield className="w-5 h-5 text-primary" />
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+              <Shield className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="font-display text-xl text-foreground">Espace Admin</h1>
+              <p className="text-sm text-muted-foreground">{user?.email}</p>
+            </div>
           </div>
-          <div>
-            <h1 className="font-display text-xl text-foreground">Espace Admin</h1>
-            <p className="text-sm text-muted-foreground">{user?.email}</p>
-          </div>
+          <Button asChild variant="default" size="sm" className="gap-2 shadow-lg shadow-primary/20">
+            <Link to="/admin/canvas">
+              <Layers className="w-4 h-4" />
+              Canvas Studio
+            </Link>
+          </Button>
         </div>
       </header>
 
       <main className="px-4 space-y-8">
         <GlobalStatsPanel />
+
+        {/* Visual CMS / Canvas Studio Banner */}
+        <div className="relative overflow-hidden rounded-2xl border border-primary/40 bg-gradient-to-r from-primary/10 via-primary/5 to-card p-5 shadow-xl">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="space-y-1 max-w-md">
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-primary text-primary-foreground">
+                  Studio Visuel WYSIWYG
+                </span>
+                <span className="text-xs text-muted-foreground">Autonome & Live</span>
+              </div>
+              <h3 className="text-lg font-extrabold text-foreground flex items-center gap-2">
+                <Layers className="w-5 h-5 text-primary" /> Canvas Studio
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Modifiez en direct les textes, boutons, badges, jauges et overlays de n'importe quelle page de l'application sans recompiler ni passer par Lovable.
+              </p>
+            </div>
+            <Button asChild size="default" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold gap-2 shadow-lg">
+              <Link to="/admin/canvas">
+                Ouvrir le Studio <ExternalLink className="w-4 h-4" />
+              </Link>
+            </Button>
+          </div>
+        </div>
 
         {/* Create card form */}
         <section>
@@ -476,8 +508,24 @@ const Admin = () => {
         {/* Winstreak Rewards Manager */}
         <WinstreakRewardsManager />
 
-        {/* Global GIFs Manager */}
-        <GlobalGifsManager />
+        {/* Canvas Studio — page dédiée */}
+        <section className="bg-card border border-primary/30 rounded-2xl p-5 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
+              <Layers className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="font-bold text-base">Canvas Studio</h2>
+              <p className="text-xs text-muted-foreground">Editez visuellement chaque page de l'app — GIFs, titres, boutons, fonds</p>
+            </div>
+          </div>
+          <Button asChild className="shrink-0 gap-2">
+            <Link to="/admin/canvas">
+              <ExternalLink className="w-4 h-4" />
+              Ouvrir le Studio
+            </Link>
+          </Button>
+        </section>
 
         {/* User Account Manager */}
         <UserAccountManager />

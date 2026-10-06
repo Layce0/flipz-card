@@ -30,6 +30,7 @@ const Profile = lazy(() => import("./pages/Profile"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
 const StreakRestored = lazy(() => import("./pages/StreakRestored"));
+const CanvasStudio = lazy(() => import("./pages/CanvasStudio"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -107,6 +108,8 @@ const AppContent = () => {
             <Route path="/packs" element={<Packs />} />
             <Route path="/shop" element={<Shop />} />
             <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
+            <Route path="/admin/canvas" element={<AdminRoute><CanvasStudio /></AdminRoute>} />
+
             <Route path="/auth" element={<Auth />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/profile" element={<Profile />} />
