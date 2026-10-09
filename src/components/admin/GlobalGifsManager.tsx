@@ -1076,7 +1076,7 @@ export const GlobalGifsManager = () => {
         </div>
 
         {/* -- RIGHT: Inspector -- */}
-        <div className={cn('bg-card border', isMobile && mobilePanel !== 'inspector' && 'hidden', isMobile && 'h-full')} style={{}} data-panel="inspector"><div className="h-full bg-card border border-border rounded-2xl flex flex-col overflow-hidden">
+        <div className={cn(isMobile && mobilePanel !== 'inspector' && 'hidden', isMobile && 'h-full')}><div className="h-full bg-card border border-border rounded-2xl flex flex-col overflow-hidden">
           <div className="shrink-0 px-3 py-2 border-b border-border flex items-center justify-between">
             <h3 className="text-xs font-bold">Inspecteur</h3>
             {selectedGif && (
@@ -1504,6 +1504,7 @@ export const GlobalGifsManager = () => {
               </>
             ) : null}
           </div>
+        </div>
         </div>
       </div>
     </div>
