@@ -135,18 +135,31 @@ export const BoostersManager = () => {
     refresh();
   };
 
+  const moveRarity = async (i: number, delta: number) => {
+    if (!editing) return;
+    const next = [...customRarities];
+    const j = i + delta;
+    if (j < 0 || j >= next.length) return;
+    [next[i], next[j]] = [next[j], next[i]];
+    const { error } = await db.from('boosters').update({ custom_rarities: next }).eq('id', editing.id);
+    if (error) return toast.error(error.message);
+    setCustomRarities(next);
+    refresh();
+  };
+
   const createExclusive = async () => {
     if (!editing) return;
     if (!nc.title.trim() || !nc.file) return toast.error('Nom et image requis');
+    if (!nc.customRarity) return toast.error('Choisis une rareté spéciale');
     setBusy(true);
     try {
       const url = await upload.mutateAsync(nc.file);
       const { data: card, error } = await db.from('cards').insert({
         title: nc.title.trim(), description: nc.description.trim() || nc.title.trim(),
-        image_url: url, rarity: nc.rarity, booster_id: editing.id,
+        image_url: url, rarity: 'common', booster_id: editing.id,
       }).select().single();
       if (error) throw error;
-      const { error: e2 } = await db.from('booster_cards').insert({ booster_id: editing.id, card_id: card.id, rarity: nc.rarity, custom_rarity: nc.customRarity || null, drop_rate: Math.max(0, nc.dropRate) });
+      const { error: e2 } = await db.from('booster_cards').insert({ booster_id: editing.id, card_id: card.id, rarity: 'common', custom_rarity: nc.customRarity, drop_rate: Math.max(0, nc.dropRate) });
       if (e2) throw e2;
       setNc({ title: '', description: '', rarity: 'common', customRarity: '', dropRate: 100, file: null });
       toast.success('Carte exclusive créée');
@@ -276,7 +289,7 @@ export const BoostersManager = () => {
               <div className="space-y-2">
                 <Label>Raretés spéciales du booster</Label>
                 <div className="flex flex-wrap gap-2">
-                  {customRarities.map(r => <div key={r} className="flex items-center gap-1 border border-border bg-muted px-2 py-1 text-sm rounded"><input type="color" aria-label={`Couleur de ${r}`} title={`Couleur de ${r}`} value={isRarityColor(rarityColors[r]) ? rarityColors[r] : '#00a896'} onChange={e => updateRarityColor(r, e.target.value)} className="w-8 h-8 cursor-pointer bg-transparent border-0 p-0" /><span>{r}</span><Button size="icon" variant="ghost" className="h-6 w-6" aria-label={`Supprimer ${r}`} onClick={() => removeRarityLabel(r)}><Trash2 className="w-3 h-3" /></Button></div>)}
+                  {customRarities.map((r, i) => <div key={r} className="flex items-center gap-1 border border-border bg-muted px-2 py-1 text-sm rounded"><span className="text-xs text-muted-foreground w-4">{i + 1}.</span><Button size="icon" variant="ghost" className="h-6 w-6" aria-label={`Monter ${r}`} disabled={i === 0} onClick={() => moveRarity(i, -1)}>↑</Button><Button size="icon" variant="ghost" className="h-6 w-6" aria-label={`Descendre ${r}`} disabled={i === customRarities.length - 1} onClick={() => moveRarity(i, 1)}>↓</Button><input type="color" aria-label={`Couleur de ${r}`} title={`Couleur de ${r}`} value={isRarityColor(rarityColors[r]) ? rarityColors[r] : '#00a896'} onChange={e => updateRarityColor(r, e.target.value)} className="w-8 h-8 cursor-pointer bg-transparent border-0 p-0" /><span>{r}</span><Button size="icon" variant="ghost" className="h-6 w-6" aria-label={`Supprimer ${r}`} onClick={() => removeRarityLabel(r)}><Trash2 className="w-3 h-3" /></Button></div>)}
                 </div>
                 <div className="flex gap-2"><Input aria-label="Nouvelle rareté" placeholder="Nom de la rareté" maxLength={32} value={newRarity} onChange={e => setNewRarity(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addRarityLabel(); } }} /><Button size="icon" aria-label="Ajouter la rareté" onClick={addRarityLabel} disabled={!newRarity.trim()}><Plus className="w-4 h-4" /></Button></div>
               </div>
@@ -332,21 +345,17 @@ export const BoostersManager = () => {
                 <Input placeholder="Nom" value={nc.title} onChange={e => setNc({ ...nc, title: e.target.value })} className="bg-card border-border" />
                 <Textarea placeholder="Description" value={nc.description} onChange={e => setNc({ ...nc, description: e.target.value })} className="bg-card border-border" />
                 {newCardPreview && <img src={newCardPreview} alt="Aperçu de la carte" className="w-20 h-28 object-cover rounded" />}
-                <div className="flex flex-wrap gap-2">
-                  <Input type="file" accept="image/*" onChange={e => setNc({ ...nc, file: e.target.files?.[0] ?? null })} className="bg-card border-border flex-1" />
-                  <RaritySelect value={nc.rarity} onChange={r => setNc({ ...nc, rarity: r })} />
-                </div>
+                <Input type="file" accept="image/*" onChange={e => setNc({ ...nc, file: e.target.files?.[0] ?? null })} className="bg-card border-border" />
                 <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Rareté spéciale</Label>
+                  <Label className="text-xs text-muted-foreground">Rareté</Label>
                   {customRarities.length ? (
-                    <Select value={nc.customRarity || 'default'} onValueChange={v => setNc({ ...nc, customRarity: v === 'default' ? '' : v })}>
-                      <SelectTrigger className="bg-card border-border w-full"><SelectValue /></SelectTrigger>
+                    <Select value={nc.customRarity || undefined} onValueChange={v => setNc({ ...nc, customRarity: v })}>
+                      <SelectTrigger className="bg-card border-border w-full"><SelectValue placeholder="Choisir une rareté" /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="default">Aucune (rareté standard)</SelectItem>
                         {customRarities.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
                       </SelectContent>
                     </Select>
-                  ) : <p className="text-xs text-muted-foreground">Ajoute une rareté spéciale plus haut pour pouvoir la choisir ici.</p>}
+                  ) : <p className="text-xs text-muted-foreground">Ajoute une rareté spéciale plus haut pour pouvoir créer une carte.</p>}
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <div className="flex items-center gap-1">
