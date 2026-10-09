@@ -36,10 +36,10 @@ const CanvasStudio = () => {
         <div className="flex items-center gap-2">
           <Layers className="w-5 h-5 text-primary" />
           <h1 className="font-bold text-base">Canvas Studio</h1>
-          <span className="text-xs text-muted-foreground">Editez les pages de l'app en temps reel</span>
+          <span className="hidden sm:inline text-xs text-muted-foreground">Editez les pages de l'app en temps reel</span>
         </div>
       </header>
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-2 sm:p-4">
         <GlobalGifsManager />
       </div>
     </div>

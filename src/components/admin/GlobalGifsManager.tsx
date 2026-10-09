@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // --- Scanned DOM element from the live iframe ---
 type PageElement = {
@@ -649,6 +650,8 @@ export const GlobalGifsManager = () => {
   const [previewPage, setPreviewPage] = useState('/');
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('mobile');
   const [gridSnap, setGridSnap] = useState(true);
+  const isMobile = useIsMobile();
+  const [mobilePanel, setMobilePanel] = useState<'layers' | 'canvas' | 'inspector'>('canvas');
   const [allowOverlap, setAllowOverlap] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [pageElements, setPageElements] = useState<PageElement[]>([]);
@@ -899,11 +902,20 @@ export const GlobalGifsManager = () => {
         </div>
       </div>
 
+      {/* -- Mobile panel switcher -- */}
+      {isMobile && (
+        <div className="sticky top-0 z-40 grid grid-cols-3 gap-1 bg-card p-1 rounded-xl border border-border">
+          {([['layers', 'Calques'], ['canvas', 'Canevas'], ['inspector', 'Inspecteur']] as const).map(([k, l]) => (
+            <Button key={k} size="sm" variant={mobilePanel === k ? 'default' : 'ghost'} onClick={() => setMobilePanel(k)}>{l}</Button>
+          ))}
+        </div>
+      )}
+
       {/* -- Main 3-panel workspace -- */}
-      <div className="grid grid-cols-[200px_1fr_280px] gap-3" style={{ height: 680 }}>
+      <div className={isMobile ? 'flex flex-col' : 'grid grid-cols-[200px_1fr_280px] gap-3'} style={{ height: isMobile ? 'calc(100dvh - 140px)' : 680 }}>
 
         {/* -- LEFT: Layer List -- */}
-        <div className="bg-card border border-border rounded-2xl flex flex-col overflow-hidden">
+        <div className={cn(isMobile && mobilePanel !== 'layers' && 'hidden', isMobile && 'h-full')}><div className="h-full bg-card border border-border rounded-2xl flex flex-col overflow-hidden">
           <div className="shrink-0 px-3 py-2 border-b border-border">
             <h3 className="text-xs font-bold flex items-center gap-1">
               <Layers className="w-3.5 h-3.5" /> Calques
@@ -993,8 +1005,9 @@ export const GlobalGifsManager = () => {
           </div>
         </div>
 
+        </div>
         {/* -- CENTER: Canvas -- */}
-        <div className="h-full flex flex-col">
+        <div className={cn('h-full flex flex-col', isMobile && mobilePanel !== 'canvas' && 'hidden')}>
           {isLoading ? (
             <div className="flex items-center justify-center h-full border border-border rounded-2xl bg-card">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -1063,7 +1076,7 @@ export const GlobalGifsManager = () => {
         </div>
 
         {/* -- RIGHT: Inspector -- */}
-        <div className="bg-card border border-border rounded-2xl flex flex-col overflow-hidden">
+        <div className={cn(isMobile && mobilePanel !== 'inspector' && 'hidden', isMobile && 'h-full')}><div className="h-full bg-card border border-border rounded-2xl flex flex-col overflow-hidden">
           <div className="shrink-0 px-3 py-2 border-b border-border flex items-center justify-between">
             <h3 className="text-xs font-bold">Inspecteur</h3>
             {selectedGif && (
@@ -1491,6 +1504,7 @@ export const GlobalGifsManager = () => {
               </>
             ) : null}
           </div>
+        </div>
         </div>
       </div>
     </div>
