@@ -45,6 +45,17 @@ const Collection = () => {
     }
     return rawCards.filter((c: any) => !c.booster_id);
   }, [rawCards, boosterCards, boosters, activeBooster]);
+  const [activeCustom, setActiveCustom] = useState<string>('all');
+  const activeBoosterObj = boosters.find(b => b.id === activeBooster);
+  const customOrder: string[] = activeBoosterObj?.custom_rarities ?? [];
+  // Cards shown in the book: in a booster tab, filtered by special rarity and sorted by the admin-defined order
+  const bookCards = useMemo(() => {
+    if (!activeBooster) return allCards;
+    const rank = (c: GameCard) => { const i = customOrder.indexOf(c.custom_rarity ?? ''); return i < 0 ? 999 : i; };
+    return allCards
+      .filter(c => activeCustom === 'all' || c.custom_rarity === activeCustom)
+      .sort((a, b) => rank(a) - rank(b));
+  }, [allCards, activeBooster, activeCustom, customOrder]);
   const userCards = useMemo(() => {
     const ids = new Set(allCards.map(c => c.id));
     return rawUserCards.filter((c: any) => ids.has(c.id));
@@ -96,12 +107,12 @@ const Collection = () => {
 
   // Collected cards in the same order as the book — used for card-by-card navigation in the detail view
   const navigableCards = useMemo(() => {
-    const collected = allCards.filter(c => collectedCardIds.has(c.id));
-    if (activeRarity !== 'all') return collected.filter(c => c.rarity === activeRarity);
+    const collected = bookCards.filter(c => collectedCardIds.has(c.id));
+    if (activeRarity !== 'all' && !activeBooster) return collected.filter(c => c.rarity === activeRarity);
     return collected.sort((a, b) =>
       (obtainedAtMap.get(b.id) || '').localeCompare(obtainedAtMap.get(a.id) || '')
     );
-  }, [allCards, activeRarity, collectedCardIds, obtainedAtMap]);
+  }, [bookCards, activeBooster, activeRarity, collectedCardIds, obtainedAtMap]);
   
   const totalCardsCollected = useMemo(() => userCards.reduce((sum, card) => sum + card.count, 0), [userCards]);
   
@@ -232,7 +243,7 @@ const Collection = () => {
             {[{ id: null as string | null, name: 'FLIPZ', image_url: null as string | null }, ...visibleBoosters].map(b => (
               <button
                 key={b.id ?? 'main'}
-                onClick={() => { setActiveBooster(b.id); setActiveRarity('all'); }}
+                onClick={() => { setActiveBooster(b.id); setActiveRarity('all'); setActiveCustom('all'); }}
                 className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-display font-semibold border transition-all ${activeBooster === b.id ? 'border-primary bg-primary/20 text-primary' : 'border-border/50 bg-card/30 text-muted-foreground'}`}
               >
                 {b.image_url && <img src={b.image_url} alt="" className="w-5 h-5 rounded object-cover" />}
@@ -242,13 +253,30 @@ const Collection = () => {
           </div>
         )}
 
-        {/* Rarity filter */}
-        <RarityTabs 
+        {/* Rarity filter — booster tabs use the booster's own special rarities */}
+        {activeBooster ? (
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            {['all', ...customOrder].map(r => {
+              const isActive = activeCustom === r;
+              const color = r === 'all' ? 'hsl(45, 90%, 55%)' : (activeBoosterObj?.rarity_colors?.[r] || 'hsl(var(--rarity-special))');
+              const total = r === 'all' ? allCards.length : allCards.filter(c => c.custom_rarity === r).length;
+              const got = r === 'all' ? userCards.length : userCards.filter((c: any) => c.custom_rarity === r || allCards.find(a => a.id === c.id)?.custom_rarity === r).length;
+              return (
+                <button key={r} onClick={() => setActiveCustom(r)}
+                  className={`flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-display font-semibold border transition-all ${isActive ? 'shadow-lg' : 'border-border/50 bg-card/30 text-muted-foreground'}`}
+                  style={isActive ? { borderColor: color, color, WebkitTextFillColor: color } : undefined}>
+                  <span>{r === 'all' ? 'Toutes' : r}</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted/50">{got}/{total}</span>
+                </button>
+              );
+            })}
+          </div>
+        ) : <RarityTabs 
           activeRarity={activeRarity} 
           onRarityChange={setActiveRarity}
           counts={counts}
           collectedCounts={collectedCounts}
-        />
+        />}
       </header>
 
       {/* Collection book */}
@@ -263,11 +291,12 @@ const Collection = () => {
           </div>
         ) : (
           <CollectionBook 
-            allCards={allCards}
+            key={activeBooster ? `${activeBooster}-${activeCustom}` : 'main'}
+            allCards={bookCards}
             collectedCardIds={collectedCardIds}
             cardCountMap={cardCountMap}
             obtainedAtMap={obtainedAtMap}
-            activeRarity={activeRarity}
+            activeRarity={activeBooster ? 'all' : activeRarity}
             newCardIds={newCardIds}
             onCardClick={handleCardClick}
           />
