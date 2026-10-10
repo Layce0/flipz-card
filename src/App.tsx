@@ -85,6 +85,7 @@ const AppContent = () => {
   useAdMob(); // Préchargement global immédiat des pubs AdMob dès le lancement
   const { updateRequired, storeUrl } = useForceUpdate();
   const { isLoading: isAuthLoading } = useAuth();
+  const { pathname } = useLocation();
   return (
     <div className="relative min-h-screen pt-[env(safe-area-inset-top,24px)]">
       <SplashScreen isAuthReady={!isAuthLoading} />
@@ -97,7 +98,7 @@ const AppContent = () => {
       <ForceUpdateDialog open={updateRequired && !isCanvasPreview} storeUrl={storeUrl} />
       <ParticlesBackground />
       <ActiveBoostsOverlay />
-      {!isCanvasPreview && <Suspense fallback={null}><OnboardingTutorial /></Suspense>}
+      {!isCanvasPreview && !pathname.startsWith("/admin") && <Suspense fallback={null}><OnboardingTutorial /></Suspense>}
       <GlobalGifsOverlay />
       {!isCanvasPreview && <GiftRevealPopup />}
       <main>
