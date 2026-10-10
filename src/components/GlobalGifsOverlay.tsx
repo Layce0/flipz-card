@@ -5,6 +5,10 @@ import { useGlobalGifs, GlobalGif } from '@/hooks/useGlobalGifs';
 // Persists across navigations within the same session
 const playedVideoIds = new Set<string>();
 
+// True when the page is rendered inside the Canvas Studio editor preview
+export const isCanvasPreview =
+  typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('canvas-preview');
+
 export const GlobalGifsOverlay = memo(() => {
   const { data: mediaItems = [] } = useGlobalGifs();
   const { pathname } = useLocation();
@@ -115,10 +119,15 @@ export const GlobalGifsOverlay = memo(() => {
     };
   }, [visibleItems]);
 
-  if (visibleItems.length === 0) return null;
+  if (isCanvasPreview || visibleItems.length === 0) return null;
 
+  // Elements are designed on a phone-width (420px) canvas: anchor them to a
+  // centered phone-width frame so they land in the same place on wide screens.
   return (
-    <>
+    <div
+      className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[420px] h-full pointer-events-none"
+      style={{ zIndex: Math.max(30, ...visibleItems.map(i => i.z_index ?? 30)) }}
+    >
       {visibleItems.filter(item => item.element_type !== 'dom_transform').map((item) => {
         const style = getMediaStyle(item);
         const isClickable = Boolean(item.click_target_id || item.action_url || item.element_type === 'button');
@@ -234,7 +243,7 @@ export const GlobalGifsOverlay = memo(() => {
           />
         );
       })}
-    </>
+    </div>
   );
 });
 
