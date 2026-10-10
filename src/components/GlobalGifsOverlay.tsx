@@ -107,7 +107,7 @@ export const GlobalGifsOverlay = memo(() => {
       }
     });
 
-    if (!css) return;
+    if (!css || isCanvasPreview) return;
 
     const styleEl = document.createElement('style');
     styleEl.id = 'flipz-canvas-hide-selectors';

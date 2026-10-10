@@ -431,7 +431,7 @@ const PositioningArea = ({
 
             {/* Live page iframe */}
             <iframe ref={iframeRef}
-              src={`${window.location.origin}${previewPage}`}
+              src={`${window.location.origin}${previewPage}${previewPage.includes('?') ? '&' : '?'}canvas-preview=1`}
               onLoad={() => { syncPageHeight(); scanElements(); }}
               className="absolute inset-0 border-0 pointer-events-none z-[1]"
               style={{ width: canvasWidth, height: canvasHeight, opacity: pageElements.length > 0 ? 0.9 : 0.6 }}
