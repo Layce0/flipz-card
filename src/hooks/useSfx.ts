@@ -7,17 +7,18 @@ const SFX_MUTE_KEY = 'flipz_sfx_muted';
 const SFX_VOLUME_KEY = 'flipz_sfx_volume';
 
 // Preload all sounds once at module level
+const BASE = import.meta.env.BASE_URL;
 const sfxFiles = {
-  cardFlip:        '/sfx/card-flip.wav',
-  cardSwipe:       '/sfx/card-swipe.wav',
-  catMeow:         '/sfx/cat-meow.wav',
-  collectSuccess:  '/sfx/collect-success.wav',
-  error:           '/sfx/error.wav',
-  legendaryReveal: '/sfx/legendary-reveal.wav',
-  navClick:        '/sfx/nav-click.wav',
-  packTap:         '/sfx/pack-tap.wav',
-  packTear:        '/sfx/pack-tear.wav',
-  streakLost:      '/sfx/streak-lost.wav',
+  cardFlip:        `${BASE}sfx/card-flip.wav`,
+  cardSwipe:       `${BASE}sfx/card-swipe.wav`,
+  catMeow:         `${BASE}sfx/cat-meow.wav`,
+  collectSuccess:  `${BASE}sfx/collect-success.wav`,
+  error:           `${BASE}sfx/error.wav`,
+  legendaryReveal: `${BASE}sfx/legendary-reveal.wav`,
+  navClick:        `${BASE}sfx/nav-click.wav`,
+  packTap:         `${BASE}sfx/pack-tap.wav`,
+  packTear:        `${BASE}sfx/pack-tear.wav`,
+  streakLost:      `${BASE}sfx/streak-lost.wav`,
 } as const;
 
 export type SfxName = keyof typeof sfxFiles;

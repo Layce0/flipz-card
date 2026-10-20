@@ -16,7 +16,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { toast } from 'sonner';
 import { StreakLostDialog } from '@/components/StreakLostDialog';
 import { useSfx } from '@/hooks/useSfx';
-const flipzLogo = '/flipz-logo-new.png';
+const flipzLogo = `${import.meta.env.BASE_URL}flipz-logo-new.png`;
 
 // Isolated timer component to avoid re-rendering the entire page every second
 const CountdownTimer = ({ lastCollectedAt, timerMinutes = 1 }: { lastCollectedAt: Date | null | undefined, timerMinutes?: number }) => {

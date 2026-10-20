@@ -9,7 +9,7 @@ import { Mail, Lock, LogIn, UserPlus, Eye, EyeOff, Check, X } from 'lucide-react
 import { toast } from 'sonner';
 import { z } from 'zod';
 const Lottie = lazy(() => import('lottie-react'));
-const flipzLogo = '/flipz-logo-new.png';
+const flipzLogo = `${import.meta.env.BASE_URL}flipz-logo-new.png`;
 import { ForgotPasswordDialog } from '@/components/ForgotPasswordDialog';
 
 const passwordRules = [
