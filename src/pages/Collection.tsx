@@ -106,12 +106,14 @@ const Collection = () => {
   const obtainedAtMap = useMemo(() => new Map(userCards.map(card => [card.id, card.obtained_at])), [userCards]);
 
   // Collected cards in the same order as the book — used for card-by-card navigation in the detail view
+  // Must match exactly what CollectionBook shows: collected first (sorted by date), then uncollected hidden.
   const navigableCards = useMemo(() => {
-    const collected = bookCards.filter(c => collectedCardIds.has(c.id));
-    if (activeRarity !== 'all' && !activeBooster) return collected.filter(c => c.rarity === activeRarity);
-    return collected.sort((a, b) =>
-      (obtainedAtMap.get(b.id) || '').localeCompare(obtainedAtMap.get(a.id) || '')
-    );
+    const source = activeRarity !== 'all' && !activeBooster
+      ? bookCards.filter(c => c.rarity === activeRarity)
+      : bookCards;
+    return source
+      .filter(c => collectedCardIds.has(c.id))
+      .sort((a, b) => (obtainedAtMap.get(b.id) || '').localeCompare(obtainedAtMap.get(a.id) || ''));
   }, [bookCards, activeBooster, activeRarity, collectedCardIds, obtainedAtMap]);
   
   const totalCardsCollected = useMemo(() => userCards.reduce((sum, card) => sum + card.count, 0), [userCards]);
@@ -140,13 +142,20 @@ const Collection = () => {
     legendary: allCards.filter(c => c.rarity === 'legendary').length,
   }), [allCards]);
 
-  const collectedCounts = useMemo(() => ({
-    all: userCards.length,
-    common: userCards.filter(c => c.rarity === 'common').length,
-    rare: userCards.filter(c => c.rarity === 'rare').length,
-    epic: userCards.filter(c => c.rarity === 'epic').length,
-    legendary: userCards.filter(c => c.rarity === 'legendary').length,
-  }), [userCards]);
+  const collectedCounts = useMemo(() => {
+    // Count unique cards collected per rarity (userCards is already deduplicated)
+    const common = userCards.filter(c => c.rarity === 'common').length;
+    const rare = userCards.filter(c => c.rarity === 'rare').length;
+    const epic = userCards.filter(c => c.rarity === 'epic').length;
+    const legendary = userCards.filter(c => c.rarity === 'legendary').length;
+    return {
+      all: userCards.length,
+      common,
+      rare,
+      epic,
+      legendary,
+    };
+  }, [userCards]);
 
   const progressPercent = useMemo(() => allCards.length > 0 ? Math.round((userCards.length / allCards.length) * 100) : 0, [allCards.length, userCards.length]);
 

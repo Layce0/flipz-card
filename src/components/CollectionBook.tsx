@@ -54,13 +54,11 @@ export const CollectionBook = memo(({ allCards, collectedCardIds, cardCountMap, 
     [filteredCards, currentPage, cardsPerPage]
   );
 
-  // Reset page when filter changes
-  const prevRarityRef = useMemo(() => ({ current: activeRarity }), []);
-  if (prevRarityRef.current !== activeRarity) {
-    prevRarityRef.current = activeRarity;
+  // Reset page when filter or card list changes
+  useEffect(() => {
     setCurrentPage(0);
     setFlipDirection(null);
-  }
+  }, [activeRarity, allCards]);
 
   const goToPage = useCallback((target: number) => {
     setCurrentPage(prev => {
