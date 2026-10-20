@@ -647,6 +647,30 @@ export const useCollectCard = () => {
         }
       }
 
+      // Correction client-side: if the server inserted a DIFFERENT card than the one displayed,
+      // fix it immediately — delete the wrong card from user_cards and insert the correct one.
+      if (data?.success && data?.card?.id && data.card.id !== cardId && cardId && userId) {
+        try {
+          // Find and delete one instance of the wrong card
+          const { data: wrongRows } = await supabase
+            .from('user_cards')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('card_id', data.card.id)
+            .order('obtained_at', { ascending: false })
+            .limit(1);
+          if (wrongRows && wrongRows.length > 0) {
+            await supabase.from('user_cards').delete().eq('id', wrongRows[0].id);
+          }
+          // Insert the correct card
+          await supabase.from('user_cards').insert({ user_id: userId, card_id: cardId });
+          data = { ...data, card: { ...data.card, id: cardId } };
+        } catch (fixErr) {
+          console.warn('Card correction failed, using local delta fallback:', fixErr);
+          applyUserCardTradeDelta(userId, { [cardId]: 1 });
+        }
+      }
+
       // Save collection timestamp and collected card ID to localStorage
       if (userId) {
         const nowIso = new Date().toISOString();
