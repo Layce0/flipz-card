@@ -609,7 +609,7 @@ export const useCollectCard = () => {
 
       try {
         const res = await invokeEdgeFunction('collect-daily-card', {
-          body: {},
+          body: { cardId },
         });
         data = res.data;
         error = res.error;
