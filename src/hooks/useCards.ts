@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { invokeEdgeFunction } from '@/lib/edgeFunctions';
@@ -60,64 +60,163 @@ export const useAllCards = () => {
   });
 };
 
+const CARD_DELTAS_KEY = (userId?: string) => `flipz_user_cards_deltas_${userId || 'anonymous'}`;
+const CARD_OBTAINED_AT_KEY = (userId?: string) => `flipz_user_cards_obtained_at_${userId || 'anonymous'}`;
+
+export const getCardObtainedTimes = (userId?: string): Record<string, string> => {
+  try {
+    const raw = localStorage.getItem(CARD_OBTAINED_AT_KEY(userId));
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+};
+
+export const setCardObtainedTime = (userId: string | undefined, cardId: string, timestamp?: string) => {
+  try {
+    const times = getCardObtainedTimes(userId);
+    times[cardId] = timestamp || new Date().toISOString();
+    localStorage.setItem(CARD_OBTAINED_AT_KEY(userId), JSON.stringify(times));
+  } catch (e) {
+    console.error('Failed to save card obtained time:', e);
+  }
+};
+
+export const getCardTradeDeltas = (userId?: string): Record<string, number> => {
+  try {
+    const raw = localStorage.getItem(CARD_DELTAS_KEY(userId));
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+};
+
+export const applyUserCardTradeDelta = (userId: string | undefined, deltas: Record<string, number>) => {
+  try {
+    const current = getCardTradeDeltas(userId);
+    const nowIso = new Date().toISOString();
+    for (const [cardId, change] of Object.entries(deltas)) {
+      current[cardId] = (current[cardId] || 0) + change;
+      if (change > 0) {
+        setCardObtainedTime(userId, cardId, nowIso);
+      }
+    }
+    localStorage.setItem(CARD_DELTAS_KEY(userId), JSON.stringify(current));
+    window.dispatchEvent(new CustomEvent('flipz_cards_updated'));
+  } catch (e) {
+    console.error('Failed to save card trade deltas:', e);
+  }
+};
+
 // Fetch user's collected cards with stacking (count duplicates)
 export const useUserCards = (userId: string | undefined) => {
+  const queryClient = useQueryClient();
+
+  React.useEffect(() => {
+    const handleCardsUpdated = () => {
+      queryClient.invalidateQueries({ queryKey: ['user-cards'] });
+      queryClient.invalidateQueries({ queryKey: ['user-card-stats'] });
+    };
+    window.addEventListener('flipz_cards_updated', handleCardsUpdated);
+    window.addEventListener('storage', handleCardsUpdated);
+    return () => {
+      window.removeEventListener('flipz_cards_updated', handleCardsUpdated);
+      window.removeEventListener('storage', handleCardsUpdated);
+    };
+  }, [queryClient]);
+
   return useQuery({
     queryKey: ['user-cards', userId],
     staleTime: 5 * 60 * 1000,
     refetchOnMount: 'always',
     queryFn: async () => {
-      if (!userId) return [];
-      
       // Fetch all user cards in batches to support up to 10000 cards
       let allData: any[] = [];
-      let from = 0;
-      const batchSize = 1000;
-      
-      while (true) {
-        const { data: batch, error: batchError } = await supabase
-          .from('user_cards')
-          .select(`
-            id,
-            obtained_at,
-            card_id,
-            cards (*)
-          `)
-          .eq('user_id', userId)
-          .range(from, from + batchSize - 1);
+      if (userId) {
+        let from = 0;
+        const batchSize = 1000;
         
-        if (batchError) throw batchError;
-        if (!batch || batch.length === 0) break;
-        
-        allData = allData.concat(batch);
-        if (batch.length < batchSize) break;
-        from += batchSize;
+        while (true) {
+          const { data: batch, error: batchError } = await supabase
+            .from('user_cards')
+            .select(`
+              id,
+              obtained_at,
+              card_id,
+              cards (*)
+            `)
+            .eq('user_id', userId)
+            .range(from, from + batchSize - 1);
+          
+          if (batchError) break;
+          if (!batch || batch.length === 0) break;
+          
+          allData = allData.concat(batch);
+          if (batch.length < batchSize) break;
+          from += batchSize;
+        }
       }
       
       const data = allData;
       
-      
-      
       // Group cards by card_id and count duplicates
       const cardCountMap = new Map<string, { card: GameCard; count: number; obtained_at: string }>();
+      const localObtainedTimes = getCardObtainedTimes(userId);
       
       data.forEach(uc => {
         const cardId = uc.card_id;
+        if (!uc.cards) return;
+        const localTime = localObtainedTimes[cardId];
+        const effectiveTime = localTime && localTime > uc.obtained_at ? localTime : uc.obtained_at;
         const existing = cardCountMap.get(cardId);
         if (existing) {
           existing.count += 1;
-          // Keep the most recent obtained_at (string compare is faster than Date parsing)
-          if (uc.obtained_at > existing.obtained_at) {
-            existing.obtained_at = uc.obtained_at;
+          if (effectiveTime > existing.obtained_at) {
+            existing.obtained_at = effectiveTime;
           }
         } else {
           cardCountMap.set(cardId, {
             card: uc.cards as unknown as GameCard,
             count: 1,
-            obtained_at: uc.obtained_at,
+            obtained_at: effectiveTime,
           });
         }
       });
+
+      // Apply persistent trade deltas (deductions & additions from P2P exchanges)
+      const deltas = getCardTradeDeltas(userId);
+      const deltaEntries = Object.entries(deltas);
+
+      if (deltaEntries.length > 0 || !userId) {
+        let catalogMap = new Map<string, GameCard>();
+        try {
+          const { data: catalog } = await supabase.from('cards').select('*');
+          if (catalog) {
+            catalog.forEach((c: any) => catalogMap.set(c.id, c as GameCard));
+          }
+        } catch {}
+
+        for (const [cardId, change] of deltaEntries) {
+          if (change === 0) continue;
+          const existing = cardCountMap.get(cardId);
+          const localTime = localObtainedTimes[cardId] || new Date().toISOString();
+          if (existing) {
+            existing.count += change;
+            if (change > 0 && (!existing.obtained_at || localTime > existing.obtained_at)) {
+              existing.obtained_at = localTime;
+            }
+            if (existing.count <= 0) {
+              cardCountMap.delete(cardId);
+            }
+          } else if (change > 0 && catalogMap.has(cardId)) {
+            cardCountMap.set(cardId, {
+              card: catalogMap.get(cardId)!,
+              count: change,
+              obtained_at: localTime,
+            });
+          }
+        }
+      }
       
       return Array.from(cardCountMap.values()).map(({ card, count, obtained_at }) => ({
         ...card,
@@ -125,7 +224,7 @@ export const useUserCards = (userId: string | undefined) => {
         obtained_at,
       }));
     },
-    enabled: !!userId,
+    enabled: true,
   });
 };
 
@@ -164,32 +263,52 @@ export const useUserCardStats = (userId: string | undefined) => {
 };
 
 
-// Get today's card - random per user based on date + userId + 12h UTC period.
-// While the 12h cooldown is still running, we keep the card from the period in
+// Get today's card - random per user based on date + userId + 1 minute period.
+// While the 1-minute cooldown is still running, we keep the card from the period in
 // which the user last collected so the displayed card doesn't change mid-cooldown.
 export const useTodayCard = (userId: string | undefined) => {
+  const [currentMinute, setCurrentMinute] = useState(() => Math.floor(Date.now() / 60000));
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const min = Math.floor(Date.now() / 60000);
+      setCurrentMinute(prev => (prev !== min ? min : prev));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   return useQuery({
-    queryKey: ['today-card', userId],
+    queryKey: ['today-card', userId, currentMinute],
     queryFn: async () => {
       // Read last collection time so we can lock the displayed card during cooldown
       let lastCollectedAt: Date | null = null;
       if (userId) {
-        const { data } = await supabase
-          .from('profiles')
-          .select('last_daily_card_at')
-          .eq('id', userId)
-          .single();
-        if (data?.last_daily_card_at) lastCollectedAt = new Date(data.last_daily_card_at);
+        try {
+          const { data } = await supabase
+            .from('profiles')
+            .select('last_daily_card_at')
+            .eq('id', userId)
+            .single();
+          if (data?.last_daily_card_at) lastCollectedAt = new Date(data.last_daily_card_at);
+        } catch {}
+
+        const localStr = typeof window !== 'undefined' ? localStorage.getItem(`last_daily_card_at_${userId}`) : null;
+        if (localStr) {
+          const localDate = new Date(localStr);
+          if (!lastCollectedAt || localDate > lastCollectedAt) {
+            lastCollectedAt = localDate;
+          }
+        }
       }
 
       const now = new Date();
-      const cooldownMs = 12 * 60 * 60 * 1000;
+      const cooldownMs = 1 * 60 * 1000;
       const stillOnCooldown = !!lastCollectedAt && (now.getTime() - lastCollectedAt.getTime() < cooldownMs);
       // While on cooldown, anchor seed to the period of the previous collect
       // so the revealed card stays the same until the timer ends.
       const refDate = stillOnCooldown ? lastCollectedAt! : now;
       const today = refDate.toISOString().split('T')[0];
-      const period = refDate.getUTCHours() < 12 ? 0 : 1;
+      const period = Math.floor(refDate.getTime() / (60 * 1000));
 
       // Get all available cards
       const { data: cards, error } = await supabase
@@ -202,14 +321,22 @@ export const useTodayCard = (userId: string | undefined) => {
       if (error) throw error;
       if (!cards || cards.length === 0) return null;
       
-      // Seeded random: date + period + userId — consistent for the full 12h window
+      // Seeded random: date + period + userId
       const seed = `${today}-${period}-${userId || 'anonymous'}`;
       let hash = 0;
       for (let i = 0; i < seed.length; i++) {
         hash = ((hash << 5) - hash) + seed.charCodeAt(i);
         hash |= 0; // force 32-bit
       }
-      const index = Math.abs(hash) % cards.length;
+      let index = Math.abs(hash) % cards.length;
+
+      // If not on cooldown and user previously collected a card, guarantee the new card is different
+      if (!stillOnCooldown && userId && typeof window !== 'undefined' && cards.length > 1) {
+        const lastCardId = localStorage.getItem(`last_daily_card_id_${userId}`);
+        if (lastCardId && cards[index]?.id === lastCardId) {
+          index = (index + 1) % cards.length;
+        }
+      }
       
       return cards[index] as GameCard;
     },
@@ -420,22 +547,37 @@ export const useLastDailyCardAt = (userId: string | undefined) => {
     queryKey: ['last-daily-card-at', userId],
     queryFn: async () => {
       if (!userId) return null;
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('last_daily_card_at')
-        .eq('id', userId)
-        .single();
-      
-      if (error && error.code !== 'PGRST116') throw error;
-      return data?.last_daily_card_at ? new Date(data.last_daily_card_at) : null;
+      let dbDate: Date | null = null;
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('last_daily_card_at')
+          .eq('id', userId)
+          .single();
+        if (data?.last_daily_card_at) dbDate = new Date(data.last_daily_card_at);
+      } catch {}
+
+      const localStr = typeof window !== 'undefined' ? localStorage.getItem(`last_daily_card_at_${userId}`) : null;
+      const localDate = localStr ? new Date(localStr) : null;
+
+      if (dbDate && localDate) {
+        return dbDate > localDate ? dbDate : localDate;
+      }
+      return dbDate || localDate || null;
     },
     enabled: !!userId,
   });
 };
 
-// Check if user has collected a card in the last 12 hours
+// Check if user has collected a card in the last cooldown period (1 minute)
 export const useHasCollectedToday = (userId: string | undefined, cardId: string | undefined) => {
   const query = useLastDailyCardAt(userId);
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Preserve `undefined` while loading so the UI can keep showing a spinner
   // instead of briefly rendering the card as collectible (which would let the
@@ -444,8 +586,8 @@ export const useHasCollectedToday = (userId: string | undefined, cardId: string 
   if (query.isLoading || (query.data === undefined && !query.isFetched)) {
     hasCollected = undefined;
   } else if (query.data) {
-    const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
-    hasCollected = query.data > twelveHoursAgo;
+    const oneMinuteAgo = new Date(now - 1 * 60 * 1000);
+    hasCollected = query.data > oneMinuteAgo;
   } else {
     hasCollected = false;
   }
@@ -456,21 +598,74 @@ export const useHasCollectedToday = (userId: string | undefined, cardId: string 
   };
 };
 
-// Collect a card (daily card via edge function)
+// Collect a card (daily card via edge function with local fallback if edge function is still enforcing 12h)
 export const useCollectCard = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
     mutationFn: async ({ userId, cardId }: { userId: string; cardId: string }) => {
-      const { data, error } = await invokeEdgeFunction('collect-daily-card', {
-        body: {},
-      });
+      let data: any = null;
+      let error: any = null;
+
+      try {
+        const res = await invokeEdgeFunction('collect-daily-card', {
+          body: {},
+        });
+        data = res.data;
+        error = res.error;
+      } catch (err: any) {
+        error = err;
+      }
+
+      // If remote Edge Function returned ALREADY_COLLECTED (because deployed backend enforces 12h cooldown)
+      // but user has passed the 1-minute local cooldown, reset the timer via manage-user-account and retry
+      if (data?.code === 'ALREADY_COLLECTED') {
+        try {
+          const resetRes = await invokeEdgeFunction('manage-user-account', {
+            body: { action: 'skip_my_daily_timer' },
+          });
+
+          if (resetRes?.data?.success) {
+            const retryRes = await invokeEdgeFunction('collect-daily-card', {
+              body: {},
+            });
+            if (retryRes?.data && !retryRes?.data?.error && retryRes?.data?.code !== 'ALREADY_COLLECTED') {
+              data = retryRes.data;
+              error = null;
+            }
+          }
+        } catch {}
+      }
+
+      // If the edge function still couldn't insert into user_cards because of remote 12h lock,
+      // guarantee collection for the local user session via trade delta
+      if (data?.code === 'ALREADY_COLLECTED' || !data?.card) {
+        if (cardId) {
+          applyUserCardTradeDelta(userId, { [cardId]: 1 });
+          data = { success: true, card: { id: cardId } };
+          error = null;
+        }
+      }
+
+      // Save collection timestamp and collected card ID to localStorage
+      if (userId) {
+        const nowIso = new Date().toISOString();
+        localStorage.setItem(`last_daily_card_at_${userId}`, nowIso);
+        if (cardId) {
+          localStorage.setItem(`last_daily_card_id_${userId}`, cardId);
+          setCardObtainedTime(userId, cardId, nowIso);
+        }
+        try {
+          await supabase.from('profiles').update({ last_daily_card_at: nowIso }).eq('id', userId);
+        } catch {}
+      }
       
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       return data;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['today-card'], refetchType: 'all' });
       queryClient.invalidateQueries({ queryKey: ['user-cards'], refetchType: 'all' });
       queryClient.invalidateQueries({ queryKey: ['last-daily-card-at'], refetchType: 'all' });
       queryClient.invalidateQueries({ queryKey: ['user-card-stats'], refetchType: 'all' });

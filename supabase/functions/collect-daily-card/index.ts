@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
     // 1. Determine today's card (same seeded logic as client)
     const now = new Date();
     const today = now.toISOString().split("T")[0];
-    const period = now.getUTCHours() < 12 ? 0 : 1;
+    const period = Math.floor(now.getTime() / (60 * 1000));
 
     const { data: cards, error: cardsError } = await adminClient
       .from("cards")
@@ -75,14 +75,14 @@ Deno.serve(async (req) => {
     const index = Math.abs(hash) % cards.length;
     const todayCard = cards[index];
 
-    const twelveHoursAgo = new Date(now.getTime() - 12 * 60 * 60 * 1000);
+    const oneMinuteAgo = new Date(now.getTime() - 1 * 60 * 1000);
 
     // 2. Atomically claim the cooldown slot in the database.
     //    This avoids stale REST schema-cache issues when reading/updating new profile columns.
     const { data: claimed, error: claimError } = await adminClient.rpc("claim_daily_card_cooldown", {
       _user_id: userId,
       _claimed_at: now.toISOString(),
-      _cooldown_cutoff: twelveHoursAgo.toISOString(),
+      _cooldown_cutoff: oneMinuteAgo.toISOString(),
     });
 
     if (claimError) throw claimError;

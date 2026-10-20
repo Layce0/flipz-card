@@ -32,3 +32,11 @@ apple_certs/
 *.csr
 *.mobileprovision
 *_b64.txt
+
+# Local temporary/scratch scripts
+scratch/
+fix_lobby.py
+update_trade.js
+antigravity-tracker/
+.env
+.env.local

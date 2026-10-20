@@ -97,8 +97,8 @@ const Collection = () => {
   // Collected cards in the same order as the book — used for card-by-card navigation in the detail view
   const navigableCards = useMemo(() => {
     const collected = allCards.filter(c => collectedCardIds.has(c.id));
-    if (activeRarity !== 'all') return collected.filter(c => c.rarity === activeRarity);
-    return collected.sort((a, b) =>
+    const filtered = activeRarity !== 'all' ? collected.filter(c => c.rarity === activeRarity) : collected;
+    return filtered.sort((a, b) =>
       (obtainedAtMap.get(b.id) || '').localeCompare(obtainedAtMap.get(a.id) || '')
     );
   }, [allCards, activeRarity, collectedCardIds, obtainedAtMap]);

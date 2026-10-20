@@ -223,7 +223,7 @@ const Shop = () => {
           </div>
         </div>
         <div className="flex gap-2">
-          {!cardsLoading && <TradeOverviewDialog userCards={userCards} />}
+          <TradeOverviewDialog userCards={userCards || []} />
           <PackProbabilitiesDialog />
         </div>
       </header>

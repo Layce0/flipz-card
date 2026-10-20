@@ -27,7 +27,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { User, Settings, BarChart3, LogOut, Camera as CameraIcon, Lock, Save, GraduationCap, Info, FileText, AlertTriangle, Volume2, VolumeX, Shield } from 'lucide-react';
+import { User, Settings, BarChart3, LogOut, Camera as CameraIcon, Lock, Save, GraduationCap, Info, FileText, AlertTriangle, Volume2, VolumeX, Shield, Package, Users } from 'lucide-react';
+import { ProfileInventory } from '@/components/inventory/ProfileInventory';
+import { ProfileFriends } from '@/components/inventory/ProfileFriends';
 import { toast } from 'sonner';
 
 const LANGUAGES = [
@@ -313,7 +315,7 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      <div className="container max-w-lg mx-auto px-4 py-6">
+      <div className="container max-w-xl mx-auto px-4 py-6">
         {/* Header */}
         <div className="text-center mb-6">
           <div className="relative inline-block">
@@ -342,18 +344,26 @@ const Profile = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-4">
-            <TabsTrigger value="profile" className="flex items-center gap-1.5">
-              <User className="w-4 h-4" />
-              <span className="hidden sm:inline">{t('profile.tabs.profile')}</span>
+          <TabsList className="grid w-full grid-cols-5 mb-4 p-1 h-auto bg-muted/60">
+            <TabsTrigger value="profile" className="flex items-center justify-center gap-1 py-2 text-xs">
+              <User className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{t('profile.tabs.profile', 'Profil')}</span>
             </TabsTrigger>
-            <TabsTrigger value="stats" className="flex items-center gap-1.5">
-              <BarChart3 className="w-4 h-4" />
-              <span className="hidden sm:inline">{t('profile.tabs.stats')}</span>
+            <TabsTrigger value="inventory" className="flex items-center justify-center gap-1 py-2 text-xs">
+              <Package className="w-3.5 h-3.5 text-purple-400" />
+              <span className="hidden sm:inline">Inventaire</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-1.5">
-              <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">{t('profile.tabs.settings')}</span>
+            <TabsTrigger value="friends" className="flex items-center justify-center gap-1 py-2 text-xs">
+              <Users className="w-3.5 h-3.5 text-amber-400" />
+              <span className="hidden sm:inline">Amis</span>
+            </TabsTrigger>
+            <TabsTrigger value="stats" className="flex items-center justify-center gap-1 py-2 text-xs">
+              <BarChart3 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{t('profile.tabs.stats', 'Stats')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center justify-center gap-1 py-2 text-xs">
+              <Settings className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{t('profile.tabs.settings', 'Options')}</span>
             </TabsTrigger>
           </TabsList>
 
@@ -435,6 +445,16 @@ const Profile = () => {
               <LogOut className="w-4 h-4 mr-2" />
               {t('profile.logout')}
             </Button>
+          </TabsContent>
+
+          {/* Inventory Tab */}
+          <TabsContent value="inventory" className="space-y-4">
+            <ProfileInventory />
+          </TabsContent>
+
+          {/* Friends Tab */}
+          <TabsContent value="friends" className="space-y-4">
+            <ProfileFriends />
           </TabsContent>
 
           {/* Stats Tab */}

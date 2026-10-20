@@ -5,7 +5,7 @@ export type AppSettings = {
 };
 
 const DEFAULT_SETTINGS: AppSettings = {
-  daily_timer_hours: 12,
+  daily_timer_hours: 1,
 };
 
 const LOCAL_STORAGE_KEY = 'flipz_admin_settings';

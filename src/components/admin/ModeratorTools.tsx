@@ -31,6 +31,8 @@ export const ModeratorTools = () => {
       queryClient.invalidateQueries({ queryKey: ['userStreak'] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
       queryClient.invalidateQueries({ queryKey: ['dailyCardCooldown'] });
+      queryClient.invalidateQueries({ queryKey: ['last-daily-card-at'] });
+      queryClient.invalidateQueries({ queryKey: ['today-card'] });
     } catch (err: any) {
       toast.error(err.message || 'Erreur');
     } finally {

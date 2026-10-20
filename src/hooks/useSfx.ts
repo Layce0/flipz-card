@@ -25,27 +25,27 @@ export type SfxName = keyof typeof sfxFiles;
 // Preload (lazy)
 const audioCache: Partial<Record<SfxName, HTMLAudioElement>> = {};
 
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 
 export const useSfx = () => {
-  const isMuted = (): boolean => {
+  const isMuted = useCallback((): boolean => {
     try {
       return localStorage.getItem(SFX_MUTE_KEY) === 'true';
     } catch {
       return false;
     }
-  };
+  }, []);
 
-  const getVolume = (): number => {
+  const getVolume = useCallback((): number => {
     try {
       const v = parseFloat(localStorage.getItem(SFX_VOLUME_KEY) || '1');
       return isNaN(v) ? 1 : Math.max(0, Math.min(1, v));
     } catch {
       return 1;
     }
-  };
+  }, []);
 
-  const getAudio = (name: SfxName): HTMLAudioElement | undefined => {
+  const getAudio = useCallback((name: SfxName): HTMLAudioElement | undefined => {
     if (typeof window === 'undefined') return undefined;
     if (!audioCache[name]) {
       const audio = new Audio(sfxFiles[name]);
@@ -53,9 +53,9 @@ export const useSfx = () => {
       audioCache[name] = audio;
     }
     return audioCache[name];
-  };
+  }, []);
 
-  const play = (name: SfxName, volume?: number) => {
+  const play = useCallback((name: SfxName, volume?: number) => {
     if (isMuted()) return;
     const audio = getAudio(name);
     if (!audio) return;
@@ -71,15 +71,15 @@ export const useSfx = () => {
     } catch {
       // ignore
     }
-  };
+  }, [isMuted, getAudio, getVolume]);
 
-  const toggleMute = (): boolean => {
+  const toggleMute = useCallback((): boolean => {
     const next = !isMuted();
     try {
       localStorage.setItem(SFX_MUTE_KEY, String(next));
     } catch {}
     return next;
-  };
+  }, [isMuted]);
 
   const getMuted = isMuted;
 

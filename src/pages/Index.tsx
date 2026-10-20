@@ -8,6 +8,7 @@ import { Navigation } from '@/components/Navigation';
 
 import { WinstreakBadge } from '@/components/WinstreakBadge';
 import { Clock, Loader2 } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTodayCard, useHasCollectedToday, useCollectCard, useUserCards, useAllCards, isCardNew, useLastDailyCardAt } from '@/hooks/useCards';
 import { useUserStreak, useUpdateStreak } from '@/hooks/useWinstreak';
@@ -18,7 +19,7 @@ import { useSfx } from '@/hooks/useSfx';
 const flipzLogo = '/flipz-logo-new.png';
 
 // Isolated timer component to avoid re-rendering the entire page every second
-const CountdownTimer = ({ lastCollectedAt, timerHours = 12 }: { lastCollectedAt: Date | null | undefined, timerHours?: number }) => {
+const CountdownTimer = ({ lastCollectedAt, timerMinutes = 1 }: { lastCollectedAt: Date | null | undefined, timerMinutes?: number }) => {
   const { t } = useTranslation();
   const timerRef = useRef<HTMLSpanElement>(null);
   const [isAvailable, setIsAvailable] = useState(false);
@@ -28,7 +29,7 @@ const CountdownTimer = ({ lastCollectedAt, timerHours = 12 }: { lastCollectedAt:
       let remaining = 0;
       
       if (lastCollectedAt) {
-        const timerMs = timerHours * 60 * 60 * 1000;
+        const timerMs = timerMinutes * 60 * 1000;
         const unlocksAt = lastCollectedAt.getTime() + timerMs;
         const now = Date.now();
         
@@ -54,7 +55,7 @@ const CountdownTimer = ({ lastCollectedAt, timerHours = 12 }: { lastCollectedAt:
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
-  }, [lastCollectedAt]);
+  }, [lastCollectedAt, timerMinutes]);
 
   return (
     <div data-tour="timer" className="relative flex items-center gap-2 bg-card/80 px-5 py-2.5 rounded-full mb-4 mt-[-0.5rem] timer-glow-border">
@@ -103,6 +104,16 @@ const Index = () => {
   const hasUpdatedStreakToday = streakData?.last_streak_date === new Date().toISOString().split('T')[0];
   useNotifications(hasCollected, hasUpdatedStreakToday);
 
+  // Invalidate today-card when 1-minute cooldown expires so the new card for this minute is loaded
+  const queryClient = useQueryClient();
+  const prevHasCollected = useRef(hasCollected);
+  useEffect(() => {
+    if (prevHasCollected.current === true && hasCollected === false) {
+      queryClient.invalidateQueries({ queryKey: ['today-card'] });
+    }
+    prevHasCollected.current = hasCollected;
+  }, [hasCollected, queryClient]);
+
   // Prefetch collection data in background so it's ready when user navigates
   useAllCards();
 
@@ -127,7 +138,7 @@ const Index = () => {
         console.warn('Streak update skipped or blocked by server limit');
       }
       
-      if (result?.code === 'ALREADY_COLLECTED' || result?.bypassed) {
+      if (result?.code === 'ALREADY_COLLECTED') {
         toast.info(t('home.alreadyCollected'));
       } else {
         play('collectSuccess');
@@ -175,7 +186,7 @@ const Index = () => {
 
       {/* Daily card section */}
       <main className="px-4 flex flex-col items-center">
-        <CountdownTimer lastCollectedAt={lastCollectedAt} timerHours={12} />
+        <CountdownTimer lastCollectedAt={lastCollectedAt} timerMinutes={1} />
 
         {isLoading ? (
           <div className="flex items-center justify-center py-20">

@@ -26,21 +26,17 @@ export const CollectionBook = memo(({ allCards, collectedCardIds, cardCountMap, 
       ? allCards 
       : allCards.filter(card => card.rarity === activeRarity);
     
-    if (activeRarity === 'all') {
-      const collected = filtered.filter(c => collectedCardIds.has(c.id));
-      const uncollected = filtered.filter(c => !collectedCardIds.has(c.id));
-      
-      // String comparison is faster than Date parsing
-      collected.sort((a, b) => {
-        const dateA = obtainedAtMap?.get(a.id) || '';
-        const dateB = obtainedAtMap?.get(b.id) || '';
-        return dateB.localeCompare(dateA);
-      });
-      
-      return [...collected, ...uncollected];
-    }
+    const collected = filtered.filter(c => collectedCardIds.has(c.id));
+    const uncollected = filtered.filter(c => !collectedCardIds.has(c.id));
     
-    return filtered;
+    // String comparison: most recently obtained cards first
+    collected.sort((a, b) => {
+      const dateA = obtainedAtMap?.get(a.id) || '';
+      const dateB = obtainedAtMap?.get(b.id) || '';
+      return dateB.localeCompare(dateA);
+    });
+    
+    return [...collected, ...uncollected];
   }, [allCards, activeRarity, collectedCardIds, obtainedAtMap]);
 
   const totalPages = Math.ceil(filteredCards.length / cardsPerPage);

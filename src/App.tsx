@@ -13,6 +13,7 @@ import { ActiveBoostsOverlay } from "@/components/ActiveBoostsOverlay";
 import { GlobalGifsOverlay } from "@/components/GlobalGifsOverlay";
 import { GiftRevealPopup } from "@/components/GiftRevealPopup";
 import { ForceUpdateDialog } from "@/components/ForceUpdateDialog";
+import { TradeInviteNotification } from "@/components/shop/TradeInviteNotification";
 import { useForceUpdate } from "@/hooks/useForceUpdate";
 import { SplashScreen } from "@/components/SplashScreen";
 import { useAuth } from "@/contexts/AuthContext";
@@ -97,6 +98,7 @@ const AppContent = () => {
       <ForceUpdateDialog open={updateRequired} storeUrl={storeUrl} />
       <ParticlesBackground />
       <ActiveBoostsOverlay />
+      <TradeInviteNotification />
       <Suspense fallback={null}><OnboardingTutorial /></Suspense>
       <GlobalGifsOverlay />
       <GiftRevealPopup />
@@ -128,7 +130,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner position="top-center" theme="dark" />
-      <BrowserRouter>
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
         <AuthProvider>
           <AppContent />
         </AuthProvider>

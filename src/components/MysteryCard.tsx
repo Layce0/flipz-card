@@ -42,6 +42,9 @@ export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'm
       requestAnimationFrame(() => {
         requestAnimationFrame(() => setSkipTransition(false));
       });
+    } else if (!isRevealed && flipped) {
+      // Cooldown expired or reset: turn the card face down again
+      setFlipped(false);
     } else if (skipTransition) {
       // Clear skip flag after initial mount
       requestAnimationFrame(() => {
@@ -75,13 +78,15 @@ export const MysteryCard = memo(({ card, isRevealed = false, onReveal, size = 'm
   };
 
   const handleClick = () => {
-    if (!flipped && onReveal) {
-      setFlipped(true);
-      play('cardFlip');
-      if (card.rarity === 'legendary' || card.rarity === 'epic') {
-        play('legendaryReveal');
+    if (onReveal) {
+      if (!flipped) {
+        setFlipped(true);
+        play('cardFlip');
+        if (card.rarity === 'legendary' || card.rarity === 'epic') {
+          play('legendaryReveal');
+        }
+        spawnParticles();
       }
-      spawnParticles();
       onReveal();
     }
   };
