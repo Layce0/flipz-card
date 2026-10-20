@@ -627,7 +627,7 @@ export const useCollectCard = () => {
 
           if (resetRes?.data?.success) {
             const retryRes = await invokeEdgeFunction('collect-daily-card', {
-              body: {},
+              body: { cardId },
             });
             if (retryRes?.data && !retryRes?.data?.error && retryRes?.data?.code !== 'ALREADY_COLLECTED') {
               data = retryRes.data;

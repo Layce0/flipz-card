@@ -42,7 +42,13 @@ Deno.serve(async (req) => {
     const userId = user.id;
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
-    // 1. Determine today's card (same seeded logic as client)
+    // 1. Determine today's card
+    let requestCardId: string | null = null;
+    try {
+      const body = await req.json();
+      requestCardId = body?.cardId ?? null;
+    } catch {}
+
     const now = new Date();
     const today = now.toISOString().split("T")[0];
     const period = Math.floor(now.getTime() / (60 * 1000));
@@ -65,7 +71,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Seeded random — must match client logic exactly
+    // Seeded random fallback
     const seed = `${today}-${period}-${userId}`;
     let hash = 0;
     for (let i = 0; i < seed.length; i++) {
@@ -73,12 +79,16 @@ Deno.serve(async (req) => {
       hash |= 0; // force 32-bit
     }
     const index = Math.abs(hash) % cards.length;
-    const todayCard = cards[index];
+    const fallbackTodayCard = cards[index];
+
+    // Priority: always use the exact card the client displayed (cardId from body).
+    // Only fall back to seeded random if no valid cardId was provided.
+    const matchingCard = requestCardId ? cards.find((c: any) => c.id === requestCardId) : null;
+    const finalCard = matchingCard ?? fallbackTodayCard;
 
     const oneMinuteAgo = new Date(now.getTime() - 1 * 60 * 1000);
 
     // 2. Atomically claim the cooldown slot in the database.
-    //    This avoids stale REST schema-cache issues when reading/updating new profile columns.
     const { data: claimed, error: claimError } = await adminClient.rpc("claim_daily_card_cooldown", {
       _user_id: userId,
       _claimed_at: now.toISOString(),
@@ -88,9 +98,8 @@ Deno.serve(async (req) => {
     if (claimError) throw claimError;
 
     if (!claimed) {
-      // Another concurrent request already claimed the slot
       return new Response(
-        JSON.stringify({ success: true, code: 'ALREADY_COLLECTED', card: todayCard }),
+        JSON.stringify({ success: true, code: 'ALREADY_COLLECTED', card: finalCard }),
         {
           status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -101,12 +110,12 @@ Deno.serve(async (req) => {
     // 4. Insert the card now that we hold the exclusive claim
     const { error: insertError } = await adminClient
       .from("user_cards")
-      .insert({ user_id: userId, card_id: todayCard.id });
+      .insert({ user_id: userId, card_id: finalCard.id });
 
     if (insertError) throw insertError;
 
     return new Response(
-      JSON.stringify({ success: true, card: todayCard }),
+      JSON.stringify({ success: true, card: finalCard }),
       {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
