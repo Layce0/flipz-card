@@ -6,7 +6,7 @@ interface SeoProps {
   path: string;
 }
 
-const SITE_URL = "https://layce0.github.io/daily-card-quest";
+const SITE_URL = "https://layce0.github.io/flipz-card";
 
 export const Seo = ({ title, description, path }: SeoProps) => {
   const url = `${SITE_URL}${path}`;
