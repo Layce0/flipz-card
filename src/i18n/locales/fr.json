@@ -220,7 +220,13 @@
     "rarityEpicDesc": "Rares et précieuses, reconnaissables à leur violet éclatant.",
     "rarityLegendaryTitle": "Les Légendaires",
     "rarityLegendaryDesc": "Les plus rares du jeu, dorées et prestigieuses !",
-    "stepTradeTitle": "Échange tes doublons",
-    "stepTradeDesc": "Ici, tu peux échanger tes doublons contre de nouveaux packs. Essaie dès qu'un doublon apparaît !"
+    "stepTradeTitle": "Le Système d'Échange",
+    "stepTradeDesc": "Accède ici aux 3 modes d'échanges : direct P2P entre joueurs, marché communautaire et recyclage !",
+    "stepTradeP2PTitle": "Échanges P2P en direct (Style Roblox)",
+    "stepTradeP2PDesc": "Échange en temps réel avec tes amis ou en salon public : partage ton code, place cartes et fioles sur la table de trade et valide en direct !",
+    "stepTradeMarketTitle": "Le Marché Communautaire",
+    "stepTradeMarketDesc": "Vends tes cartes rares ou achète celles qu'il te manque auprès des autres joueurs en utilisant tes fioles de chance.",
+    "stepTradeRecycleTitle": "Recyclage de Doublons",
+    "stepTradeRecycleDesc": "Convertis automatiquement tes doublons contre des packs mystères gratuits pour enrichir ta collection !"
   }
 }

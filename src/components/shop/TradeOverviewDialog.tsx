@@ -181,8 +181,8 @@ export const TradeOverviewDialog = ({ userCards }: TradeOverviewDialogProps) => 
       <DialogContent className={cn(
         "overflow-hidden flex flex-col p-0 border shadow-2xl transition-all duration-300 text-white [&>button]:hidden",
         tradeMode === 'p2p' && (isP2PSessionActive || session)
-          ? "max-w-4xl w-full max-h-[94vh] rounded-2xl sm:rounded-3xl bg-[#090a16] border-purple-500/30"
-          : "max-w-xl w-full max-h-[92vh] rounded-2xl sm:rounded-3xl bg-[#0c0d18] border-purple-500/30 shadow-[0_20px_60px_rgba(0,0,0,0.85),0_0_40px_rgba(112,26,117,0.25)]"
+          ? "max-w-4xl lg:max-w-5xl w-full max-h-[94vh] rounded-2xl sm:rounded-3xl bg-[#090a16] border-purple-500/30"
+          : "max-w-xl md:max-w-3xl w-full max-h-[92vh] rounded-2xl sm:rounded-3xl bg-[#0c0d18] border-purple-500/30 shadow-[0_20px_60px_rgba(0,0,0,0.85),0_0_40px_rgba(112,26,117,0.25)]"
       )}>
         <DialogTitle className="sr-only">Échanges FLIPZ</DialogTitle>
         <DialogDescription className="sr-only">Interface d'échange de cartes et d'objets entre joueurs</DialogDescription>

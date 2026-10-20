@@ -43,7 +43,9 @@ const TOUR_STEPS: SpotlightStep[] = [
   { selector: '[data-tour="rarity-tab-epic"]', titleKey: 'onboarding.rarityEpicTitle', descKey: 'onboarding.rarityEpicDesc', position: 'bottom', interaction: 'none', onPage: '/collection' },
   { selector: '[data-tour="rarity-tab-legendary"]', titleKey: 'onboarding.rarityLegendaryTitle', descKey: 'onboarding.rarityLegendaryDesc', position: 'bottom', interaction: 'none', onPage: '/collection' },
   { selector: '[data-tour="nav-shop"]', titleKey: 'onboarding.step6Title', descKey: 'onboarding.step6Desc', position: 'top', interaction: 'click-target', navigateTo: '/shop' },
-  { selector: '[data-tour="trade-button"]', titleKey: 'onboarding.stepTradeTitle', descKey: 'onboarding.stepTradeDesc', position: 'bottom', interaction: 'none', onPage: '/shop' },
+  { selector: '[data-tour="trade-button"]', titleKey: 'onboarding.stepTradeP2PTitle', descKey: 'onboarding.stepTradeP2PDesc', position: 'bottom', interaction: 'none', onPage: '/shop' },
+  { selector: '[data-tour="trade-button"]', titleKey: 'onboarding.stepTradeMarketTitle', descKey: 'onboarding.stepTradeMarketDesc', position: 'bottom', interaction: 'none', onPage: '/shop' },
+  { selector: '[data-tour="trade-button"]', titleKey: 'onboarding.stepTradeRecycleTitle', descKey: 'onboarding.stepTradeRecycleDesc', position: 'bottom', interaction: 'none', onPage: '/shop' },
 ];
 
 interface Rect {

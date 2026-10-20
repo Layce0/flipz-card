@@ -23,7 +23,7 @@ export const PackSection = memo(({
 }: PackSectionProps) => {
   return (
     <section className="space-y-4">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
         {packs.map((pack) => (
           <PackCard
             key={pack.id}

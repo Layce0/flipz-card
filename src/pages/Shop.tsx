@@ -212,23 +212,25 @@ const Shop = () => {
       <div className="fixed bottom-[0%] left-[20%] w-[50%] h-[50%] rounded-full bg-purple-500/10 blur-[120px] pointer-events-none" />
 
       {/* Header */}
-      <header className="relative pt-12 pb-4 px-4 bg-transparent border-b border-white/10">
-        <div className="flex items-center gap-4 mb-4">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/5 flex items-center justify-center glow-gold">
-            <Sparkles className="w-7 h-7 text-primary" />
+      <header className="relative pt-10 md:pt-14 pb-6 px-4 md:px-8 bg-transparent border-b border-white/10">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/5 flex items-center justify-center glow-gold shrink-0">
+              <Sparkles className="w-7 h-7 text-primary" />
+            </div>
+            <div>
+              <h1 className="font-display text-2xl md:text-3xl font-bold text-gradient-gold">{t('shop.title')}</h1>
+              <p className="text-sm text-muted-foreground">{t('shop.subtitle')}</p>
+            </div>
           </div>
-          <div>
-            <h1 className="font-display text-3xl font-bold text-gradient-gold">{t('shop.title')}</h1>
-            <p className="text-sm text-muted-foreground">{t('shop.subtitle')}</p>
+          <div className="flex flex-wrap gap-2.5">
+            <TradeOverviewDialog userCards={userCards || []} />
+            <PackProbabilitiesDialog />
           </div>
-        </div>
-        <div className="flex gap-2">
-          <TradeOverviewDialog userCards={userCards || []} />
-          <PackProbabilitiesDialog />
         </div>
       </header>
 
-      <main className="px-4 space-y-8 mt-6 relative z-10">
+      <main className="max-w-6xl mx-auto px-4 md:px-8 space-y-10 mt-8 relative z-10">
         {verifyingPurchase ? (
           <div className="flex flex-col items-center justify-center py-12 gap-4">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />

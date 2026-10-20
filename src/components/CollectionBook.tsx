@@ -1,5 +1,5 @@
 import { cardDisplayColor, rarityBadgeStyle } from '@/lib/boosterAppearance';
-import { useState, useMemo, memo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, memo, useCallback, useRef } from 'react';
 import { GameCard, Rarity, RARITY_CONFIG } from '@/types/card';
 import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight, HelpCircle, Lock } from 'lucide-react';
@@ -19,7 +19,15 @@ interface CollectionBookProps {
 export const CollectionBook = memo(({ allCards, collectedCardIds, cardCountMap, obtainedAtMap, activeRarity, newCardIds, onCardClick }: CollectionBookProps) => {
   const [currentPage, setCurrentPage] = useState(0);
   const [flipDirection, setFlipDirection] = useState<'next' | 'prev' | null>(null);
-  const cardsPerPage = 4;
+  const [isDesktop, setIsDesktop] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsDesktop(window.innerWidth >= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const cardsPerPage = isDesktop ? 8 : 4;
 
   const filteredCards = useMemo(() => {
     const filtered = activeRarity === 'all' 
@@ -78,15 +86,15 @@ export const CollectionBook = memo(({ allCards, collectedCardIds, cardCountMap, 
   }, [currentPage, totalPages]);
 
   return (
-    <div className="relative">
-      <div className="relative bg-gradient-to-br from-amber-900/30 via-card to-amber-900/20 rounded-2xl border-2 border-amber-700/30 p-4 min-h-[500px] shadow-2xl">
-        <div className="absolute left-1/2 top-0 bottom-0 w-1 -translate-x-1/2 bg-gradient-to-b from-amber-700/50 via-amber-600/30 to-amber-700/50" />
+    <div className="relative max-w-5xl mx-auto">
+      <div className="relative bg-gradient-to-br from-amber-950/40 via-card to-amber-950/30 rounded-2xl md:rounded-3xl border-2 border-amber-700/40 p-4 sm:p-6 md:p-8 min-h-[480px] md:min-h-[580px] shadow-2xl">
+        <div className="absolute left-1/2 top-0 bottom-0 w-1 md:w-2 -translate-x-1/2 bg-gradient-to-b from-amber-700/60 via-amber-500/40 to-amber-700/60 shadow-[0_0_12px_rgba(217,119,6,0.3)] z-0" />
         <div className="absolute inset-2 bg-gradient-to-r from-amber-50/5 via-transparent to-amber-50/5 rounded-xl pointer-events-none" />
         
         <div
-          key={currentPage}
+          key={`${currentPage}-${cardsPerPage}`}
           className={cn(
-            "grid grid-cols-2 gap-4 relative z-10 [transform-style:preserve-3d]",
+            "grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-5 relative z-10 [transform-style:preserve-3d]",
             flipDirection === 'next' && "animate-page-flip-next",
             flipDirection === 'prev' && "animate-page-flip-prev"
           )}

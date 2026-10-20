@@ -220,7 +220,13 @@
     "rarityEpicDesc": "Raras y valiosas, se reconocen por su morado vivo.",
     "rarityLegendaryTitle": "Las Legendarias",
     "rarityLegendaryDesc": "¡Las más raras del juego, doradas y prestigiosas!",
-    "stepTradeTitle": "Intercambia tus duplicados",
-    "stepTradeDesc": "Aquí puedes intercambiar duplicados por nuevos packs. ¡Pruébalo cuando tengas uno!"
+    "stepTradeTitle": "El Sistema de Intercambio",
+    "stepTradeDesc": "¡Accede a los 3 modos: intercambio directo P2P, mercado comunitario y reciclaje de duplicados!",
+    "stepTradeP2PTitle": "Intercambios P2P en directo (Estilo Roblox)",
+    "stepTradeP2PDesc": "¡Intercambia en tiempo real con amigos o en salas públicas: comparte tu código, coloca cartas y pociones de suerte en la mesa de trade y confirma!",
+    "stepTradeMarketTitle": "El Mercado Comunitario",
+    "stepTradeMarketDesc": "Vende cartas duplicadas o compra las que te faltan a otros jugadores usando pociones de suerte.",
+    "stepTradeRecycleTitle": "Reciclaje de Duplicados",
+    "stepTradeRecycleDesc": "¡Convierte tus duplicados en sobres misteriosos gratuitos para completar tu álbum!"
   }
 }

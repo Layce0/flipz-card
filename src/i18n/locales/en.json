@@ -220,7 +220,13 @@
     "rarityEpicDesc": "Rare and valuable, spot them by their bright purple.",
     "rarityLegendaryTitle": "Legendary cards",
     "rarityLegendaryDesc": "The rarest of them all — golden and prestigious!",
-    "stepTradeTitle": "Trade your duplicates",
-    "stepTradeDesc": "Trade duplicate cards for new packs. Give it a try as soon as you have a duplicate!"
+    "stepTradeTitle": "The Trading System",
+    "stepTradeDesc": "Access all 3 trade modes: live P2P trading with players, community marketplace, and duplicate recycling!",
+    "stepTradeP2PTitle": "Live P2P Trading (Roblox Style)",
+    "stepTradeP2PDesc": "Trade in real-time with friends or public rooms: share your code, place cards & lucky potions on the trade table, and confirm live!",
+    "stepTradeMarketTitle": "Community Marketplace",
+    "stepTradeMarketDesc": "Sell duplicate cards or buy missing ones from other players using lucky potions.",
+    "stepTradeRecycleTitle": "Duplicate Recycling",
+    "stepTradeRecycleDesc": "Automatically turn your duplicates into free mystery packs to expand your album!"
   }
 }
