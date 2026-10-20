@@ -10,7 +10,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { AdminRoute } from "@/components/AdminRoute";
 import { ParticlesBackground } from "@/components/ParticlesBackground";
 import { ActiveBoostsOverlay } from "@/components/ActiveBoostsOverlay";
-import { GlobalGifsOverlay } from "@/components/GlobalGifsOverlay";
+import { GlobalGifsOverlay, isCanvasPreview } from "@/components/GlobalGifsOverlay";
 import { GiftRevealPopup } from "@/components/GiftRevealPopup";
 import { ForceUpdateDialog } from "@/components/ForceUpdateDialog";
 import { TradeInviteNotification } from "@/components/shop/TradeInviteNotification";
@@ -86,6 +86,7 @@ const AppContent = () => {
   useAdMob(); // Préchargement global immédiat des pubs AdMob dès le lancement
   const { updateRequired, storeUrl } = useForceUpdate();
   const { isLoading: isAuthLoading } = useAuth();
+  const { pathname } = useLocation();
   return (
     <div className="relative min-h-screen pt-[env(safe-area-inset-top,24px)]">
       <SplashScreen isAuthReady={!isAuthLoading} />
@@ -95,13 +96,13 @@ const AppContent = () => {
         className="fixed top-0 left-0 right-0 bg-[#0a0a0a] z-[100]" 
         style={{ height: 'env(safe-area-inset-top, 24px)' }} 
       />
-      <ForceUpdateDialog open={updateRequired} storeUrl={storeUrl} />
+      <ForceUpdateDialog open={updateRequired && !isCanvasPreview} storeUrl={storeUrl} />
       <ParticlesBackground />
       <ActiveBoostsOverlay />
       <TradeInviteNotification />
-      <Suspense fallback={null}><OnboardingTutorial /></Suspense>
+      {!isCanvasPreview && !pathname.startsWith("/admin") && <Suspense fallback={null}><OnboardingTutorial /></Suspense>}
       <GlobalGifsOverlay />
-      <GiftRevealPopup />
+      {!isCanvasPreview && <GiftRevealPopup />}
       <main>
         <Suspense fallback={<div className="flex items-center justify-center min-h-screen text-muted-foreground">Chargement...</div>}>
           <Routes>
